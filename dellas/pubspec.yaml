@@ -1,0 +1,49 @@
+name: dellas
+description: A new Flutter project.
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=2.17.1 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  shared_preferences: ^2.0.11
+  qr_code_scanner: ^1.0.0
+  sqflite: ^2.0.2+1
+  cupertino_icons: ^1.0.0
+  path: ^1.8.0
+  uuid: ^3.0.5 
+  http: ^0.13.4
+  http_interceptor: ^1.0.2
+  flutter_beep: ^1.0.0
+  flutter_blue:
+    git:
+        url: https://github.com/boskokg/flutter_blue/
+        ref: 0.13.0
+  animated_card: ^2.0.0
+  flutter_blue_plus: ^1.14.11
+
+module:
+  androidX: true
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/img/
+
+  fonts:
+    - family: ArmazenamentoApp
+      fonts:
+        - asset: assets/fonts/ArmazenamentoApp.ttf
+    - family: EcoFont
+      fonts:
+        - asset: assets/fonts/EcoFont.ttf
