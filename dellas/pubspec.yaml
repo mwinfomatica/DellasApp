@@ -20,10 +20,10 @@ dependencies:
   http: ^0.13.4
   http_interceptor: ^1.0.2
   flutter_beep: ^1.0.0
-  flutter_blue:
-    git:
-        url: https://github.com/boskokg/flutter_blue/
-        ref: 0.13.0
+  flutter_blue: 0.8.0
+    # git:
+    #     url: https://github.com/boskokg/flutter_blue/
+    #     ref: 0.10.0
   animated_card: ^2.0.0
   flutter_blue_plus: ^1.14.11
 

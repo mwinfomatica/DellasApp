@@ -23,6 +23,7 @@ class ContextoModel {
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['leituraExterna'] = this.leituraExterna;
+    data['descLeituraExterna'] = this.descLeituraExterna;
     data['nameDevice'] = this.nameDevice;
     data['uuidDevice'] = this.uuidDevice;
     data['enderecoGrupo'] = this.enderecoGrupo;

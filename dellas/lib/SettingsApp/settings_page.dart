@@ -59,7 +59,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _monitoringBlue() {
-    if (contextoModel != null && !contextoModel.leituraExterna) {
+    if (contextoModel != null && contextoModel.leituraExterna) {
       //Monitorando devices conectados
       flutterBlue.connectedDevices
           .asStream()
@@ -149,13 +149,14 @@ class _SettingsPageState extends State<SettingsPage> {
               color: contextoModel.leituraExterna ? primaryColor : Colors.red,
             ),
           ),
-          Visibility(
-            visible: contextoModel.leituraExterna == true,
-            child: Divider(
-              color: primaryColor,
-              height: 1,
-            ),
-          ),
+          // Visibility(
+          //   visible: contextoModel.leituraExterna == true,
+          //   child: Divider(
+          //     color: primaryColor,
+          //     height: 1,
+          //   ),
+          // ),
+          if(contextoModel.leituraExterna)
           ...List.generate(devicesNames.length, (index) {
             return ListTile(
               title: Text(devicesNames[index].name.trim().isNotEmpty
