@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">localhost</domain>
+        <!-- Init Julio Local -->
+        <domain includeSubdomains="true">192.168.15.142</domain>
+        <domain includeSubdomains="true">192.168.15.2</domain>
+        <domain includeSubdomains="true">3.224.148.218</domain>
+        <!-- Finish Julio Local -->
+    </domain-config>
+</network-security-config>
