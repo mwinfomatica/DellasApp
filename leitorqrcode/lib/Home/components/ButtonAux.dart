@@ -2,19 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:leitorqrcode/Components/Constants.dart';
 
 class ButtonAux extends StatefulWidget {
-  final String titulo;
-  final String descricao;
-  final IconData icone;
-  final Function func;
+  final String? titulo;
+  final String? descricao;
+  final IconData? icone;
+  final Function()? func;
   const ButtonAux({
-    Key key,
+    Key? key,
     this.titulo,
     this.descricao,
     this.icone,
     this.func,
   }) : super(key: key);
-  
-  ontap() => func();
+
+  ontap() => func;
 
   @override
   State<ButtonAux> createState() => _ButtonAuxState();
@@ -54,7 +54,7 @@ class _ButtonAuxState extends State<ButtonAux> {
                   height: 10,
                 ),
                 Text(
-                  widget.titulo,
+                  widget.titulo!,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
@@ -64,7 +64,7 @@ class _ButtonAuxState extends State<ButtonAux> {
                   height: 10,
                 ),
                 Text(
-                  widget.descricao,
+                  widget.descricao!,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(

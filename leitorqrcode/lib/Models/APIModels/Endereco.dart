@@ -2,7 +2,7 @@ import 'package:leitorqrcode/Infrastructure/DataBase/DataBase.dart';
 import 'package:sqflite/sqflite.dart';
 
 class EnderecoModel {
-  String cod;
+  String? cod;
 
   EnderecoModel({this.cod});
 
@@ -17,7 +17,8 @@ class EnderecoModel {
   }
 
   insert() async {
-    Database db = await DatabaseHelper.instance.database;;
+    Database db = await DatabaseHelper.instance.database;
+    ;
     await db.insert(
       "endereco",
       toJson(),
@@ -26,16 +27,16 @@ class EnderecoModel {
   }
 
   deleteAll() async {
-    Database db = await DatabaseHelper.instance.database;;
+    Database db = await DatabaseHelper.instance.database;
+    ;
     await db.delete("endereco");
   }
 
-  Future<EnderecoModel> getById(String id) async {
-    Database db = await DatabaseHelper.instance.database;;
+  Future<EnderecoModel?> getById(String id) async {
+    Database db = await DatabaseHelper.instance.database;
+    ;
     var result = await db.query("endereco", where: "cod = ?", whereArgs: [id]);
-    return result.isNotEmpty
-        ? EnderecoModel.fromJson(result.first)
-        : Future<Null>.value(null);
+    return result.isNotEmpty ? EnderecoModel.fromJson(result.first) : null;
   }
 
   EnderecoModel.fromJsonList(List<Map<String, dynamic>> jsonList) {
@@ -45,7 +46,8 @@ class EnderecoModel {
   }
 
   Future<List<EnderecoModel>> get() async {
-    Database db = await DatabaseHelper.instance.database;;
+    Database db = await DatabaseHelper.instance.database;
+    ;
     var result = await db.query("endereco");
     List<EnderecoModel> list = [];
 

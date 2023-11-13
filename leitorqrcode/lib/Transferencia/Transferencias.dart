@@ -14,7 +14,7 @@ class TransferenciasScreen extends StatefulWidget {
 }
 
 class _TransferenciasScreenState extends State<TransferenciasScreen> {
-  OperacaoModel op;
+  OperacaoModel? op;
 
   @override
   void initState() {
@@ -89,11 +89,11 @@ class _TransferenciasScreenState extends State<TransferenciasScreen> {
     List<retiradaprodModel> prodRetirada = [];
     if (op != null) {
       List<ProdutoModel> prods =
-          await new ProdutoModel().getByIdOperacao(op.id);
+          await new ProdutoModel().getByIdOperacao(op!.id!);
       if (prods.length == 0)
-        op.prods = [];
+        op!.prods = [];
       else
-        op.prods = prods;
+        op!.prods = prods;
     } else {
       op = new OperacaoModel(
         cnpj: "",
@@ -103,9 +103,9 @@ class _TransferenciasScreenState extends State<TransferenciasScreen> {
         tipo: "41",
         prods: [],
       );
-      await op.insert();
+      await op!.insert();
     }
     setState(() {});
-    return op;
+    return op!;
   }
 }

@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:leitorqrcode/Components/Constants.dart';
 
 class ButtonHome extends StatelessWidget {
-  final String titulo;
-  final String descricao;
-  final IconData icone;
-  final Function onTap;
+  final String? titulo;
+  final String? descricao;
+  final IconData? icone;
+  final Function()? onTap;
 
   const ButtonHome({
-    Key key,
+    Key? key,
     this.titulo,
     this.descricao,
     this.icone,
@@ -21,7 +21,7 @@ class ButtonHome extends StatelessWidget {
       borderRadius: BorderRadius.circular(10),
       color: Colors.white,
       child: InkWell(
-         borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(10),
         onTap: onTap,
         child: Container(
           decoration: BoxDecoration(
@@ -33,8 +33,8 @@ class ButtonHome extends StatelessWidget {
           ),
           width: (MediaQuery.of(context).size.width * 0.4),
           child: Padding(
-            padding: const EdgeInsets.only(
-                left: 10, top: 20, right: 10, bottom: 20),
+            padding:
+                const EdgeInsets.only(left: 10, top: 20, right: 10, bottom: 20),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -48,7 +48,7 @@ class ButtonHome extends StatelessWidget {
                   height: 10,
                 ),
                 Text(
-                  titulo,
+                  titulo!,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
@@ -58,7 +58,7 @@ class ButtonHome extends StatelessWidget {
                   height: 10,
                 ),
                 Text(
-                  descricao,
+                  descricao!,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(

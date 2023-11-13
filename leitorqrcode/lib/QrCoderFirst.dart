@@ -22,10 +22,10 @@ import 'package:f_logs/f_logs.dart' as logging;
 import 'Components/Constants.dart';
 
 class QrCoderFirst extends StatefulWidget {
-  final int tipo;
+  final int? tipo;
 
   const QrCoderFirst({
-    Key key,
+    Key? key,
     this.tipo,
   }) : super(key: key);
 
@@ -38,8 +38,8 @@ class _QrCoderFirstState extends State<QrCoderFirst> {
   ContextoModel contextoModel = ContextoModel(
     leituraExterna: false,
   );
-  Barcode result;
-  QRViewController controller;
+  Barcode? result;
+  QRViewController? controller;
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
   String textoCentral = "Posicione a câmera \n em frente ao código QR";
   String resultado = "";
@@ -48,16 +48,16 @@ class _QrCoderFirstState extends State<QrCoderFirst> {
 
   TextEditingController inputController = TextEditingController();
   FocusNode inputFocusNode = FocusNode();
-  AnimationController animationController;
+  AnimationController? animationController;
   bool progress = false;
   bool bluetoothDisconect = true;
 
   String textExterno = "";
   final FlutterBlue flutterBlue = FlutterBlue.instance;
-  BluetoothDevice device;
-  BluetoothCharacteristic cNotify2;
-  StreamSubscription<List<int>> sub2;
-  Timer temp;
+  BluetoothDevice? device;
+  BluetoothCharacteristic? cNotify2;
+  StreamSubscription<List<int>>? sub2;
+  Timer? temp;
 
   Future<void> getContexto() async {
     contextoModel = await contextoServices.getContexto();
@@ -88,8 +88,8 @@ class _QrCoderFirstState extends State<QrCoderFirst> {
           //   dataLogType: logging.DataLogType.DEVICE.toString(),
           // );
 
-          if (contextoModel.uuidDevice.isNotEmpty &&
-              dev.id.id.trim() == contextoModel.uuidDevice.trim()) {
+          if (contextoModel.uuidDevice!.isNotEmpty &&
+              dev.id.id.trim() == contextoModel.uuidDevice!.trim()) {
             device = dev;
             scanner();
           }
@@ -111,8 +111,8 @@ class _QrCoderFirstState extends State<QrCoderFirst> {
           //   dataLogType: logging.DataLogType.DEVICE.toString(),
           // );
 
-          if (contextoModel.uuidDevice.isNotEmpty &&
-              result.device.id.id.trim() == contextoModel.uuidDevice.trim()) {
+          if (contextoModel.uuidDevice!.isNotEmpty &&
+              result.device.id.id.trim() == contextoModel.uuidDevice!.trim()) {
             device = result.device;
             scanner();
           }
@@ -125,7 +125,7 @@ class _QrCoderFirstState extends State<QrCoderFirst> {
 
   setTimer(String texto) {
     if (temp != null) {
-      temp.cancel();
+      temp!.cancel();
       temp = null;
     }
 
@@ -139,9 +139,9 @@ class _QrCoderFirstState extends State<QrCoderFirst> {
     if (device != null) {
       await flutterBlue.stopScan();
       try {
-        await device.connect();
+        await device!.connect();
       } catch (e) {
-        if (e.code == 'already_connected') {
+        if (e == 'already_connected') {
           bluetoothDisconect = false;
           // throw e;
         } else {
@@ -153,7 +153,7 @@ class _QrCoderFirstState extends State<QrCoderFirst> {
         // await device.requestMtu(512);
       }
 
-      device.state.listen((BluetoothDeviceState event) {
+      device!.state.listen((BluetoothDeviceState event) {
         if (event == BluetoothDeviceState.disconnected) {
           bluetoothDisconect = true;
         }
@@ -163,10 +163,10 @@ class _QrCoderFirstState extends State<QrCoderFirst> {
         setState(() {});
       });
 
-      List<BluetoothService> _services = await device.discoverServices();
+      List<BluetoothService> _services = await device!.discoverServices();
 
       if (cNotify2 != null) {
-        sub2.cancel();
+        sub2!.cancel();
       }
 
       for (BluetoothService service in _services) {
@@ -175,7 +175,7 @@ class _QrCoderFirstState extends State<QrCoderFirst> {
           if (characteristic.properties.notify) {
             cNotify2 = characteristic;
 
-            sub2 = cNotify2.value.listen(
+            sub2 = cNotify2!.value.listen(
               (value) {
                 textExterno += String.fromCharCodes(value);
                 if (textExterno != "") {
@@ -183,7 +183,7 @@ class _QrCoderFirstState extends State<QrCoderFirst> {
                 }
               },
             );
-            await cNotify2.setNotifyValue(true);
+            await cNotify2!.setNotifyValue(true);
 
             setState(() {});
           }
@@ -198,7 +198,7 @@ class _QrCoderFirstState extends State<QrCoderFirst> {
   void _readCodes(String scanData) async {
     textExterno = "";
     if (temp != null) {
-      temp.cancel();
+      temp!.cancel();
       temp = null;
     }
 
@@ -213,48 +213,48 @@ class _QrCoderFirstState extends State<QrCoderFirst> {
         OperacaoModel opRead = OperacaoModel.fromJson(jsonDecode(scanData));
 
         if (widget.tipo == 1) {
-          OperacaoModel opDB =
-              await new OperacaoModel().getModelById(opRead.id);
+          OperacaoModel? opDB =
+              await new OperacaoModel().getModelById(opRead.id!);
 
           if (opDB == null || opDB.id == null) {
-            opRead.prods = await _getProdutosInServer(opRead.id);
+            opRead.prods = await _getProdutosInServer(opRead.id!);
 
             if (opRead.prods != null) {
               await opRead.insert();
 
-              for (int i = 0; i < opRead.prods.length; i++) {
-                ProdutoModel prodDB =
-                    await new ProdutoModel().getById(opRead.prods[i].id);
+              for (int i = 0; i < opRead.prods!.length; i++) {
+                ProdutoModel? prodDB =
+                    await new ProdutoModel().getById(opRead.prods![i].id!);
                 if (prodDB == null || prodDB.id == null) {
-                  opRead.prods[i].idOperacao = opRead.id;
-                  await opRead.prods[i].insert();
+                  opRead.prods![i].idOperacao = opRead.id;
+                  await opRead.prods![i].insert();
                 } else {
-                  opRead.prods[i] = prodDB;
+                  opRead.prods![i] = prodDB;
                 }
               }
             } else
               opRead.prods = [];
           } else {
-            opRead.prods = await ProdutoModel().getByIdOperacao(opRead.id);
-            if (opRead.prods == null || opRead.prods.length == 0) {
-              opRead.prods = await _getProdutosInServer(opRead.id);
-              for (int i = 0; i < opRead.prods.length; i++) {
-                ProdutoModel prodDB =
-                    await new ProdutoModel().getById(opRead.prods[i].id);
+            opRead.prods = await ProdutoModel().getByIdOperacao(opRead.id!);
+            if (opRead.prods == null || opRead.prods!.length == 0) {
+              opRead.prods = await _getProdutosInServer(opRead.id!);
+              for (int i = 0; i < opRead.prods!.length; i++) {
+                ProdutoModel? prodDB =
+                    await new ProdutoModel().getById(opRead.prods![i].id!);
                 if (prodDB == null || prodDB.id == null) {
-                  opRead.prods[i].idOperacao = opRead.id;
-                  await opRead.prods[i].insert();
+                  opRead.prods![i].idOperacao = opRead.id;
+                  await opRead.prods![i].insert();
                 } else {
-                  opRead.prods[i] = prodDB;
+                  opRead.prods![i] = prodDB;
                 }
               }
             }
           }
 
-          getTitlePageOp(opRead.tipo);
+          getTitlePageOp(opRead.tipo!);
 
           Navigator.pop(context);
-          if (opRead.prods == null || opRead.prods.length == 0) {
+          if (opRead.prods == null || opRead.prods!.length == 0) {
             FlutterBeep.beep(false);
             Dialogs.showToast(
                 context, "Nenhum produto encontrado para o pedido.",
@@ -272,20 +272,20 @@ class _QrCoderFirstState extends State<QrCoderFirst> {
               MaterialPageRoute(
                 builder: (BuildContext context) => Apuracao(
                   titulo: titlePageOp +
-                      (opRead.nrdoc != null ? "\n" + opRead.nrdoc : ""),
+                      (opRead.nrdoc != null ? "\n" + opRead.nrdoc! : ""),
                   operacaoModel: opRead,
                 ),
               ),
             );
           }
         } else if (widget.tipo == 2) {
-          OperacaoModel opDB = await new OperacaoModel()
-              .getModelByNumDocTipo(opRead.nrdoc, "20");
+          OperacaoModel? opDB = await new OperacaoModel()
+              .getModelByNumDocTipo(opRead.nrdoc!, "20");
 
           if (opDB == null || opDB.id == null) {
-            opRead.prods = await _getProdutosInServerDevolucao(opRead.id);
+            opRead.prods = await _getProdutosInServerDevolucao(opRead.id!);
 
-            if (opRead.prods != null && opRead.prods.length > 0) {
+            if (opRead.prods != null && opRead.prods!.length > 0) {
               OperacaoModel opDev = OperacaoModel(
                 id: new Uuid().v4().toUpperCase(),
                 cnpj: "03316661000119",
@@ -296,23 +296,23 @@ class _QrCoderFirstState extends State<QrCoderFirst> {
 
               await opDev.insert();
 
-              for (int i = 0; i < opRead.prods.length; i++) {
+              for (int i = 0; i < opRead.prods!.length; i++) {
                 ProdutoModel prod = ProdutoModel(
                   id: new Uuid().v4().toUpperCase(),
-                  cod: opRead.prods[i].cod,
-                  desc: opRead.prods[i].desc,
-                  end: opRead.prods[i].end,
-                  idloteunico: opRead.prods[i].idloteunico,
+                  cod: opRead.prods![i].cod,
+                  desc: opRead.prods![i].desc,
+                  end: opRead.prods![i].end,
+                  idloteunico: opRead.prods![i].idloteunico,
                   idOperacao: opDev.id,
-                  idproduto: opRead.prods[i].idproduto,
-                  idprodutoPedido: opRead.prods[i].idprodutoPedido,
-                  infq: opRead.prods[i].infq,
-                  lote: opRead.prods[i].lote,
-                  nome: opRead.prods[i].nome,
-                  qtd: opRead.prods[i].qtd,
+                  idproduto: opRead.prods![i].idproduto,
+                  idprodutoPedido: opRead.prods![i].idprodutoPedido,
+                  infq: opRead.prods![i].infq,
+                  lote: opRead.prods![i].lote,
+                  nome: opRead.prods![i].nome,
+                  qtd: opRead.prods![i].qtd,
                   situacao: "1",
-                  sl: opRead.prods[i].sl,
-                  vali: opRead.prods[i].vali,
+                  sl: opRead.prods![i].sl,
+                  vali: opRead.prods![i].vali,
                 );
                 prod.isVirtual = "0";
 
@@ -321,7 +321,7 @@ class _QrCoderFirstState extends State<QrCoderFirst> {
 
               getTitlePageOp("20");
 
-              opDev.prods = await ProdutoModel().getByIdOperacao(opDev.id);
+              opDev.prods = await ProdutoModel().getByIdOperacao(opDev.id!);
               await FlutterBeep.beep();
 
               Navigator.pop(context);
@@ -330,7 +330,7 @@ class _QrCoderFirstState extends State<QrCoderFirst> {
                 MaterialPageRoute(
                   builder: (BuildContext context) => DevolucaoOP(
                     titulo: titlePageOp +
-                        (opDev.nrdoc != null ? "\n" + opDev.nrdoc : ""),
+                        (opDev.nrdoc != null ? "\n" + opDev.nrdoc! : ""),
                     operacaoModel: opDev,
                   ),
                 ),
@@ -350,7 +350,7 @@ class _QrCoderFirstState extends State<QrCoderFirst> {
           } else {
             getTitlePageOp("20");
 
-            opDB.prods = await ProdutoModel().getByIdOperacao(opDB.id);
+            opDB.prods = await ProdutoModel().getByIdOperacao(opDB.id!);
 
             await FlutterBeep.beep();
 
@@ -360,20 +360,20 @@ class _QrCoderFirstState extends State<QrCoderFirst> {
               MaterialPageRoute(
                 builder: (BuildContext context) => DevolucaoOP(
                   titulo: titlePageOp +
-                      (opDB.nrdoc != null ? "\n" + opDB.nrdoc : ""),
+                      (opDB.nrdoc != null ? "\n" + opDB.nrdoc! : ""),
                   operacaoModel: opDB,
                 ),
               ),
             );
           }
         } else if (widget.tipo == 3) {
-          OperacaoModel opDB = await new OperacaoModel()
-              .getModelByNumDocTipo(opRead.nrdoc, "22");
+          OperacaoModel? opDB = await new OperacaoModel()
+              .getModelByNumDocTipo(opRead.nrdoc!, "22");
 
           if (opDB == null || opDB.id == null) {
-            opRead.prods = await _getProdutosInServerDevolucao(opRead.id);
+            opRead.prods = await _getProdutosInServerDevolucao(opRead.id!);
 
-            if (opRead.prods != null && opRead.prods.length > 0) {
+            if (opRead.prods != null && opRead.prods!.length > 0) {
               OperacaoModel opDev = OperacaoModel(
                 id: new Uuid().v4().toUpperCase(),
                 cnpj: "03316661000119",
@@ -384,23 +384,23 @@ class _QrCoderFirstState extends State<QrCoderFirst> {
 
               await opDev.insert();
 
-              for (int i = 0; i < opRead.prods.length; i++) {
+              for (int i = 0; i < opRead.prods!.length; i++) {
                 ProdutoModel prod = ProdutoModel(
                   id: new Uuid().v4().toUpperCase(),
-                  cod: opRead.prods[i].cod,
-                  desc: opRead.prods[i].desc,
-                  end: opRead.prods[i].end,
-                  idloteunico: opRead.prods[i].idloteunico,
+                  cod: opRead.prods![i].cod,
+                  desc: opRead.prods![i].desc,
+                  end: opRead.prods![i].end,
+                  idloteunico: opRead.prods![i].idloteunico,
                   idOperacao: opDev.id,
-                  idproduto: opRead.prods[i].idproduto,
-                  idprodutoPedido: opRead.prods[i].idprodutoPedido,
-                  infq: opRead.prods[i].infq,
-                  lote: opRead.prods[i].lote,
-                  nome: opRead.prods[i].nome,
-                  qtd: opRead.prods[i].qtd,
+                  idproduto: opRead.prods![i].idproduto,
+                  idprodutoPedido: opRead.prods![i].idprodutoPedido,
+                  infq: opRead.prods![i].infq,
+                  lote: opRead.prods![i].lote,
+                  nome: opRead.prods![i].nome,
+                  qtd: opRead.prods![i].qtd,
                   situacao: "1",
-                  sl: opRead.prods[i].sl,
-                  vali: opRead.prods[i].vali,
+                  sl: opRead.prods![i].sl,
+                  vali: opRead.prods![i].vali,
                 );
                 prod.isVirtual = "0";
 
@@ -409,7 +409,7 @@ class _QrCoderFirstState extends State<QrCoderFirst> {
 
               getTitlePageOp("21");
 
-              opDev.prods = await ProdutoModel().getByIdOperacao(opDev.id);
+              opDev.prods = await ProdutoModel().getByIdOperacao(opDev.id!);
               await FlutterBeep.beep();
 
               Navigator.pop(context);
@@ -418,7 +418,7 @@ class _QrCoderFirstState extends State<QrCoderFirst> {
                 MaterialPageRoute(
                   builder: (BuildContext context) => DevolucaoOP(
                     titulo: titlePageOp +
-                        (opDev.nrdoc != null ? "\n" + opDev.nrdoc : ""),
+                        (opDev.nrdoc != null ? "\n" + opDev.nrdoc! : ""),
                     operacaoModel: opDev,
                   ),
                 ),
@@ -438,7 +438,7 @@ class _QrCoderFirstState extends State<QrCoderFirst> {
           } else {
             getTitlePageOp("21");
 
-            opDB.prods = await ProdutoModel().getByIdOperacao(opDB.id);
+            opDB.prods = await ProdutoModel().getByIdOperacao(opDB.id!);
 
             await FlutterBeep.beep();
 
@@ -448,7 +448,7 @@ class _QrCoderFirstState extends State<QrCoderFirst> {
               MaterialPageRoute(
                 builder: (BuildContext context) => DevolucaoOP(
                   titulo: titlePageOp +
-                      (opDB.nrdoc != null ? "\n" + opDB.nrdoc : ""),
+                      (opDB.nrdoc != null ? "\n" + opDB.nrdoc! : ""),
                   operacaoModel: opDB,
                 ),
               ),
@@ -488,10 +488,10 @@ class _QrCoderFirstState extends State<QrCoderFirst> {
   @override
   void dispose() {
     if (sub2 != null) {
-      sub2.cancel();
+      sub2!.cancel();
       // device.disconnect();
     }
-    controller.dispose();
+    controller!.dispose();
     super.dispose();
   }
 
@@ -505,9 +505,9 @@ class _QrCoderFirstState extends State<QrCoderFirst> {
   @override
   void reassemble() {
     if (!Platform.isAndroid) {
-      controller.pauseCamera();
+      controller!.pauseCamera();
     }
-    controller.resumeCamera();
+    controller!.resumeCamera();
     super.reassemble();
   }
 
@@ -515,7 +515,7 @@ class _QrCoderFirstState extends State<QrCoderFirst> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: contextoModel != null && !contextoModel.leituraExterna
+        child: contextoModel != null && !contextoModel.leituraExterna!
             ? Stack(
                 children: [
                   _buildQrView(context),
@@ -538,7 +538,7 @@ class _QrCoderFirstState extends State<QrCoderFirst> {
                             GestureDetector(
                               onTap: () async {
                                 if (controller != null)
-                                  controller.toggleFlash();
+                                  controller!.toggleFlash();
 
                                 setState(() {});
                               },
@@ -602,7 +602,7 @@ class _QrCoderFirstState extends State<QrCoderFirst> {
             : QRLeituraExterna(
                 progress: progress,
                 bluetoothDisconect: bluetoothDisconect,
-                bluetoothName: device != null ? device.name : "",
+                bluetoothName: device != null ? device!.name : "",
                 device: device,
               ),
       ),
@@ -633,7 +633,7 @@ class _QrCoderFirstState extends State<QrCoderFirst> {
     });
     controller.scannedDataStream.listen((scanData) async {
       // if (widget.tipo == 1) {
-      _readCodes(scanData.code);
+      _readCodes(scanData.code!);
 
       // }
     });
@@ -665,7 +665,7 @@ class _QrCoderFirstState extends State<QrCoderFirst> {
     if (idOperacao.isNotEmpty)
       return await produtoService.getProdutos(idOperacao);
     else
-      return Future<Null>.value(null);
+      return Future.value(<ProdutoModel>[]);
   }
 
   Future<List<ProdutoModel>> _getProdutosInServerDevolucao(
@@ -675,6 +675,6 @@ class _QrCoderFirstState extends State<QrCoderFirst> {
     if (idOperacao.isNotEmpty)
       return await produtoService.getProdutosDevolucao(idOperacao);
     else
-      return Future<Null>.value(null);
+      return Future.value(<ProdutoModel>[]);
   }
 }

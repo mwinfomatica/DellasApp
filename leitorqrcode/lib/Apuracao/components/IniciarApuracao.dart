@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:leitorqrcode/Components/Constants.dart';
 
 class BotaoIniciarApuracao extends StatelessWidget {
-  final Function onPressed;
-  final String titulo;
+  final Function()? onPressed;
+  final String? titulo;
 
   const BotaoIniciarApuracao({
-    Key key,
+    Key? key,
     this.onPressed,
     this.titulo,
   }) : super(key: key);
@@ -20,7 +20,7 @@ class BotaoIniciarApuracao extends StatelessWidget {
       child: ElevatedButton(
         onPressed: onPressed,
         child: Text(
-          titulo,
+          titulo!,
           style: TextStyle(
             fontSize: 20,
           ),

@@ -42,32 +42,35 @@ class _PedidosVendasState extends State<PedidosVendas> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              listaPedidos[index].nome +
+                              listaPedidos[index].nome! +
                                   " V" +
-                                  listaPedidos[index].codigo.padLeft(4, "0"),
+                                  listaPedidos[index].codigo!.padLeft(4, "0"),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
-                             Text(
+                            Text(
                               listaPedidos[index]
-                                  .datavalidade
-                                  .day
-                                  .toString()
-                                  .padLeft(2, "0") +
-                              "/" +
-                              listaPedidos[index]
-                                  .datavalidade
-                                  .month
-                                  .toString()
-                                  .padLeft(2, "0") +
-                              "/" +
-                              listaPedidos[index].datavalidade.year.toString(),
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: Color.fromRGBO(132, 141, 149, 1),
-                          fontSize: 12,
-                        ),
-                      ),
+                                      .datavalidade!
+                                      .day
+                                      .toString()
+                                      .padLeft(2, "0") +
+                                  "/" +
+                                  listaPedidos[index]
+                                      .datavalidade!
+                                      .month
+                                      .toString()
+                                      .padLeft(2, "0") +
+                                  "/" +
+                                  listaPedidos[index]
+                                      .datavalidade!
+                                      .year
+                                      .toString(),
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Color.fromRGBO(132, 141, 149, 1),
+                                fontSize: 12,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -92,9 +95,9 @@ class _PedidosVendasState extends State<PedidosVendas> {
                     context,
                     MaterialPageRoute(
                       builder: (BuildContext context) => DetalhesProduto(
-                          titulo: listaPedidos[index].nome +
+                          titulo: listaPedidos[index].nome! +
                               " V" +
-                              listaPedidos[index].codigo.padLeft(4, "0"),
+                              listaPedidos[index].codigo!.padLeft(4, "0"),
                           listProd: listaProduto),
                     ),
                   );

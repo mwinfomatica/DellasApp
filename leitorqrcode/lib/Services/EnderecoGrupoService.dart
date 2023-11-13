@@ -12,8 +12,8 @@ class EnderecoGrupoService {
       for (var i = 0; i < ends.length; i++) {
         EnderecoGrupoModel end = new EnderecoGrupoModel();
         end = ends[i];
-        end.codendereco = end.codendereco.trim();
-        end.codgrupo = end.codgrupo.trim();
+        end.codendereco = end.codendereco!.trim();
+        end.codgrupo = end.codgrupo!.trim();
         await end.insert();
       }
     }
@@ -34,10 +34,10 @@ class EnderecoGrupoService {
       if (rtn != null && rtn.error != true) {
         return rtn.endereco;
       } else
-        return Future<Null>.value(null);
+        return Future.value(null);
     } catch (ex) {
       print(ex);
-      return Future<Null>.value(null);
+      return Future.value(null);
     }
   }
 }

@@ -29,9 +29,9 @@ class Inventario extends StatefulWidget {
 }
 
 class _InventarioState extends State<Inventario> {
-  Barcode result;
+  Barcode? result;
   bool reading = false;
-  QRViewController controller;
+  QRViewController? controller;
   final GlobalKey qrAKey = GlobalKey(debugLabel: 'QR');
   final animateListKey = GlobalKey<AnimatedListState>();
   final qtdeProdDialog = TextEditingController();
@@ -39,9 +39,9 @@ class _InventarioState extends State<Inventario> {
   List<ProdutoModel> listProd = [];
   String idOperador = "";
   String nroContagem = "01";
-  String endRead = null;
+  String? endRead = null;
   bool hasAdress = false;
-  OperacaoModel op = null;
+  OperacaoModel? op = null;
   bool showLeituraExterna = false;
   bool leituraExterna = false;
   String tipoLeituraExterna = "endereco";
@@ -53,10 +53,10 @@ class _InventarioState extends State<Inventario> {
 
   String textExterno = "";
   final FlutterBlue flutterBlue = FlutterBlue.instance;
-  BluetoothDevice device;
-  BluetoothCharacteristic cNotify4;
-  StreamSubscription<List<int>> sub4;
-  Timer temp;
+  BluetoothDevice? device;
+  BluetoothCharacteristic? cNotify4;
+  StreamSubscription<List<int>>? sub4;
+  Timer? temp;
 
   Future<void> getContexto() async {
     contextoModel = await contextoServices.getContexto();
@@ -97,9 +97,9 @@ class _InventarioState extends State<Inventario> {
     if (device != null) {
       flutterBlue.stopScan();
       try {
-        await device.connect();
+        await device!.connect();
       } catch (e) {
-        if (e.code == 'already_connected') {
+        if (e == 'already_connected') {
           bluetoothDisconect = false;
           // throw e;
         } else {
@@ -111,7 +111,7 @@ class _InventarioState extends State<Inventario> {
         // await device.requestMtu(512);
       }
 
-      device.state.listen((BluetoothDeviceState event) {
+      device!.state.listen((BluetoothDeviceState event) {
         if (event == BluetoothDeviceState.disconnected) {
           bluetoothDisconect = true;
         }
@@ -121,10 +121,10 @@ class _InventarioState extends State<Inventario> {
         setState(() {});
       });
 
-      List<BluetoothService> _services = await device.discoverServices();
+      List<BluetoothService> _services = await device!.discoverServices();
 
       if (cNotify4 != null) {
-        sub4.cancel();
+        sub4!.cancel();
       }
       for (BluetoothService service in _services) {
         for (BluetoothCharacteristic characteristic
@@ -132,7 +132,7 @@ class _InventarioState extends State<Inventario> {
           if (characteristic.properties.notify) {
             cNotify4 = characteristic;
 
-            sub4 = cNotify4.value.listen(
+            sub4 = cNotify4!.value.listen(
               (value) {
                 textExterno += String.fromCharCodes(value);
                 if (textExterno != "") {
@@ -140,7 +140,7 @@ class _InventarioState extends State<Inventario> {
                 }
               },
             );
-            await cNotify4.setNotifyValue(true);
+            await cNotify4!.setNotifyValue(true);
 
             setState(() {});
           }
@@ -183,29 +183,29 @@ class _InventarioState extends State<Inventario> {
         tipo: "90",
       );
 
-      op.prods = [];
-      await op.insert();
+      op!.prods = [];
+      await op!.insert();
     } else {
-      op.situacao = "1";
-      await op.update();
-      op.prods = await ProdutoModel().getByIdOperacao(op.id);
-      listProd = op.prods;
+      op!.situacao = "1";
+      await op!.update();
+      op!.prods = await ProdutoModel().getByIdOperacao(op!.id!);
+      listProd = op!.prods!;
 
       for (int i = 0; i < listProd.length; i++) {
-        animateListKey.currentState.insertItem(i);
+        animateListKey.currentState!.insertItem(i);
       }
     }
   }
 
   void getIdUser() async {
     SharedPreferences userlogged = await SharedPreferences.getInstance();
-    this.idOperador = userlogged.getString('IdUser');
+    this.idOperador = userlogged.getString('IdUser')!;
   }
 
   @override
   void dispose() {
     if (sub4 != null) {
-      sub4.cancel();
+      sub4!.cancel();
       // device.disconnect();
     }
 
@@ -218,9 +218,9 @@ class _InventarioState extends State<Inventario> {
     super.reassemble();
     if (controller != null) {
       if (Platform.isAndroid) {
-        controller.pauseCamera();
+        controller!.pauseCamera();
       }
-      controller.resumeCamera();
+      controller!.resumeCamera();
     }
   }
 
@@ -293,9 +293,9 @@ class _InventarioState extends State<Inventario> {
                         height: 1,
                         color: Colors.transparent,
                       ),
-                      onChanged: (String newValue) {
+                      onChanged: (String? newValue) {
                         setState(() {
-                          nroContagem = newValue;
+                          nroContagem = newValue!;
                         });
                       },
                       items: <String>[
@@ -412,7 +412,7 @@ class _InventarioState extends State<Inventario> {
                         ),
                       )
                     : Text(
-                        endRead,
+                        endRead!,
                         textAlign: TextAlign.center,
                         style: TextStyle(
                             fontSize: 20, fontWeight: FontWeight.bold),
@@ -442,9 +442,9 @@ class _InventarioState extends State<Inventario> {
                     primary: primaryColor,
                     textStyle: const TextStyle(fontSize: 20)),
                 onPressed: () async {
-                  op.situacao = "3";
-                  await op.update();
-                  await syncOp(context,false);
+                  op!.situacao = "3";
+                  await op!.update();
+                  await syncOp(context, false);
                   Navigator.pop(context);
                 },
                 child: Text('Finalizar'),
@@ -483,7 +483,7 @@ class _InventarioState extends State<Inventario> {
           element.barcode == prod.barcode &&
           element.idloteunico == prod.idloteunico &&
           element.lote == prod.lote,
-      orElse: () => null,
+      orElse: () => null as ProdutoModel,
     );
 
     // if (prod.infq == "s") {
@@ -529,12 +529,12 @@ class _InventarioState extends State<Inventario> {
     if (produto == null) {
       MovimentacaoModel movi = new MovimentacaoModel();
       movi.id = new Uuid().v4().toUpperCase();
-      movi.operacao = op.tipo;
-      movi.idOperacao = op.id;
-      movi.codMovi = op.nrdoc;
+      movi.operacao = op!.tipo;
+      movi.idOperacao = op!.id;
+      movi.codMovi = op!.nrdoc;
       movi.operador = idOperador;
-      movi.endereco = endRead;
-      movi.idProduto = prod.idproduto;
+      movi.endereco = endRead!;
+      movi.idProduto = prod.idproduto!;
       movi.qtd = qtd;
       movi.nroContagem = nroContagem;
       DateTime today = new DateTime.now();
@@ -543,27 +543,27 @@ class _InventarioState extends State<Inventario> {
       movi.dataMovimentacao = dateSlug;
       await movi.insert();
 
-      animateListKey.currentState.insertItem(0);
+      animateListKey.currentState!.insertItem(0);
       prod.idproduto = prod.idproduto;
       prod.id = new Uuid().v4().toUpperCase();
-      prod.idOperacao = op.id;
+      prod.idOperacao = op!.id;
       prod.qtd = qtd;
       listProd.add(prod);
-      op.prods.add(prod);
+      op!.prods!.add(prod);
       await prod.insert();
     } else {
       ProdutoModel prodsop = new ProdutoModel();
       List<MovimentacaoModel> listmovi = [];
-      listmovi = await new MovimentacaoModel().getAllByoperacao(op.id);
+      listmovi = await new MovimentacaoModel().getAllByoperacao(op!.id!);
       MovimentacaoModel movi = new MovimentacaoModel();
 
-      movi = listmovi.firstWhere((element) => element.idOperacao == op.id,
-          orElse: () => null);
+      movi = listmovi.firstWhere((element) => element.idOperacao == op!.id,
+          orElse: () => null as MovimentacaoModel);
       if (movi != null) {
-        movi.qtd = (int.parse(movi.qtd) + int.parse(qtd)).toString();
+        movi.qtd = (int.parse(movi.qtd!) + int.parse(qtd)).toString();
         await movi.updatebyIdOP();
 
-        prodsop = op.prods
+        prodsop = op!.prods!
             .firstWhere((element) => element.idproduto == produto.idproduto);
 
         setState(() {
@@ -581,12 +581,12 @@ class _InventarioState extends State<Inventario> {
   void _removeItem(ProdutoModel produtoModel, index) async {
     ProdutoModel produto = listProd.firstWhere(
         (element) => produtoModel.id == element.id,
-        orElse: () => null);
+        orElse: () => null as ProdutoModel);
 
-    if (int.parse(produtoModel.qtd) == 1) {
-      produtoModel.delete(produtoModel.id);
-      op.prods.removeWhere((element) => element.id == produto.id);
-      animateListKey.currentState.removeItem(
+    if (int.parse(produtoModel.qtd!) == 1) {
+      produtoModel.delete(produtoModel.id!);
+      op!.prods!.removeWhere((element) => element.id == produto.id);
+      animateListKey.currentState!.removeItem(
         index,
         (context, animation) => ListItem(
           produto: produto,
@@ -596,16 +596,16 @@ class _InventarioState extends State<Inventario> {
     } else {
       ProdutoModel prodsop = new ProdutoModel();
       MovimentacaoModel movi = new MovimentacaoModel();
-      movi.getAllByoperacao(op.id).then((value) => {
+      movi.getAllByoperacao(op!.id!).then((value) => {
             movi = value[0],
-            movi.qtd = (int.parse(produto.qtd) - 1).toString(),
+            movi.qtd = (int.parse(produto.qtd!) - 1).toString(),
             movi.updatebyIdOP(),
             setState(() {
-              produto.qtd = (int.parse(produto.qtd) - 1).toString();
+              produto.qtd = (int.parse(produto.qtd!) - 1).toString();
             }),
             produto.edit(produto),
             prodsop =
-                op.prods.where((element) => element.id == produto.id).single,
+                op!.prods!.where((element) => element.id == produto.id).single,
             setState(() {
               prodsop.qtd = produto.qtd;
             })
@@ -616,7 +616,7 @@ class _InventarioState extends State<Inventario> {
   Future<void> _readCodes(code) async {
     textExterno = "";
     if (temp != null) {
-      temp.cancel();
+      temp!.cancel();
       temp = null;
     }
     try {
@@ -639,10 +639,10 @@ class _InventarioState extends State<Inventario> {
 
           // var prodjson = json.decode(code);
           // ProdutoModel prod = ProdutoModel.fromJson(prodjson);
-          if(prodjson == null){
+          if (prodjson == null) {
             Dialogs.showToast(context, "Produto não encontrado.",
                 duration: Duration(seconds: 5), bgColor: Colors.red.shade200);
-          }else{
+          } else {
             await _addItem(prodjson);
           }
         } else {
@@ -654,7 +654,7 @@ class _InventarioState extends State<Inventario> {
           } else {
             code = code.trim();
 
-            EnderecoModel end = await EnderecoModel().getById(code);
+            EnderecoModel? end = await EnderecoModel().getById(code);
             if (end == null) {
               FlutterBeep.beep(false);
               Dialogs.showToast(context, "Endereço não existente.",

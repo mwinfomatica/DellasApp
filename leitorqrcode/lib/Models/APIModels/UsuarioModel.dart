@@ -1,8 +1,8 @@
 class UsuarioModel {
-  String codigo;
-  String login;
-  String tipo;
-  bool validaGrupoxEndereco;
+  String? codigo;
+  String? login;
+  String? tipo;
+  bool? validaGrupoxEndereco;
 
   UsuarioModel({this.codigo, this.login, this.tipo});
 

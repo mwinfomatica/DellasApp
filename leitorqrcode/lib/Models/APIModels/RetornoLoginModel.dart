@@ -4,8 +4,8 @@ import 'package:leitorqrcode/Models/APIModels/UsuarioModel.dart';
 class RetornoLoginModel {
   RetornoLoginModel();
 
-  bool error;
-  String message;
+  bool? error;
+  String? message;
   UsuarioModel usuarioModel = new UsuarioModel();
   List<EnderecoModel> endereco = [];
 

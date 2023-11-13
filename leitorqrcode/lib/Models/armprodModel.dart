@@ -2,15 +2,15 @@ import 'package:leitorqrcode/Infrastructure/DataBase/DataBase.dart';
 import 'package:sqflite/sqflite.dart';
 
 class armprodModel {
-  String idArm;
-  String idProdArm;
-  String nomeProdArm;
-  String barcodeArm;
-  String idtransfArm;
-  String endArm;
-  String qtdArm;
-  String validArm;
-  String loteArm;
+  String? idArm;
+  String? idProdArm;
+  String? nomeProdArm;
+  String? barcodeArm;
+  String? idtransfArm;
+  String? endArm;
+  String? qtdArm;
+  String? validArm;
+  String? loteArm;
 
   armprodModel(
       {this.idArm,
@@ -64,7 +64,8 @@ class armprodModel {
   }
 
   insert() async {
-    Database db = await DatabaseHelper.instance.database;;
+    Database db = await DatabaseHelper.instance.database;
+    ;
     await db.insert(
       "armprod",
       toJson(),
@@ -73,7 +74,8 @@ class armprodModel {
   }
 
   update() async {
-    Database db = await DatabaseHelper.instance.database;;
+    Database db = await DatabaseHelper.instance.database;
+    ;
     await db.update(
       "armprod",
       toJsonUpdate(),
@@ -84,28 +86,30 @@ class armprodModel {
   }
 
   delete(String idArm) async {
-    Database db = await DatabaseHelper.instance.database;;
+    Database db = await DatabaseHelper.instance.database;
+    ;
     await db.delete("armprod", where: "idArm = ?", whereArgs: [idArm]);
   }
 
   deleteAll() async {
-    Database db = await DatabaseHelper.instance.database;;
+    Database db = await DatabaseHelper.instance.database;
+    ;
     await db.delete("armprod");
   }
 
-  Future<armprodModel> getByIdProdIdTransf(
+  Future<armprodModel?> getByIdProdIdTransf(
       String idprod, String idtransfArm) async {
-    Database db = await DatabaseHelper.instance.database;;
+    Database db = await DatabaseHelper.instance.database;
+    ;
     var result = await db.query("armprod",
         where: "idProdArm = ? AND idtransfArm = ?",
         whereArgs: [idprod, idtransfArm]);
-    return result.isNotEmpty
-        ? armprodModel.fromJson(result.first)
-        : Future<Null>.value(null);
+    return result.isNotEmpty ? armprodModel.fromJson(result.first) : null;
   }
 
   Future<List<armprodModel>> getListByTransf(String idtrnasf) async {
-    Database db = await DatabaseHelper.instance.database;;
+    Database db = await DatabaseHelper.instance.database;
+    ;
     var result = await db
         .query("armprodArm", where: "idtransfArm = ?", whereArgs: [idtrnasf]);
     List<armprodModel> listArm = [];
@@ -120,7 +124,8 @@ class armprodModel {
   }
 
   Future<List<armprodModel>> getAll() async {
-    Database db = await DatabaseHelper.instance.database;;
+    Database db = await DatabaseHelper.instance.database;
+    ;
     var result = await db.query("armprod");
     List<armprodModel> listArm = [];
 

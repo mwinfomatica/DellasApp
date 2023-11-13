@@ -4,39 +4,24 @@ import 'package:leitorqrcode/Components/eco_font_icons.dart';
 import 'package:leitorqrcode/Home/components/Button.dart';
 import 'package:leitorqrcode/Infrastructure/AtualizarDados/atualizaOp.dart';
 import 'package:leitorqrcode/Inventario/Inventario.dart';
-import 'package:leitorqrcode/Models/APIModels/Endereco.dart';
-import 'package:leitorqrcode/Models/APIModels/MovimentacaoMOdel.dart';
-import 'package:leitorqrcode/Models/APIModels/OperacaoModel.dart';
-import 'package:leitorqrcode/Models/APIModels/ProdutoModel.dart';
-import 'package:leitorqrcode/Models/APIModels/RetornoBase.dart';
-import 'package:leitorqrcode/Models/APIModels/RetornoLoginModel.dart';
-import 'package:leitorqrcode/Models/APIModels/TransferenciaModel.dart';
-import 'package:leitorqrcode/Models/armprodModel.dart';
-import 'package:leitorqrcode/Models/pendenteArmazModel.dart';
-import 'package:leitorqrcode/Models/retiradaprodModel.dart';
-import 'package:leitorqrcode/OrdemProducao/OrdemProducao.dart';
 import 'package:leitorqrcode/QrCoderFirst.dart';
-import 'package:leitorqrcode/Services/MovimentacaoService.dart';
-import 'package:leitorqrcode/Services/ProdutoService.dart';
-import 'package:leitorqrcode/Services/TransferenciaService.dart';
-import 'package:leitorqrcode/Shared/Dialog.dart';
 import 'package:leitorqrcode/Transferencia/Transferencias.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MenuHome extends StatelessWidget {
-  final double topPadding;
-  MenuHome({Key key, this.topPadding}) : super(key: key);
+  final double? topPadding;
+  MenuHome({Key? key, this.topPadding}) : super(key: key);
 
   Future<String> getIdUser() async {
     SharedPreferences userlogged = await SharedPreferences.getInstance();
-    return userlogged.getString('IdUser');
+    return userlogged.getString('IdUser')!;
   }
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.only(
-        top: topPadding,
+        top: topPadding!,
         left: 30,
         right: 30,
       ),

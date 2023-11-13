@@ -1,18 +1,17 @@
 import 'package:leitorqrcode/Infrastructure/DataBase/DataBase.dart';
-import 'package:leitorqrcode/Models/APIModels/ProdutoModel.dart';
 import 'package:sqflite/sqflite.dart';
 
 class retiradaprodModel {
-  String idRetirado;
-  String idProdRetirado;
-  String idtransfRetirado;
-  String endRetirado;
-  String qtdRetirado;
-  String validRetirado;
-  String loteRetirado;
-  String nomeProdRetirado;
-  String idoperadorRetirado;
-  String barcodeRetirado;
+  String? idRetirado;
+  String? idProdRetirado;
+  String? idtransfRetirado;
+  String? endRetirado;
+  String? qtdRetirado;
+  String? validRetirado;
+  String? loteRetirado;
+  String? nomeProdRetirado;
+  String? idoperadorRetirado;
+  String? barcodeRetirado;
 
   retiradaprodModel(
       {this.idRetirado,
@@ -99,36 +98,30 @@ class retiradaprodModel {
     await db.delete("retiradaprod");
   }
 
-  Future<retiradaprodModel> getByIdProdIdTransf(
+  Future<retiradaprodModel?> getByIdProdIdTransf(
       String idprod, String idtransfRetirado) async {
     Database db = await DatabaseHelper.instance.database;
     var result = await db.query("retiradaprod",
         where: "idProdRetirado = ? AND idtransfRetirado = ?",
         whereArgs: [idprod, idtransfRetirado]);
-    return result.isNotEmpty
-        ? retiradaprodModel.fromJson(result.first)
-        : Future<Null>.value(null);
+    return result.isNotEmpty ? retiradaprodModel.fromJson(result.first) : null;
   }
 
-  Future<retiradaprodModel> getByIdProdIdTransfEnd(
+  Future<retiradaprodModel?> getByIdProdIdTransfEnd(
       String idprod, String idtransfRetirado, String endRetirado) async {
     Database db = await DatabaseHelper.instance.database;
     var result = await db.query("retiradaprod",
         where:
             "idProdRetirado = ? AND idtransfRetirado = ? AND endRetirado = ?",
         whereArgs: [idprod, idtransfRetirado, endRetirado]);
-    return result.isNotEmpty
-        ? retiradaprodModel.fromJson(result.first)
-        : Future<Null>.value(null);
+    return result.isNotEmpty ? retiradaprodModel.fromJson(result.first) : null;
   }
 
-  Future<retiradaprodModel> getByIdProd(String idprod) async {
+  Future<retiradaprodModel?> getByIdProd(String idprod) async {
     Database db = await DatabaseHelper.instance.database;
     var result = await db.query("retiradaprod",
         where: "idProdRetirado = ?", whereArgs: [idprod]);
-    return result.isNotEmpty
-        ? retiradaprodModel.fromJson(result.first)
-        : Future<Null>.value(null);
+    return result.isNotEmpty ? retiradaprodModel.fromJson(result.first) : null;
   }
 
   Future<List<retiradaprodModel>> getListByTransf(String idtrnasf) async {

@@ -25,7 +25,7 @@ class ProdutoService {
       RetornoBaseModel rtn =
           RetornoBaseModel.fromJson(jsonDecode(response.body));
 
-      if (rtn != null && !rtn.error) {
+      if (rtn != null && !rtn.error!) {
         // prods = prods.map((e) => ProdutoModel.fromJson(e.toJson())).toList();
         // print(prods);
         prods = (rtn.data as List)
@@ -33,10 +33,10 @@ class ProdutoService {
             .toList();
         return prods;
       } else
-        return Future<Null>.value(null);
+        return Future.value(null);
     } catch (ex) {
       print(ex);
-      return Future<Null>.value(null);
+      return Future.value(null);
     }
   }
 
@@ -57,7 +57,7 @@ class ProdutoService {
       RetornoBaseModel rtn =
           RetornoBaseModel.fromJson(jsonDecode(response.body));
 
-      if (rtn != null && !rtn.error) {
+      if (rtn != null && !rtn.error!) {
         // prods = prods.map((e) => ProdutoModel.fromJson(e.toJson())).toList();
         // print(prods);
         prods = (rtn.data as List)
@@ -65,10 +65,10 @@ class ProdutoService {
             .toList();
         return prods;
       } else
-        return Future<Null>.value(null);
+        return Future.value(null);
     } catch (ex) {
       print(ex);
-      return Future<Null>.value(null);
+      return Future.value(null);
     }
   }
 

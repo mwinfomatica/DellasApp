@@ -9,11 +9,11 @@ import 'package:qr_code_scanner/qr_code_scanner.dart';
 import '../QrCoder.dart';
 
 class PrepararArmazenamento extends StatefulWidget {
-  final String titulo;
-  final List<ProdutoModel> listProd;
+  final String? titulo;
+  final List<ProdutoModel>? listProd;
 
   const PrepararArmazenamento(
-      {Key key, @required this.titulo, @required this.listProd})
+      {Key? key, @required this.titulo, @required this.listProd})
       : super(key: key);
 
   @override
@@ -21,7 +21,7 @@ class PrepararArmazenamento extends StatefulWidget {
 }
 
 class _PrepararArmazenamentoState extends State<PrepararArmazenamento> {
-  Barcode result;
+  Barcode? result;
   bool reading = false;
   Random r = new Random();
   final animateListKey = GlobalKey<AnimatedListState>();
@@ -34,7 +34,7 @@ class _PrepararArmazenamentoState extends State<PrepararArmazenamento> {
 
   @override
   void initState() {
-    lista = widget.listProd;
+    lista = widget.listProd!;
     super.initState();
   }
 
@@ -49,7 +49,7 @@ class _PrepararArmazenamentoState extends State<PrepararArmazenamento> {
       child: Scaffold(
           appBar: AppBar(
             backgroundColor: primaryColor,
-            title: Text(widget.titulo),
+            title: Text(widget.titulo!),
           ),
           body: Column(
             mainAxisSize: MainAxisSize.max,
@@ -136,7 +136,7 @@ class _PrepararArmazenamentoState extends State<PrepararArmazenamento> {
                                 Container(
                                   width:
                                       MediaQuery.of(context).size.width * 0.23,
-                                  child: Text(lista[index].validade),
+                                  child: Text(lista[index].validade!),
                                 ),
                               ],
                             ),
@@ -146,12 +146,12 @@ class _PrepararArmazenamentoState extends State<PrepararArmazenamento> {
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(lista[index].nome),
+                                  Text(lista[index].nome!),
                                   SizedBox(
                                     height: 5,
                                   ),
                                   Text(
-                                    lista[index].descricao,
+                                    lista[index].descricao!,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
                                       color: Color.fromRGBO(132, 141, 149, 1),

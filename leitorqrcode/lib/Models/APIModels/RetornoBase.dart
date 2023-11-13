@@ -1,7 +1,7 @@
 class RetornoBaseModel {
-  bool error;
-  String message;
-  Object data;
+  bool? error;
+  String? message;
+  Object? data;
 
   RetornoBaseModel({this.error, this.message, this.data});
 

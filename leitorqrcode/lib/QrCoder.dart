@@ -7,10 +7,10 @@ import 'package:leitorqrcode/Components/DashedRect.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 
 class QRCoder extends StatefulWidget {
-  final int tipo;
+  final int? tipo;
 
   const QRCoder({
-    Key key,
+    Key? key,
     this.tipo,
   }) : super(key: key);
 
@@ -19,8 +19,8 @@ class QRCoder extends StatefulWidget {
 }
 
 class _QRCoderState extends State<QRCoder> {
-  Barcode result;
-  QRViewController controller;
+  Barcode? result;
+  QRViewController? controller;
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
   String textoCentral = "Posicione a câmera \n em frente ao código";
   String resultado = "";
@@ -31,9 +31,9 @@ class _QRCoderState extends State<QRCoder> {
   void reassemble() {
     super.reassemble();
     if (!Platform.isAndroid) {
-      controller.pauseCamera();
+      controller!.pauseCamera();
     }
-    controller.resumeCamera();
+    controller!.resumeCamera();
   }
 
   @override

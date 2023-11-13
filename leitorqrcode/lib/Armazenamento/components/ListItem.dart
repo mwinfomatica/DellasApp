@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:leitorqrcode/Models/ArmazenamentoModel.dart';
 
 class ListItem extends StatelessWidget {
-  final ArmazenamentoModel armazenamento;
-  final Function ontap;
-  final Animation animation;
+  final ArmazenamentoModel? armazenamento;
+  final Function()? ontap;
+  final Animation<double>? animation;
 
   const ListItem({
-    Key key,
+    Key? key,
     this.armazenamento,
     this.ontap,
     this.animation,
@@ -16,7 +16,7 @@ class ListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizeTransition(
-      sizeFactor: animation,
+      sizeFactor: animation!,
       child: Column(
         children: [
           Padding(
@@ -38,20 +38,18 @@ class ListItem extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                    
-                      Text(armazenamento.nome),
+                      Text(armazenamento!.nome!),
                       SizedBox(
                         height: 5,
                       ),
                       Text(
-                        armazenamento.descricao,
+                        armazenamento!.descricao!,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: Color.fromRGBO(132, 141, 149, 1),
                           fontSize: 12,
                         ),
                       ),
-                    
                     ],
                   ),
                 ],

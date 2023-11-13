@@ -12,7 +12,7 @@ class ConfigAppService {
       for (var i = 0; i < ends.length; i++) {
         EnderecoModel end = new EnderecoModel();
         end = ends[i];
-        end.cod = end.cod.trim();
+        end.cod = end.cod!.trim();
         await end.insert();
       }
     }
@@ -33,10 +33,10 @@ class ConfigAppService {
       if (rtn != null && rtn.error != true) {
         return rtn.endereco;
       } else
-        return Future<Null>.value(null);
+        return Future.value(null);
     } catch (ex) {
       print(ex);
-      return Future<Null>.value(null);
+      return Future.value(null);
     }
   }
 }

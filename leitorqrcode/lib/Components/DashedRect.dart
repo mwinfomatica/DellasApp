@@ -5,7 +5,7 @@ class DashedRect extends StatelessWidget {
   final Color color;
   final double strokeWidth;
   final double gap;
-  final Widget child;
+  final Widget? child;
 
   DashedRect({
     this.color = Colors.black,
@@ -78,11 +78,11 @@ class DashRectPainter extends CustomPainter {
   }
 
   Path getDashedPath({
-    @required math.Point<double> a,
-    @required math.Point<double> b,
+    @required math.Point<double>? a,
+    @required math.Point<double>? b,
     @required gap,
   }) {
-    Size size = Size(b.x - a.x, b.y - a.y);
+    Size size = Size(b!.x - a!.x, b.y - a.y);
     Path path = Path();
     path.moveTo(a.x, a.y);
     bool shouldDraw = true;
@@ -90,18 +90,18 @@ class DashRectPainter extends CustomPainter {
 
     num radians = math.atan(size.height / size.width);
 
-    num dx = math.cos(radians) * gap < 0
+    double dx = math.cos(radians) * gap < 0
         ? math.cos(radians) * gap * -1
         : math.cos(radians) * gap;
 
-    num dy = math.sin(radians) * gap < 0
+    double dy = math.sin(radians) * gap < 0
         ? math.sin(radians) * gap * -1
         : math.sin(radians) * gap;
 
     while (currentPoint.x <= b.x && currentPoint.y <= b.y) {
       shouldDraw
-          ? path.lineTo(currentPoint.x, currentPoint.y)
-          : path.moveTo(currentPoint.x, currentPoint.y);
+          ? path.lineTo(currentPoint.x.toDouble(), currentPoint.y.toDouble())
+          : path.moveTo(currentPoint.x.toDouble(), currentPoint.y.toDouble());
       shouldDraw = !shouldDraw;
       currentPoint = math.Point(
         currentPoint.x + dx,

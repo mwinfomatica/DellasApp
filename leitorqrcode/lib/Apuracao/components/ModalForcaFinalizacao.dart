@@ -1,16 +1,13 @@
 import 'package:leitorqrcode/Components/Constants.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:flutter/src/widgets/placeholder.dart';
-import 'package:leitorqrcode/Components/Constants.dart';
 import 'package:leitorqrcode/Models/APIModels/OperacaoModel.dart';
 import 'package:leitorqrcode/Shared/Dialog.dart';
 
 class modalForcaFinalizacao extends StatelessWidget {
-  final String psw;
-  final OperacaoModel op;
+  final String? psw;
+  final OperacaoModel? op;
 
-  modalForcaFinalizacao({Key key, @required this.psw, @required this.op})
+  modalForcaFinalizacao({Key? key, @required this.psw, @required this.op})
       : super(key: key);
 
   @override
@@ -49,13 +46,13 @@ class modalForcaFinalizacao extends StatelessWidget {
               onPressed: () async => {
                 if (senhaDialog.text != null &&
                     senhaDialog.text.length == 4 &&
-                    senhaDialog.text.toUpperCase() == psw.toUpperCase())
+                    senhaDialog.text.toUpperCase() == psw!.toUpperCase())
                   {
-                    op.situacao = "3",
-                    await op.update(),
+                    op!.situacao = "3",
+                    await op!.update(),
                     Navigator.pop(context),
                     Navigator.pop(context),
-                     Dialogs.showToast(context, "Finalizado!")
+                    Dialogs.showToast(context, "Finalizado!")
                   }
                 else
                   {

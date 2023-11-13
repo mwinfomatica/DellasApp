@@ -4,11 +4,11 @@ import 'package:flutter/src/widgets/framework.dart';
 import 'package:leitorqrcode/Components/Constants.dart';
 
 class BotaoIniciarArmazenamentoTransfPartial extends StatefulWidget {
-  final Function onPressed;
-  final String titulo;
+  final Function()? onPressed;
+  final String? titulo;
 
   const BotaoIniciarArmazenamentoTransfPartial({
-    Key key,
+    Key? key,
     this.onPressed,
     this.titulo,
   }) : super(key: key);
@@ -17,7 +17,7 @@ class BotaoIniciarArmazenamentoTransfPartial extends StatefulWidget {
   State<BotaoIniciarArmazenamentoTransfPartial> createState() =>
       _BotaoIniciarArmazenamentoTransfPartialState();
 
-      ontap() => this.onPressed();
+  ontap() => this.onPressed!();
 }
 
 class _BotaoIniciarArmazenamentoTransfPartialState
@@ -31,7 +31,7 @@ class _BotaoIniciarArmazenamentoTransfPartialState
       child: ElevatedButton(
         onPressed: widget.ontap,
         child: Text(
-          widget.titulo,
+          widget.titulo!,
           style: TextStyle(
             fontSize: 30,
           ),

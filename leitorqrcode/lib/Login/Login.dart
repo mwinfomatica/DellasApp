@@ -10,6 +10,7 @@ import 'package:leitorqrcode/Shared/Dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:flutter/material.dart';
+
 class LoginDemo extends StatefulWidget {
   @override
   _LoginDemoState createState() => _LoginDemoState();
@@ -24,11 +25,12 @@ class _LoginDemoState extends State<LoginDemo> {
 
   Future<void> addUserLogged(UsuarioModel user) async {
     SharedPreferences userlogged = await SharedPreferences.getInstance();
-    userlogged.setString('IdUser', user.codigo);
+    userlogged.setString('IdUser', user.codigo!);
   }
 
   Future<void> addEndereco(List<EnderecoModel> ends) async {
-    final db = await DatabaseHelper.instance.database;;
+    final db = await DatabaseHelper.instance.database;
+    ;
 
     await db.transaction((txn) async {
       for (var end in ends) {
@@ -198,7 +200,7 @@ class _LoginDemoState extends State<LoginDemo> {
     model.login = controllerInputLogin.text;
     model.senha = controllerInputPass.text;
 
-    if (model.login.isNotEmpty && model.senha.isNotEmpty) {
+    if (model.login!.isNotEmpty && model.senha!.isNotEmpty) {
       RetornoLoginModel rtn = new RetornoLoginModel();
       await accountService.login(model).then((value) => {
             rtn = value,
@@ -207,7 +209,7 @@ class _LoginDemoState extends State<LoginDemo> {
       return rtn;
     } else {
       Dialogs.showToast(context, "Gentileza conferir os campos!");
-      return null;
+      return null as RetornoLoginModel;
     }
   }
 }

@@ -3,8 +3,8 @@ import 'package:leitorqrcode/Models/APIModels/EnderecoGrupo.dart';
 class RetornoEnderecoGrupoModel {
   RetornoEnderecoGrupoModel();
 
-  bool error;
-  String message;
+  bool? error;
+  String? message;
   List<EnderecoGrupoModel> endereco = [];
 
   RetornoEnderecoGrupoModel.fromJson(Map<String, dynamic> json) {

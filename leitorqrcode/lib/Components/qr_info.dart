@@ -5,11 +5,11 @@ import 'package:leitorqrcode/Components/Constants.dart';
 
 class QRInfo extends StatelessWidget {
   const QRInfo(
-      {Key key, this.onChangeInput, this.inputController, this.inputFocusNode})
+      {Key? key, this.onChangeInput, this.inputController, this.inputFocusNode})
       : super(key: key);
-  final StreamController onChangeInput;
-  final TextEditingController inputController;
-  final FocusNode inputFocusNode;
+  final StreamController? onChangeInput;
+  final TextEditingController? inputController;
+  final FocusNode? inputFocusNode;
   @override
   Widget build(BuildContext context) {
     return Positioned(
@@ -61,7 +61,7 @@ class QRInfo extends StatelessWidget {
               TextField(
                 focusNode: inputFocusNode,
                 controller: inputController,
-                onChanged: onChangeInput.add,
+                onChanged: onChangeInput!.add,
                 showCursor: true,
                 autocorrect: false,
                 obscureText: true,

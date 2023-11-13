@@ -8,11 +8,9 @@ import 'package:leitorqrcode/Models/APIModels/RetornoBase.dart';
 import 'package:leitorqrcode/Shared/Dialog.dart';
 
 class MovimentacaoService {
-  MovimentacaoService({BuildContext contexto}) {
-    this.context = contexto;
-  }
-
   BuildContext context;
+
+  MovimentacaoService({required this.context});
 
   Future<bool> insertMovimentacoes(
       List<MovimentacaoModel> movimentacoes) async {
@@ -33,11 +31,11 @@ class MovimentacaoService {
         Dialogs.showToast(context,
             "Ocorreu um erro em nossos servidores, tente novamente mais tarde.");
         return Future<bool>.value(false);
-      } else if (!rtn.error) {
+      } else if (!rtn.error!) {
         Dialogs.showToast(context, "Sincronização concluído com sucesso");
         return Future<bool>.value(true);
       } else {
-        Dialogs.showToast(context, rtn.message);
+        Dialogs.showToast(context, rtn.message!);
         return Future<bool>.value(false);
       }
     } catch (ex) {

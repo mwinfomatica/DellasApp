@@ -2,27 +2,27 @@ import 'package:leitorqrcode/Infrastructure/DataBase/DataBase.dart';
 import 'package:sqflite/sqflite.dart';
 
 class ProdutoModel {
-  String id;
-  String idproduto;
-  String idprodutoPedido;
-  String cod;
-  String nome;
-  String desc;
-  String vali;
-  String qtd;
-  String end;
-  String lote;
-  String sl;
-  String cx;
-  String idOperacao;
-  String situacao;
-  String idloteunico;
-  String infq;
-  String infVali;
-  String barcode;
-  String coddum;
-  String codEndGrupo;
-  String isVirtual;
+  String? id;
+  String? idproduto;
+  String? idprodutoPedido;
+  String? cod;
+  String? nome;
+  String? desc;
+  String? vali;
+  String? qtd;
+  String? end;
+  String? lote;
+  String? sl;
+  String? cx;
+  String? idOperacao;
+  String? situacao;
+  String? idloteunico;
+  String? infq;
+  String? infVali;
+  String? barcode;
+  String? coddum;
+  String? codEndGrupo;
+  String? isVirtual;
 
   ProdutoModel(
       {this.id,
@@ -166,9 +166,11 @@ class ProdutoModel {
     Database db = await DatabaseHelper.instance.database;
     await db.delete("produtos", where: "id = ?", whereArgs: [id]);
   }
+
   deleteOnlyV(String id) async {
     Database db = await DatabaseHelper.instance.database;
-    await db.delete("produtos", where: "id = ? AND isVirtual = ?", whereArgs: [id, "1"]);
+    await db.delete("produtos",
+        where: "id = ? AND isVirtual = ?", whereArgs: [id, "1"]);
   }
 
   deleteAll() async {
@@ -187,59 +189,50 @@ class ProdutoModel {
         where: "id = ?", whereArgs: [prod.id]);
   }
 
-  Future<ProdutoModel> getById(String id) async {
+  Future<ProdutoModel?> getById(String id) async {
     Database db = await DatabaseHelper.instance.database;
     var result = await db.query("produtos", where: "id = ?", whereArgs: [id]);
-    return result.isNotEmpty
-        ? ProdutoModel.fromJson(result.first)
-        : Future<Null>.value(null);
+    return result.isNotEmpty ? ProdutoModel.fromJson(result.first) : null;
   }
 
-  Future<ProdutoModel> getByIdLote(String id) async {
+  Future<ProdutoModel?> getByIdLote(String id) async {
     Database db = await DatabaseHelper.instance.database;
     var result = await db.query("produtos",
         where: "idloteunico = ? and (isVirtual = '0' OR isVirtual is null)",
         whereArgs: [id]);
-    return result.isNotEmpty
-        ? ProdutoModel.fromJson(result.first)
-        : Future<Null>.value(null);
+    return result.isNotEmpty ? ProdutoModel.fromJson(result.first) : null;
   }
 
-  Future<ProdutoModel> getByIdLoteIdPedido(String id, String idOperacao) async {
+  Future<ProdutoModel?> getByIdLoteIdPedido(
+      String id, String idOperacao) async {
     Database db = await DatabaseHelper.instance.database;
     var result = await db.query("produtos",
         where:
             "idloteunico = ? and idOperacao = ? and (isVirtual = '0' OR isVirtual is null) ",
         whereArgs: [id, idOperacao]);
-    return result.isNotEmpty
-        ? ProdutoModel.fromJson(result.first)
-        : Future<Null>.value(null);
+    return result.isNotEmpty ? ProdutoModel.fromJson(result.first) : null;
   }
 
-   Future<ProdutoModel> getByIdAndIdPedido(String id, String idOperacao) async {
+  Future<ProdutoModel?> getByIdAndIdPedido(String id, String idOperacao) async {
     Database db = await DatabaseHelper.instance.database;
     var result = await db.query("produtos",
         where:
             "idproduto = ? and idOperacao = ? and (isVirtual = '0' OR isVirtual is null) ",
         whereArgs: [id, idOperacao]);
-    return result.isNotEmpty
-        ? ProdutoModel.fromJson(result.first)
-        : Future<Null>.value(null);
+    return result.isNotEmpty ? ProdutoModel.fromJson(result.first) : null;
   }
 
-  Future<ProdutoModel> getByIdLoteIdPedidoSituacao(
+  Future<ProdutoModel?> getByIdLoteIdPedidoSituacao(
       String id, String idOperacao) async {
     Database db = await DatabaseHelper.instance.database;
     var result = await db.query("produtos",
         where:
             "idloteunico = ? and idOperacao = ? and (isVirtual = '0' OR isVirtual is null) and situacao != 3 ",
         whereArgs: [id, idOperacao]);
-    return result.isNotEmpty
-        ? ProdutoModel.fromJson(result.first)
-        : Future<Null>.value(null);
+    return result.isNotEmpty ? ProdutoModel.fromJson(result.first) : null;
   }
 
-  Future<ProdutoModel> getByIdLoteIdPedidoEnd(
+  Future<ProdutoModel?> getByIdLoteIdPedidoEnd(
       String id, String idOperacao, String end) async {
     Database db = await DatabaseHelper.instance.database;
     var result = await db.query("produtos",
@@ -248,7 +241,7 @@ class ProdutoModel {
         whereArgs: [id, idOperacao, end]);
     return result.isNotEmpty
         ? ProdutoModel.fromJson(result.first)
-        : Future<Null>.value(null);
+        : null; // Pode retornar null diretamente pois o tipo de retorno agora é `Future<ProdutoModel?>`.
   }
 
   Future<List<ProdutoModel>> getBySemEnd() async {
@@ -300,32 +293,28 @@ class ProdutoModel {
     return listop;
   }
 
-  Future<ProdutoModel> getByIdProdIdOperacaoVirtual(
+  Future<ProdutoModel?> getByIdProdIdOperacaoVirtual(
       String id, String idOp) async {
     Database db = await DatabaseHelper.instance.database;
     var result = await db.query("produtos",
         where: "idloteunico = ? AND idOperacao = ? AND isVirtual = '1'",
         whereArgs: [id, idOp]);
 
-    return result.isNotEmpty
-        ? ProdutoModel.fromJson(result.first)
-        : Future<Null>.value(null);
+    return result.isNotEmpty ? ProdutoModel.fromJson(result.first) : null;
   }
 
-  
-  Future<ProdutoModel> getByIdProdIdOperacaoEndVirtual(
+  Future<ProdutoModel?> getByIdProdIdOperacaoEndVirtual(
       String id, String idOp, String end) async {
     Database db = await DatabaseHelper.instance.database;
     var result = await db.query("produtos",
-        where: "idproduto = ? AND idOperacao = ? AND isVirtual = '1' AND end = ?",
+        where:
+            "idproduto = ? AND idOperacao = ? AND isVirtual = '1' AND end = ?",
         whereArgs: [id, idOp, end]);
 
-    return result.isNotEmpty
-        ? ProdutoModel.fromJson(result.first)
-        : Future<Null>.value(null);
+    return result.isNotEmpty ? ProdutoModel.fromJson(result.first) : null;
   }
 
-    Future<ProdutoModel> getByBar_coddum(String barcode) async {
+  Future<ProdutoModel> getByBar_coddum(String barcode) async {
     Database db = await DatabaseHelper.instance.database;
 
     var result = await db.query("produtos",
@@ -335,7 +324,7 @@ class ProdutoModel {
     if (result.isNotEmpty) {
       return ProdutoModel.fromJson(result.first);
     } else {
-      return null;
+      return null as ProdutoModel;
     }
   }
 }

@@ -1,9 +1,9 @@
 class ArmazenamentoModel {
-  String codigo;
-  String nome;
-  String descricao;
-  int quantidade;
-  String validade;
+  String? codigo;
+  String? nome;
+  String? descricao;
+  int? quantidade;
+  String? validade;
 
   ArmazenamentoModel(
       {this.codigo, this.nome, this.descricao, this.quantidade, this.validade});

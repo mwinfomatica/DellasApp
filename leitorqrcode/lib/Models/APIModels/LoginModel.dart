@@ -1,6 +1,6 @@
 class LoginModel {
-  String login;
-  String senha;
+  String? login;
+  String? senha;
 
   LoginModel({this.login, this.senha});
 

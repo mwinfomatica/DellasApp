@@ -2,20 +2,20 @@ import 'package:leitorqrcode/Infrastructure/DataBase/DataBase.dart';
 import 'package:sqflite/sqflite.dart';
 
 class ProdutoDBModel {
-  String id;
-  String cod;
-  String nome;
-  String desc;
-  String vali;
-  String lote;
-  String loteunico;
-  String impressao;
-  String sl;
-  String nrserie;
-  String grupo;
-  String barcode;
-  String coddum;
-  String infvali;
+  String? id;
+  String? cod;
+  String? nome;
+  String? desc;
+  String? vali;
+  String? lote;
+  String? loteunico;
+  String? impressao;
+  String? sl;
+  String? nrserie;
+  String? grupo;
+  String? barcode;
+  String? coddum;
+  String? infvali;
 
   ProdutoDBModel(
       {this.id,
@@ -102,30 +102,24 @@ class ProdutoDBModel {
     );
   }
 
-  Future<ProdutoDBModel> getById(String id) async {
+  Future<ProdutoDBModel?> getById(String id) async {
     Database db = await DatabaseHelper.instance.database;
     var result = await db.query("produtodb", where: "id = ?", whereArgs: [id]);
-    return result.isNotEmpty
-        ? ProdutoDBModel.fromJson(result.first)
-        : Future<Null>.value(null);
+    return result.isNotEmpty ? ProdutoDBModel.fromJson(result.first) : null;
   }
 
-  Future<ProdutoDBModel> getByCodigo(String cod) async {
+  Future<ProdutoDBModel?> getByCodigo(String cod) async {
     Database db = await DatabaseHelper.instance.database;
     var result =
         await db.query("produtodb", where: "cod = ?", whereArgs: [cod]);
-    return result.isNotEmpty
-        ? ProdutoDBModel.fromJson(result.first)
-        : Future<Null>.value(null);
+    return result.isNotEmpty ? ProdutoDBModel.fromJson(result.first) : null;
   }
 
-  Future<ProdutoDBModel> getByBarCodigo(String barcode) async {
+  Future<ProdutoDBModel?> getByBarCodigo(String barcode) async {
     Database db = await DatabaseHelper.instance.database;
     var result =
         await db.query("produtodb", where: "barcode = ?", whereArgs: [barcode]);
-    return result.isNotEmpty
-        ? ProdutoDBModel.fromJson(result.first)
-        : Future<Null>.value(null);
+    return result.isNotEmpty ? ProdutoDBModel.fromJson(result.first) : null;
   }
 
   Future<List<ProdutoDBModel>> getAll() async {
@@ -142,13 +136,11 @@ class ProdutoDBModel {
     return listop;
   }
 
-   Future<ProdutoDBModel> getByBar_coddum(String barcode) async {
+  Future<ProdutoDBModel?> getByBar_coddum(String barcode) async {
     Database db = await DatabaseHelper.instance.database;
 
     var result = await db.query("produtodb",
-        where:
-            "barcode = ? OR coddum = ?",
-        whereArgs: [barcode, barcode]);
+        where: "barcode = ? OR coddum = ?", whereArgs: [barcode, barcode]);
     if (result.isNotEmpty) {
       return ProdutoDBModel.fromJson(result.first);
     } else {

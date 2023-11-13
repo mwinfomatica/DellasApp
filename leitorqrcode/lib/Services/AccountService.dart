@@ -29,20 +29,20 @@ class AccountService {
       if (rtn == null) {
         Dialogs.showToast(context,
             "Ocorreu um erro em nossos servidores, tente novamente mais tarde.");
-        return Future<Null>.value(null);
+        return Future.value(null);
       } else if (rtn.error == null) {
         // Dialogs.showToast(context, "Login concluído com sucesso");
         // UsuarioModel user = UsuarioModel.fromJson(rtn.data.user);
         return rtn;
       } else {
-        Dialogs.showToast(context, rtn.message);
-        return Future<Null>.value(null);
+        Dialogs.showToast(context, rtn.message!);
+        return Future.value(null);
       }
     } catch (ex) {
       Dialogs.showToast(context,
           "Ocorreu um erro em nossos servidores, tente novamente mais tarde.");
       print(ex);
-      return Future<Null>.value(null);
+      return Future.value(null);
     }
   }
 }

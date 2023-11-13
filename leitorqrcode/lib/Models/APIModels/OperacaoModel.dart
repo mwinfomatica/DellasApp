@@ -4,12 +4,12 @@ import 'package:leitorqrcode/Models/APIModels/ProdutoModel.dart';
 import 'package:sqflite/sqflite.dart';
 
 class OperacaoModel {
-  String id;
-  String tipo;
-  String cnpj;
-  String nrdoc;
-  String situacao;
-  List<ProdutoModel> prods;
+  String? id;
+  String? tipo;
+  String? cnpj;
+  String? nrdoc;
+  String? situacao;
+  List<ProdutoModel>? prods;
 
   OperacaoModel(
       {this.id, this.tipo, this.cnpj, this.nrdoc, this.prods, this.situacao});
@@ -23,7 +23,7 @@ class OperacaoModel {
     if (json['prods'] != null) {
       prods = <ProdutoModel>[];
       json['prods'].forEach((v) {
-        prods.add(new ProdutoModel.fromJson(v));
+        prods?.add(new ProdutoModel.fromJson(v));
       });
     }
   }
@@ -36,7 +36,7 @@ class OperacaoModel {
     data['nrdoc'] = this.nrdoc;
     data['situacao'] = this.situacao;
     if (this.prods != null) {
-      data['prods'] = this.prods.map((v) => v.toJson()).toList();
+      data['prods'] = this.prods?.map((v) => v.toJson()).toList();
     }
     return data;
   }
@@ -64,6 +64,7 @@ class OperacaoModel {
     Database db = await DatabaseHelper.instance.database;
     await db.delete("operacao", where: "id = ?", whereArgs: [id]);
   }
+
   deleteAll() async {
     Database db = await DatabaseHelper.instance.database;
     await db.delete("operacao");
@@ -82,28 +83,28 @@ class OperacaoModel {
 
   reset() async {
     this.situacao = "1";
-    List<ProdutoModel> prods = await ProdutoModel().getByIdOperacao(this.id);
+    List<ProdutoModel> prods = await ProdutoModel().getByIdOperacao(this.id!);
 
     if (prods.where((element) => element.isVirtual == "1").length > 0) {
       int soma =
-          prods.map((item) => int.parse(item.qtd)).reduce((a, b) => a + b);
+          prods.map((item) => int.parse(item.qtd!)).reduce((a, b) => a + b);
 
       ProdutoModel notVirtual =
           prods.firstWhere((item) => item.isVirtual == "0");
 
-      notVirtual.qtd = (int.parse(notVirtual.qtd) + soma).toString();
+      notVirtual.qtd = (int.parse(notVirtual.qtd!) + soma).toString();
     }
 
     for (int i = 0; i < prods.length; i++) {
       if (prods[i].isVirtual == "1") {
-        await prods[i].delete(prods[i].id);
+        await prods[i].delete(prods[i].id!);
       } else {
         prods[i].situacao = "1";
         await prods[i].update();
       }
     }
 
-    await MovimentacaoModel().deleteByIdOperacao(this.id);
+    await MovimentacaoModel().deleteByIdOperacao(this.id!);
 
     Database db = await DatabaseHelper.instance.database;
     await db.update(
@@ -120,19 +121,18 @@ class OperacaoModel {
     return db.rawQuery("SELECT Id FROM operacao where id = " + id);
   }
 
-  Future<OperacaoModel> getModelById(String id) async {
+  Future<OperacaoModel?> getModelById(String id) async {
     List<String> columnsToSelect = ["id", "tipo", "cnpj", "nrdoc", "situacao"];
 
     Database db = await DatabaseHelper.instance.database;
     var data = await db.query("operacao",
         columns: columnsToSelect, where: 'id = ?', whereArgs: [id]);
 
-    return data.isNotEmpty
-        ? OperacaoModel.fromJson(data.first)
-        : Future<Null>.value(null);
+    return data.isNotEmpty ? OperacaoModel.fromJson(data.first) : null;
   }
 
-  Future<OperacaoModel> getModelByNumDocTipo(String numdoc, String tipo) async {
+  Future<OperacaoModel?> getModelByNumDocTipo(
+      String numdoc, String tipo) async {
     List<String> columnsToSelect = ["id", "tipo", "cnpj", "nrdoc", "situacao"];
 
     Database db = await DatabaseHelper.instance.database;
@@ -144,9 +144,7 @@ class OperacaoModel {
           tipo,
         ]);
 
-    return data.isNotEmpty
-        ? OperacaoModel.fromJson(data.first)
-        : Future<Null>.value(null);
+    return data.isNotEmpty ? OperacaoModel.fromJson(data.first) : null;
   }
 
   Future<List<OperacaoModel>> getListByStituacao() async {
@@ -194,39 +192,27 @@ class OperacaoModel {
     return listop;
   }
 
-  Future<OperacaoModel> getPendenteAramazenamento() async {
+  Future<OperacaoModel?> getPendenteAramazenamento() async {
     Database db = await DatabaseHelper.instance.database;
-    var result = await db.query("operacao",
-        where: "tipo = '41'");
-    return result.isNotEmpty
-        ? OperacaoModel.fromJson(result.first)
-        : Future<Null>.value(null);
+    var result = await db.query("operacao", where: "tipo = '41'");
+    return result.isNotEmpty ? OperacaoModel.fromJson(result.first) : null;
   }
 
-  Future<OperacaoModel> getOpAramazenamento() async {
+  Future<OperacaoModel?> getOpAramazenamento() async {
     Database db = await DatabaseHelper.instance.database;
-    var result = await db.query("operacao",
-        where: "tipo = '40'");
-    return result.isNotEmpty
-        ? OperacaoModel.fromJson(result.first)
-        : Future<Null>.value(null);
+    var result = await db.query("operacao", where: "tipo = '40'");
+    return result.isNotEmpty ? OperacaoModel.fromJson(result.first) : null;
   }
 
-  Future<OperacaoModel> getOpInventario() async {
+  Future<OperacaoModel?> getOpInventario() async {
     Database db = await DatabaseHelper.instance.database;
-    var result = await db.query("operacao",
-        where: "tipo = '90'");
-    return result.isNotEmpty
-        ? OperacaoModel.fromJson(result.first)
-        : Future<Null>.value(null);
+    var result = await db.query("operacao", where: "tipo = '90'");
+    return result.isNotEmpty ? OperacaoModel.fromJson(result.first) : null;
   }
 
-  Future<OperacaoModel> getOpAramazenamentoPendente() async {
+  Future<OperacaoModel?> getOpAramazenamentoPendente() async {
     Database db = await DatabaseHelper.instance.database;
-    var result = await db.query("operacao",
-        where: "tipo = '40'");
-    return result.isNotEmpty
-        ? OperacaoModel.fromJson(result.first)
-        : Future<Null>.value(null);
+    var result = await db.query("operacao", where: "tipo = '40'");
+    return result.isNotEmpty ? OperacaoModel.fromJson(result.first) : null;
   }
 }

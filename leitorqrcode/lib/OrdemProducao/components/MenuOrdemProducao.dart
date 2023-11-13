@@ -6,7 +6,7 @@ import 'package:leitorqrcode/OrdemProducao/components/Button.dart';
 import '../../QrCoderFirst.dart';
 
 class MenuOrdemProducao extends StatelessWidget {
-  const MenuOrdemProducao({Key key}) : super(key: key);
+  const MenuOrdemProducao({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

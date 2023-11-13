@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:leitorqrcode/Components/Constants.dart';
 
 class ButtonMenuOrdemProducao extends StatelessWidget {
-  final String titulo;
-  final String descricao;
-  final IconData icone;
-  final Function onTap;
+  final String? titulo;
+  final String? descricao;
+  final IconData? icone;
+  final Function()? onTap;
 
   const ButtonMenuOrdemProducao({
-    Key key,
+    Key? key,
     this.titulo,
     this.descricao,
     this.icone,
@@ -48,7 +48,7 @@ class ButtonMenuOrdemProducao extends StatelessWidget {
                   width: 10,
                 ),
                 Text(
-                  titulo,
+                  titulo!,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,

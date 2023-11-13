@@ -2,16 +2,16 @@ import 'package:leitorqrcode/Infrastructure/DataBase/DataBase.dart';
 import 'package:sqflite/sqflite.dart';
 
 class MovimentacaoModel {
-  String id;
-  String operacao;
-  String idOperacao;
-  String operador;
-  String endereco;
-  String idProduto;
-  String dataMovimentacao;
-  String codMovi;
-  String nroContagem;
-  String qtd;
+  String? id;
+  String? operacao;
+  String? idOperacao;
+  String? operador;
+  String? endereco;
+  String? idProduto;
+  String? dataMovimentacao;
+  String? codMovi;
+  String? nroContagem;
+  String? qtd;
 
   MovimentacaoModel({
     this.id,
@@ -83,7 +83,7 @@ class MovimentacaoModel {
     );
   }
 
-   updatebyIdOpProdEnd() async {
+  updatebyIdOpProdEnd() async {
     Database db = await DatabaseHelper.instance.database;
     await db.update(
       "movimentacao",
@@ -94,7 +94,7 @@ class MovimentacaoModel {
     );
   }
 
-  Future<MovimentacaoModel> getModelById(
+  Future<MovimentacaoModel?> getModelById(
       String idProduto, String idOperacao) async {
     List<String> columnsToSelect = [
       "id",
@@ -114,13 +114,10 @@ class MovimentacaoModel {
         where: 'idProduto = ? AND idOperacao = ?',
         whereArgs: [idProduto, idOperacao]);
 
-    return data.isNotEmpty
-        ? MovimentacaoModel.fromJson(data.first)
-        : Future<Null>.value(null);
+    return data.isNotEmpty ? MovimentacaoModel.fromJson(data.first) : null;
   }
 
-
-  Future<MovimentacaoModel> getModelByIdProdEnd(
+  Future<MovimentacaoModel?> getModelByIdProdEnd(
       String idProduto, String idOperacao, String end) async {
     List<String> columnsToSelect = [
       "id",
@@ -140,11 +137,8 @@ class MovimentacaoModel {
         where: 'idProduto = ? AND idOperacao = ? AND endereco = ?',
         whereArgs: [idProduto, idOperacao, end]);
 
-    return data.isNotEmpty
-        ? MovimentacaoModel.fromJson(data.first)
-        : Future<Null>.value(null);
+    return data.isNotEmpty ? MovimentacaoModel.fromJson(data.first) : null;
   }
-
 
   Future<List<MovimentacaoModel>> getAll() async {
     Database db = await DatabaseHelper.instance.database;
@@ -210,14 +204,14 @@ class MovimentacaoModel {
   deleteByIdOperacaoIdProd(String idOperacao, String idProd) async {
     Database db = await DatabaseHelper.instance.database;
     await db.delete("movimentacao",
-        where: "idOperacao = ? AND idProduto = ?", whereArgs: [idOperacao, idProd]);
-  }
- deleteById(String id) async {
-    Database db = await DatabaseHelper.instance.database;
-    await db.delete("movimentacao",
-        where: "id = ? ", whereArgs: [id]);
+        where: "idOperacao = ? AND idProduto = ?",
+        whereArgs: [idOperacao, idProd]);
   }
 
+  deleteById(String id) async {
+    Database db = await DatabaseHelper.instance.database;
+    await db.delete("movimentacao", where: "id = ? ", whereArgs: [id]);
+  }
 
   deleteInventario(String idProduto, String idOperacao) async {
     Database db = await DatabaseHelper.instance.database;
@@ -225,7 +219,12 @@ class MovimentacaoModel {
         where: "idProduto = ? AND idOperacao = ?",
         whereArgs: [idProduto, idOperacao]);
 
-    MovimentacaoModel movi = result.single.values.single;
-    await db.delete("movimentacao", where: "id = ?", whereArgs: [movi.id]);
+    if (result.isNotEmpty) {
+      MovimentacaoModel movi = MovimentacaoModel.fromJson(result.single);
+      await db.delete("movimentacao", where: "id = ?", whereArgs: [movi.id]);
+    } else {
+      // Tratar o caso em que a consulta não retorna nenhum resultado
+      print('Nenhum registro encontrado para ser deletado.');
+    }
   }
 }

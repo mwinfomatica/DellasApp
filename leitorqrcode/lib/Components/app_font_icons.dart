@@ -19,7 +19,7 @@ class MWAppFont {
   MWAppFont._();
 
   static const _kFontFam = 'MWAppFont';
-  static const String _kFontPkg = null;
+  static const String _kFontPkg = '';
 
   static const IconData adress =
       IconData(0xe800, fontFamily: _kFontFam, fontPackage: _kFontPkg);

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:bluetooth_connector/bluetooth_connector.dart';
 import 'package:flutter/material.dart';
@@ -13,11 +12,10 @@ import 'package:leitorqrcode/Services/EnderecoGrupoService.dart';
 import 'package:leitorqrcode/Services/ProdutosDBService.dart';
 import 'package:leitorqrcode/SettingsApp/settings_appBar.dart';
 import 'package:leitorqrcode/Shared/Dialog.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsPage extends StatefulWidget {
-  const SettingsPage({Key key}) : super(key: key);
+  const SettingsPage({Key? key}) : super(key: key);
 
   @override
   _SettingsPageState createState() => _SettingsPageState();
@@ -34,22 +32,25 @@ class _SettingsPageState extends State<SettingsPage> {
   bool loadingEnds = false;
   bool loadingProds = false;
   bool noneDevices = true;
+  bool collectMode = false;
+  bool useCamera = false;
 
   final FlutterBlue flutterBlue = FlutterBlue.instance;
 
   BluetoothConnector flutterbluetoothconnector = BluetoothConnector();
-  BluetoothDevice device;
-  BluetoothCharacteristic cNotify;
-  StreamSubscription<List<int>> sub;
-  Timer temp;
+  BluetoothDevice? device;
+  BluetoothCharacteristic? cNotify;
+  StreamSubscription<List<int>>? sub;
+  Timer? temp;
+  FocusNode myFocusNode = FocusNode();
 
   List<BtDevice> devicesNames = <BtDevice>[];
 
   void addDeviceToList(BtDevice dev) {
-    if (dev != null && dev.name.isNotEmpty) {
+    if (dev != null && dev.name!.isNotEmpty) {
       var item = devicesNames
           .firstWhere((element) => element.address == dev.address, orElse: () {
-        return null;
+        return null as BtDevice;
       });
       if (item == null) {
         devicesNames.add(dev);
@@ -71,7 +72,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _monitoringBlue() {
-    if (contextoModel != null && contextoModel.leituraExterna) {
+    if (contextoModel != null && contextoModel.leituraExterna!) {
       // logging.FLog.logThis(
       //   text: "Coletando dispositivos pareados ao telefone",
       //   type: logging.LogLevel.SEVERE,
@@ -97,6 +98,42 @@ class _SettingsPageState extends State<SettingsPage> {
     }
 
     return Future<void>.value();
+  }
+
+  void _loadSwitchPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      collectMode = prefs.getBool('collectMode') ?? false;
+      useCamera = prefs.getBool('useCamera') ?? false;
+    });
+  }
+
+  void _updateSwitchPreference(String key, bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(key, value);
+
+    // Desativa os outros switches
+    if (value) {
+      switch (key) {
+        case 'leituraExterna':
+          prefs.setBool('collectMode', false);
+          prefs.setBool('useCamera', false);
+          break;
+        case 'collectMode':
+          prefs.setBool('leituraExterna', false);
+          prefs.setBool('useCamera', false);
+          break;
+        case 'useCamera':
+          prefs.setBool('leituraExterna', false);
+          prefs.setBool('collectMode', false);
+          break;
+      }
+    }
+
+    setState(() {
+      collectMode = prefs.getBool('collectMode') ?? false;
+      useCamera = prefs.getBool('useCamera') ?? false;
+    });
   }
 
   // Future<void> _validaDevicesConectedBlue() {
@@ -125,7 +162,7 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   void initState() {
     getContexto();
-
+    _loadSwitchPreferences();
     super.initState();
   }
 
@@ -140,12 +177,12 @@ class _SettingsPageState extends State<SettingsPage> {
         children: [
           SwitchListTile(
             title: Text(
-              contextoModel.descLeituraExterna,
+              contextoModel.descLeituraExterna!,
               style: TextStyle(
                 color: Colors.black,
               ),
             ),
-            value: contextoModel.leituraExterna,
+            value: contextoModel.leituraExterna!,
             inactiveThumbColor: Colors.red,
             inactiveTrackColor: Colors.red.shade200,
             onChanged: (bool value) async {
@@ -153,10 +190,11 @@ class _SettingsPageState extends State<SettingsPage> {
               await getContexto();
               setState(() {});
               await _monitoringBlue();
+              _updateSwitchPreference('leituraExterna', value);
             },
             secondary: Icon(
               Icons.qr_code,
-              color: contextoModel.leituraExterna ? primaryColor : Colors.red,
+              color: contextoModel.leituraExterna! ? primaryColor : Colors.red,
             ),
           ),
           Visibility(
@@ -166,29 +204,29 @@ class _SettingsPageState extends State<SettingsPage> {
               height: 1,
             ),
           ),
-          if(contextoModel.leituraExterna)
-          ...List.generate(devicesNames.length, (index) {
-            return ListTile(
-              title: Text(devicesNames[index].name.trim().isNotEmpty
-                  ? devicesNames[index].name.trim()
-                  : devicesNames[index].address.trim()),
-              trailing: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14),
-                child: contextoModel.uuidDevice == devicesNames[index].address
-                    ? Icon(
-                        Icons.bluetooth_connected,
-                        color: primaryColor,
-                      )
-                    : Icon(Icons.bluetooth_disabled_sharp),
-              ),
-              onTap: () async {
-                await contextoServices.setDeviceSelected(
-                    nameDevice: devicesNames[index].name,
-                    uuidDevice: devicesNames[index].address);
-                getContexto();
-              },
-            );
-          }),
+          if (contextoModel.leituraExterna!)
+            ...List.generate(devicesNames.length, (index) {
+              return ListTile(
+                title: Text(devicesNames[index].name!.trim().isNotEmpty
+                    ? devicesNames[index].name!.trim()
+                    : devicesNames[index].address!.trim()),
+                trailing: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  child: contextoModel.uuidDevice == devicesNames[index].address
+                      ? Icon(
+                          Icons.bluetooth_connected,
+                          color: primaryColor,
+                        )
+                      : Icon(Icons.bluetooth_disabled_sharp),
+                ),
+                onTap: () async {
+                  await contextoServices.setDeviceSelected(
+                      nameDevice: devicesNames[index].name!,
+                      uuidDevice: devicesNames[index].address!);
+                  getContexto();
+                },
+              );
+            }),
           Visibility(
             visible: devicesNames.length == 0 &&
                 contextoModel.leituraExterna == true,
@@ -208,6 +246,77 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
               ),
             ),
+          ),
+          Divider(
+            color: primaryColor,
+            height: 1,
+          ),
+          SwitchListTile(
+            title: Text(
+              "Usar modo coletor",
+              style: TextStyle(
+                color: Colors.black,
+              ),
+            ),
+            value: collectMode,
+            inactiveThumbColor: Colors.red,
+            inactiveTrackColor: Colors.red.shade200,
+            secondary: Icon(
+              Icons.install_mobile,
+              color: collectMode ? primaryColor : Colors.red,
+            ),
+            onChanged: (value) {
+              setState(() {
+                collectMode = value;
+                _updateSwitchPreference('collectMode', value);
+                if (collectMode) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    myFocusNode.requestFocus();
+                  });
+                }
+              });
+            },
+          ),
+
+          Visibility(
+            visible: collectMode == true,
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child: TextFormField(
+                focusNode: myFocusNode,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Divider(
+            color: primaryColor,
+            height: 1,
+          ),
+
+          SwitchListTile(
+            title: Text(
+              "Usar Câmera",
+              style: TextStyle(
+                color: Colors.black,
+              ),
+            ),
+            value: useCamera,
+            inactiveThumbColor: Colors.red,
+            inactiveTrackColor: Colors.red.shade200,
+            secondary: Icon(
+              Icons.camera_alt,
+              color: useCamera ? primaryColor : Colors.red,
+            ),
+            onChanged: (value) {
+              setState(() {
+                useCamera = value;
+                _updateSwitchPreference('useCamera', value);
+              });
+            },
           ),
           Divider(
             color: primaryColor,
@@ -237,6 +346,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
             ),
           ),
+
           Divider(
             color: primaryColor,
             height: 1,
@@ -282,12 +392,12 @@ class _SettingsPageState extends State<SettingsPage> {
                   color: Colors.black,
                 ),
               ),
-              value: contextoModel.enderecoGrupo,
+              value: contextoModel.enderecoGrupo!,
               inactiveThumbColor: Colors.red,
               inactiveTrackColor: Colors.red.shade200,
               secondary: Icon(
                 Icons.group_work_outlined,
-                color: contextoModel.enderecoGrupo ? primaryColor : Colors.red,
+                color: contextoModel.enderecoGrupo! ? primaryColor : Colors.red,
               ),
               onChanged: null,
             ),

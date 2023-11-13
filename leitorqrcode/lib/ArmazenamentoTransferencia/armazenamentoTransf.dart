@@ -12,14 +12,10 @@ import 'package:leitorqrcode/Components/Constants.dart';
 import 'package:leitorqrcode/Components/DashedRect.dart';
 import 'package:leitorqrcode/Infrastructure/AtualizarDados/atualizaOp.dart';
 import 'package:leitorqrcode/Models/APIModels/Endereco.dart';
-import 'package:leitorqrcode/Models/APIModels/EnderecoGrupo.dart';
-import 'package:leitorqrcode/Models/APIModels/MovimentacaoMOdel.dart';
-import 'package:leitorqrcode/Models/APIModels/OperacaoModel.dart';
 import 'package:leitorqrcode/Models/APIModels/ProdutoModel.dart';
 import 'package:leitorqrcode/Models/ContextoModel.dart';
 import 'package:leitorqrcode/Models/armprodModel.dart';
 import 'package:leitorqrcode/Models/pendenteArmazModel.dart';
-import 'package:leitorqrcode/Models/retiradaprodModel.dart';
 import 'package:leitorqrcode/Services/ContextoServices.dart';
 import 'package:leitorqrcode/Services/ProdutosDBService.dart';
 import 'package:leitorqrcode/Shared/Dialog.dart';
@@ -28,11 +24,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 class ArmazenamentoTransf extends StatefulWidget {
-  final List<pendenteArmazModel> listPendente;
-  final List<armprodModel> listarm;
+  final List<pendenteArmazModel>? listPendente;
+  final List<armprodModel>? listarm;
 
   const ArmazenamentoTransf({
-    Key key,
+    Key? key,
     @required this.listPendente,
     this.listarm,
   }) : super(key: key);
@@ -42,7 +38,7 @@ class ArmazenamentoTransf extends StatefulWidget {
 }
 
 class _ArmazenamentoTransfState extends State<ArmazenamentoTransf> {
-  Barcode result;
+  Barcode? result;
   bool readingArm = false;
   bool showCameraArm = false;
   bool showLeituraExternaArm = false;
@@ -50,15 +46,15 @@ class _ArmazenamentoTransfState extends State<ArmazenamentoTransf> {
   bool prodReadSuccessArm = false;
   bool leituraExternaArm = false;
   Random r = new Random();
-  String endRead = null;
+  String endRead = '';
   String titleBtn = "Iniciar Armazenamento";
   String tipoLeituraExterna = "endereco";
   String idOperador = "";
   final animateListKey = GlobalKey<AnimatedListState>();
   final qtdeProdDialog = TextEditingController();
   final GlobalKey qrAKey = GlobalKey(debugLabel: 'QR');
-  QRViewController controller;
-  Timer temp;
+  QRViewController? controller;
+  Timer? temp;
   bool bluetoothDisconect = true;
 
   ContextoServices contextoServices = ContextoServices();
@@ -76,9 +72,9 @@ class _ArmazenamentoTransfState extends State<ArmazenamentoTransf> {
 
   String textExterno = "";
   final FlutterBlue flutterBlue = FlutterBlue.instance;
-  BluetoothDevice device;
-  BluetoothCharacteristic cNotify;
-  StreamSubscription<List<int>> sub;
+  BluetoothDevice? device;
+  BluetoothCharacteristic? cNotify;
+  StreamSubscription<List<int>>? sub;
 
   Future<void> getContexto() async {
     contextoModel = await contextoServices.getContexto();
@@ -97,7 +93,7 @@ class _ArmazenamentoTransfState extends State<ArmazenamentoTransf> {
       if (conectados != null && conectados.length > 0) {
         device = conectados.firstWhere(
           (BluetoothDevice dev) => dev.id.id == contextoModel.uuidDevice,
-          orElse: () => null,
+          orElse: () => null as BluetoothDevice,
         );
       }
       if (device != null) {
@@ -105,7 +101,7 @@ class _ArmazenamentoTransfState extends State<ArmazenamentoTransf> {
       } else {
         flutterBlue.scanResults.listen((List<ScanResult> results) {
           for (ScanResult result in results) {
-            if (contextoModel.uuidDevice.isNotEmpty &&
+            if (contextoModel.uuidDevice!.isNotEmpty &&
                 result.device.id.id == contextoModel.uuidDevice) {
               device = result.device;
               scannerArm();
@@ -122,9 +118,9 @@ class _ArmazenamentoTransfState extends State<ArmazenamentoTransf> {
     if (device != null) {
       flutterBlue.stopScan();
       try {
-        await device.connect();
+        await device!.connect();
       } catch (e) {
-        if (e.code == 'already_connected') {
+        if (e == 'already_connected') {
           bluetoothDisconect = false;
           // throw e;
         } else {
@@ -136,7 +132,7 @@ class _ArmazenamentoTransfState extends State<ArmazenamentoTransf> {
         // await device.requestMtu(512);
       }
 
-      device.state.listen((BluetoothDeviceState event) {
+      device!.state.listen((BluetoothDeviceState event) {
         if (event == BluetoothDeviceState.disconnected) {
           bluetoothDisconect = true;
         }
@@ -146,10 +142,10 @@ class _ArmazenamentoTransfState extends State<ArmazenamentoTransf> {
         setState(() {});
       });
 
-      List<BluetoothService> _services = await device.discoverServices();
+      List<BluetoothService> _services = await device!.discoverServices();
 
       if (cNotify != null) {
-        sub.cancel();
+        sub!.cancel();
       }
       for (BluetoothService service in _services) {
         for (BluetoothCharacteristic characteristic
@@ -157,7 +153,7 @@ class _ArmazenamentoTransfState extends State<ArmazenamentoTransf> {
           if (characteristic.properties.notify) {
             cNotify = characteristic;
 
-            sub = cNotify.value.listen(
+            sub = cNotify!.value.listen(
               (value) {
                 textExterno += String.fromCharCodes(value);
                 if (textExterno != "") {
@@ -165,7 +161,7 @@ class _ArmazenamentoTransfState extends State<ArmazenamentoTransf> {
                 }
               },
             );
-            await cNotify.setNotifyValue(true);
+            await cNotify!.setNotifyValue(true);
 
             setState(() {});
           }
@@ -194,7 +190,7 @@ class _ArmazenamentoTransfState extends State<ArmazenamentoTransf> {
       this.controller = controller;
     });
     controller.scannedDataStream.listen((scanData) async {
-      await _readCodesArm(scanData.code);
+      await _readCodesArm(scanData.code!);
     });
   }
 
@@ -263,7 +259,7 @@ class _ArmazenamentoTransfState extends State<ArmazenamentoTransf> {
                               (prodRead.qtd != null &&
                                       prodRead.qtd != "" &&
                                       prodRead.qtd != "0"
-                                  ? prodRead.qtd
+                                  ? prodRead.qtd!
                                   : "1"));
                           Navigator.pop(context);
                         },
@@ -278,7 +274,7 @@ class _ArmazenamentoTransfState extends State<ArmazenamentoTransf> {
                     (prodRead.qtd != null &&
                             prodRead.qtd != "" &&
                             prodRead.qtd != "0"
-                        ? prodRead.qtd
+                        ? prodRead.qtd!
                         : "1"));
               }
             }
@@ -293,7 +289,7 @@ class _ArmazenamentoTransfState extends State<ArmazenamentoTransf> {
                 duration: Duration(seconds: 5), bgColor: Colors.red.shade200);
           } else {
             code = code.trim();
-            EnderecoModel end = await EnderecoModel().getById(code);
+            EnderecoModel? end = await EnderecoModel().getById(code);
 
             if (end == null) {
               FlutterBeep.beep(false);
@@ -326,22 +322,22 @@ class _ArmazenamentoTransfState extends State<ArmazenamentoTransf> {
   }
 
   Future<void> saveArmz(ProdutoModel prod, String qtde) async {
-    armprodModel arm = null;
+    armprodModel arm = armprodModel();
 
-    pendenteArmazModel item = widget.listPendente.firstWhere(
+    pendenteArmazModel item = widget.listPendente!.firstWhere(
         (element) =>
             element.idProd == prod.idproduto &&
-            element.idtransf == widget.listPendente[0].idtransf &&
+            element.idtransf == widget.listPendente![0].idtransf &&
             element.lote == prod.lote &&
             element.valid == prod.vali &&
             element.situacao == "0",
-        orElse: () => null);
+        orElse: () => null as pendenteArmazModel);
 
     if (item != null) {
-      int qt = int.parse(item.qtd) - int.parse(qtde);
+      int qt = int.parse(item.qtd!) - int.parse(qtde);
       if (qt == 0) {
-        widget.listPendente.removeWhere((e) => e.id == item.id);
-        await item.delete(item.id);
+        widget.listPendente!.removeWhere((e) => e.id == item.id);
+        await item.delete(item.id!);
       } else {
         item.qtd = qt.toString();
       }
@@ -361,29 +357,29 @@ class _ArmazenamentoTransfState extends State<ArmazenamentoTransf> {
               e.endArm == endRead &&
               e.loteArm == prod.lote &&
               e.validArm == prod.vali,
-          orElse: () => null);
+          orElse: () => null as armprodModel);
     }
     if (arm == null) {
       arm = new armprodModel(
           idArm: new Uuid().v4().toUpperCase(),
           endArm: endRead,
-          idProdArm: prod.idproduto,
-          idtransfArm: widget.listPendente[0].idtransf,
-          loteArm: prod.lote,
-          nomeProdArm: prod.nome,
+          idProdArm: prod.idproduto!,
+          idtransfArm: widget.listPendente![0].idtransf,
+          loteArm: prod.lote!,
+          nomeProdArm: prod.nome!,
           qtdArm: qtde,
-          validArm: prod.vali,
-          barcodeArm: prod.barcode);
+          validArm: prod.vali!,
+          barcodeArm: prod.barcode!);
 
       await arm.insert();
       armlist.add(arm);
     } else {
-      arm.qtdArm = (int.parse(arm.qtdArm) + int.parse(qtde)).toString();
+      arm.qtdArm = (int.parse(arm.qtdArm!) + int.parse(qtde)).toString();
       await arm.update();
     }
     setState(() {});
 
-    var Gitem = widget.listPendente.where((element) =>
+    var Gitem = widget.listPendente!.where((element) =>
         element.idProd == prod.idproduto &&
         element.idtransf == arm.idtransfArm &&
         element.end == endRead &&
@@ -394,23 +390,23 @@ class _ArmazenamentoTransfState extends State<ArmazenamentoTransf> {
     if (Gitem.isEmpty) {
       pendenteArmazModel pendenteOk = new pendenteArmazModel(
           id: new Uuid().v4().toUpperCase(),
-          barcode: prod.barcode,
+          barcode: prod.barcode!,
           end: endRead,
-          idProd: prod.idproduto,
+          idProd: prod.idproduto!,
           idoperador: idOperador,
           idtransf: arm.idtransfArm,
           situacao: "1",
-          valid: prod.vali,
-          lote: prod.lote,
-          nomeProd: prod.nome,
+          valid: prod.vali!,
+          lote: prod.lote!,
+          nomeProd: prod.nome!,
           qtd: qtde);
-      widget.listPendente.add(pendenteOk);
+      widget.listPendente!.add(pendenteOk);
     } else {
       pendenteArmazModel itemOk = Gitem.first;
-      itemOk.qtd = (int.parse(itemOk.qtd) + int.parse(qtde)).toString();
+      itemOk.qtd = (int.parse(itemOk.qtd!) + int.parse(qtde)).toString();
     }
 
-    if (widget.listPendente.where((e) => e.situacao == "0").length == 0) {
+    if (widget.listPendente!.where((e) => e.situacao == "0").length == 0) {
       Dialogs.showToast(context, "Leitura concluída",
           duration: Duration(seconds: 5), bgColor: Colors.green.shade200);
       setState(() {
@@ -424,13 +420,13 @@ class _ArmazenamentoTransfState extends State<ArmazenamentoTransf> {
 
   void getIdUser() async {
     SharedPreferences userlogged = await SharedPreferences.getInstance();
-    this.idOperador = userlogged.getString('IdUser');
+    this.idOperador = userlogged.getString('IdUser')!;
   }
 
   @override
   void dispose() {
     if (sub != null) {
-      sub.cancel();
+      sub!.cancel();
       //device.disconnect();
     }
     controller?.dispose();
@@ -442,11 +438,11 @@ class _ArmazenamentoTransfState extends State<ArmazenamentoTransf> {
     getIdUser();
     getContexto();
 
-    armlist = widget.listarm;
+    armlist = widget.listarm!;
 
     var count =
-        widget.listPendente.where((element) => element.situacao == "1").length;
-    if (count == widget.listPendente.length) {
+        widget.listPendente!.where((element) => element.situacao == "1").length;
+    if (count == widget.listPendente!.length) {
       Dialogs.showToast(context, "Leitura já realizada");
       this.prodReadSuccessArm = true;
       this.hasAdressArm = false;
@@ -461,9 +457,9 @@ class _ArmazenamentoTransfState extends State<ArmazenamentoTransf> {
     super.reassemble();
     if (controller != null) {
       if (Platform.isAndroid) {
-        controller.pauseCamera();
+        controller!.pauseCamera();
       }
-      controller.resumeCamera();
+      controller!.resumeCamera();
     }
   }
 
@@ -721,7 +717,7 @@ class _ArmazenamentoTransfState extends State<ArmazenamentoTransf> {
                             ),
                           ],
                           rows: List.generate(
-                            widget.listPendente
+                            widget.listPendente!
                                 .where((e) => e.situacao == "0")
                                 .length,
                             (index) {
@@ -729,24 +725,24 @@ class _ArmazenamentoTransfState extends State<ArmazenamentoTransf> {
                                 color: MaterialStateColor.resolveWith(
                                   (states) => index % 2 == 0
                                       ? Colors.white
-                                      : Colors.grey[200],
+                                      : Colors.grey[200]!,
                                 ),
                                 cells: [
                                   DataCell(
                                     Icon(
                                       Icons.check_box,
-                                      color:
-                                          widget.listPendente[index].situacao ==
-                                                  "1"
-                                              ? Colors.green
-                                              : Colors.grey,
+                                      color: widget.listPendente![index]
+                                                  .situacao ==
+                                              "1"
+                                          ? Colors.green
+                                          : Colors.grey,
                                       size: 20,
                                     ),
                                   ),
                                   DataCell(
                                     Text(
-                                      widget.listPendente[index].end != null
-                                          ? widget.listPendente[index].end
+                                      widget.listPendente![index].end != null
+                                          ? widget.listPendente![index].end!
                                           : "",
                                       style: TextStyle(
                                         fontSize: 15,
@@ -756,9 +752,9 @@ class _ArmazenamentoTransfState extends State<ArmazenamentoTransf> {
                                   ),
                                   DataCell(
                                     Text(
-                                      widget.listPendente[index].qtd == null
+                                      widget.listPendente![index].qtd == null
                                           ? ""
-                                          : widget.listPendente[index].qtd,
+                                          : widget.listPendente![index].qtd!,
                                       style: TextStyle(
                                         fontSize: 15,
                                         fontWeight: FontWeight.bold,
@@ -767,10 +763,11 @@ class _ArmazenamentoTransfState extends State<ArmazenamentoTransf> {
                                   ),
                                   DataCell(
                                     Text(
-                                      widget.listPendente[index].nomeProd ==
+                                      widget.listPendente![index].nomeProd ==
                                               null
                                           ? ""
-                                          : widget.listPendente[index].nomeProd,
+                                          : widget
+                                              .listPendente![index].nomeProd!,
                                       style: TextStyle(
                                         fontSize: 15,
                                         fontWeight: FontWeight.bold,
@@ -779,9 +776,9 @@ class _ArmazenamentoTransfState extends State<ArmazenamentoTransf> {
                                   ),
                                   DataCell(
                                     Text(
-                                      widget.listPendente[index].lote == null
+                                      widget.listPendente![index].lote == null
                                           ? ""
-                                          : widget.listPendente[index].lote,
+                                          : widget.listPendente![index].lote!,
                                       style: TextStyle(
                                         fontSize: 15,
                                         fontWeight: FontWeight.bold,
@@ -870,7 +867,7 @@ class _ArmazenamentoTransfState extends State<ArmazenamentoTransf> {
                                 color: MaterialStateColor.resolveWith(
                                   (states) => index % 2 == 0
                                       ? Colors.white
-                                      : Colors.grey[200],
+                                      : Colors.grey[200]!,
                                 ),
                                 cells: [
                                   DataCell(
@@ -883,7 +880,7 @@ class _ArmazenamentoTransfState extends State<ArmazenamentoTransf> {
                                   DataCell(
                                     Text(
                                       armlist[index].endArm != null
-                                          ? armlist[index].endArm
+                                          ? armlist[index].endArm!
                                           : "",
                                       style: TextStyle(
                                         fontSize: 15,
@@ -895,7 +892,7 @@ class _ArmazenamentoTransfState extends State<ArmazenamentoTransf> {
                                     Text(
                                       armlist[index].qtdArm == null
                                           ? ""
-                                          : armlist[index].qtdArm,
+                                          : armlist[index].qtdArm!,
                                       style: TextStyle(
                                         fontSize: 15,
                                         fontWeight: FontWeight.bold,
@@ -906,7 +903,7 @@ class _ArmazenamentoTransfState extends State<ArmazenamentoTransf> {
                                     Text(
                                       armlist[index].nomeProdArm == null
                                           ? ""
-                                          : armlist[index].nomeProdArm,
+                                          : armlist[index].nomeProdArm!,
                                       style: TextStyle(
                                         fontSize: 15,
                                         fontWeight: FontWeight.bold,
@@ -917,7 +914,7 @@ class _ArmazenamentoTransfState extends State<ArmazenamentoTransf> {
                                     Text(
                                       armlist[index].loteArm == null
                                           ? ""
-                                          : armlist[index].loteArm,
+                                          : armlist[index].loteArm!,
                                       style: TextStyle(
                                         fontSize: 15,
                                         fontWeight: FontWeight.bold,
@@ -961,7 +958,7 @@ class _ArmazenamentoTransfState extends State<ArmazenamentoTransf> {
                         textStyle: const TextStyle(fontSize: 15)),
                     onPressed: () {
                       setState(() {
-                        endRead = null;
+                        endRead = '';
                         hasAdressArm = false;
                       });
                     },

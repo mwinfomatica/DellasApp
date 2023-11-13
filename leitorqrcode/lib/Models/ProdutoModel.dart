@@ -1,13 +1,18 @@
 class ProdutoModel {
-  String codigo;
-  String nome;
-  String descricao;
-  String validade;
-  String endereco;
-  bool checked;
+  String? codigo;
+  String? nome;
+  String? descricao;
+  String? validade;
+  String? endereco;
+  bool? checked;
 
   ProdutoModel(
-      {this.codigo, this.nome, this.descricao, this.validade, this.endereco, this.checked = false});
+      {this.codigo,
+      this.nome,
+      this.descricao,
+      this.validade,
+      this.endereco,
+      this.checked = false});
 
   ProdutoModel.fromJson(Map<String, dynamic> json) {
     codigo = json['codigo'];

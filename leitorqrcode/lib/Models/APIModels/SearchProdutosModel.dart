@@ -1,6 +1,5 @@
-
 class SearchProdutosModel {
-  String codOp;
+  String? codOp;
 
   SearchProdutosModel({this.codOp});
 

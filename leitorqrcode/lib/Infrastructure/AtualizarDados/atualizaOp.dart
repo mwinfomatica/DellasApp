@@ -1,21 +1,18 @@
 import 'package:flutter/cupertino.dart';
-import 'package:leitorqrcode/Models/APIModels/Endereco.dart';
 import 'package:leitorqrcode/Models/APIModels/MovimentacaoMOdel.dart';
 import 'package:leitorqrcode/Models/APIModels/OperacaoModel.dart';
 import 'package:leitorqrcode/Models/APIModels/ProdutoModel.dart';
-import 'package:leitorqrcode/Models/APIModels/RetornoLoginModel.dart';
 import 'package:leitorqrcode/Models/APIModels/TransferenciaModel.dart';
 import 'package:leitorqrcode/Models/armprodModel.dart';
 import 'package:leitorqrcode/Models/retiradaprodModel.dart';
 import 'package:leitorqrcode/Services/MovimentacaoService.dart';
-import 'package:leitorqrcode/Services/ProdutoService.dart';
 import 'package:leitorqrcode/Services/TransferenciaService.dart';
 import 'package:leitorqrcode/Shared/Dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Future<String> getIdUser() async {
   SharedPreferences userlogged = await SharedPreferences.getInstance();
-  return userlogged.getString('IdUser');
+  return userlogged.getString('IdUser')!;
 }
 
 Future<void> syncOp(BuildContext context, bool Transferencia) async {
@@ -36,21 +33,21 @@ Future<void> syncOp(BuildContext context, bool Transferencia) async {
     if (ops.length != 0) {
       for (int i = 0; i < ops.length; i++) {
         List<MovimentacaoModel> list =
-            await MovimentacaoModel().getAllByoperacao(ops[i].id);
+            await MovimentacaoModel().getAllByoperacao(ops[i].id!);
 
         MovimentacaoService movimentacaoService =
-            MovimentacaoService(contexto: context);
+            MovimentacaoService(context: context);
         bool ok = await movimentacaoService.insertMovimentacoes(list);
 
         if (ok) {
-          MovimentacaoModel().deleteByIdOperacao(ops[i].id);
-          ProdutoModel().deleteByIdOperacao(ops[i].id);
-          OperacaoModel().delete(ops[i].id);
+          MovimentacaoModel().deleteByIdOperacao(ops[i].id!);
+          ProdutoModel().deleteByIdOperacao(ops[i].id!);
+          OperacaoModel().delete(ops[i].id!);
         }
       }
 
       if (Transferencia) {
-        OperacaoModel opTransf =
+        OperacaoModel? opTransf =
             await new OperacaoModel().getOpAramazenamento();
 
         if (opTransf != null) {
@@ -85,14 +82,14 @@ Future<void> syncOp(BuildContext context, bool Transferencia) async {
               iduser: await getIdUser(),
               id: "");
 
-          bool ok = await TransferenciaService(contexto: context)
+          bool ok = await TransferenciaService(context: context)
               .InsertTransferencia(model);
           if (ok) {
             for (var i = 0; i < listRetiradoOk.length; i++) {
-              await retiradaprodModel().delete(listRetiradoOk[i].idRetirado);
+              await retiradaprodModel().delete(listRetiradoOk[i].idRetirado!);
             }
             for (var i = 0; i < listArmOK.length; i++) {
-              await armprodModel().delete(listArmOK[i].idArm);
+              await armprodModel().delete(listArmOK[i].idArm!);
             }
           }
         }

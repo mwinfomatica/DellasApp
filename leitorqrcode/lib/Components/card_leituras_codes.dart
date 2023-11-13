@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class CardeReadCodesWidget extends StatefulWidget {
-  CardeReadCodesWidget({Key key}) : super(key: key);
+  CardeReadCodesWidget({Key? key}) : super(key: key);
 
   @override
   _CardeReadCodesWidgetState createState() => _CardeReadCodesWidgetState();

@@ -11,7 +11,7 @@
 ///      fonts:
 ///       - asset: fonts/ArmazenamentoApp.ttf
 ///
-/// 
+///
 ///
 import 'package:flutter/widgets.dart';
 
@@ -19,10 +19,14 @@ class ArmazenamentoApp {
   ArmazenamentoApp._();
 
   static const _kFontFam = 'ArmazenamentoApp';
-  static const String _kFontPkg = null;
+  static const String _kFontPkg = '';
 
-  static const IconData armazenamento = IconData(0xe800, fontFamily: _kFontFam, fontPackage: _kFontPkg);
-  static const IconData vendas = IconData(0xe801, fontFamily: _kFontFam, fontPackage: _kFontPkg);
-  static const IconData transferencia = IconData(0xe802, fontFamily: _kFontFam, fontPackage: _kFontPkg);
-  static const IconData op = IconData(0xe803, fontFamily: _kFontFam, fontPackage: _kFontPkg);
+  static const IconData armazenamento =
+      IconData(0xe800, fontFamily: _kFontFam, fontPackage: _kFontPkg);
+  static const IconData vendas =
+      IconData(0xe801, fontFamily: _kFontFam, fontPackage: _kFontPkg);
+  static const IconData transferencia =
+      IconData(0xe802, fontFamily: _kFontFam, fontPackage: _kFontPkg);
+  static const IconData op =
+      IconData(0xe803, fontFamily: _kFontFam, fontPackage: _kFontPkg);
 }

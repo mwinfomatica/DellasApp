@@ -31,9 +31,9 @@ class Apuracao extends StatefulWidget {
   final OperacaoModel operacaoModel;
 
   const Apuracao({
-    Key key,
-    @required this.titulo,
-    @required this.operacaoModel,
+    Key? key,
+    required this.titulo,
+    required this.operacaoModel,
   }) : super(key: key);
 
   @override
@@ -41,7 +41,7 @@ class Apuracao extends StatefulWidget {
 }
 
 class _ApuracaoState extends State<Apuracao> {
-  Barcode result;
+  late Barcode result;
   bool reading = false;
   bool showCamera = false;
   bool showLeituraExterna = false;
@@ -49,15 +49,15 @@ class _ApuracaoState extends State<Apuracao> {
   bool prodReadSuccess = false;
   bool leituraExterna = false;
   Random r = new Random();
-  String endRead = null;
-  String titleBtn = null;
+  String endRead = '';
+  String titleBtn = '';
   String tipoLeituraExterna = "endereco";
   String idOperador = "";
   final animateListKey = GlobalKey<AnimatedListState>();
   final qtdeProdDialog = TextEditingController();
   final GlobalKey qrAKey = GlobalKey(debugLabel: 'QR');
-  QRViewController controller;
-  Timer temp;
+  late QRViewController controller;
+  Timer? temp;
   bool bluetoothDisconect = true;
 
   int countleituraProd = 0;
@@ -77,9 +77,9 @@ class _ApuracaoState extends State<Apuracao> {
 
   String textExterno = "";
   final FlutterBlue flutterBlue = FlutterBlue.instance;
-  BluetoothDevice device;
-  BluetoothCharacteristic cNotify3;
-  StreamSubscription<List<int>> sub3;
+  late BluetoothDevice device;
+  late BluetoothCharacteristic cNotify3;
+  late StreamSubscription<List<int>> sub3;
 
   Future<void> getContexto() async {
     contextoModel = await contextoServices.getContexto();
@@ -98,7 +98,7 @@ class _ApuracaoState extends State<Apuracao> {
           .asStream()
           .listen((List<BluetoothDevice> devices) {
         for (BluetoothDevice dev in devices) {
-          if (contextoModel.uuidDevice.isNotEmpty &&
+          if (contextoModel.uuidDevice!.isNotEmpty &&
               dev.id.id == contextoModel.uuidDevice) {
             device = dev;
             scanner();
@@ -107,7 +107,7 @@ class _ApuracaoState extends State<Apuracao> {
       });
       flutterBlue.scanResults.listen((List<ScanResult> results) {
         for (ScanResult result in results) {
-          if (contextoModel.uuidDevice.isNotEmpty &&
+          if (contextoModel.uuidDevice!.isNotEmpty &&
               result.device.id.id == contextoModel.uuidDevice) {
             device = result.device;
             scanner();
@@ -125,7 +125,7 @@ class _ApuracaoState extends State<Apuracao> {
       try {
         await device.connect();
       } catch (e) {
-        if (e.code == 'already_connected') {
+        if (e == 'already_connected') {
           bluetoothDisconect = false;
           // throw e;
         } else {
@@ -180,7 +180,7 @@ class _ApuracaoState extends State<Apuracao> {
 
   setTimer(String texto) {
     if (temp != null) {
-      temp.cancel();
+      temp!.cancel();
       temp = null;
     }
 
@@ -195,14 +195,14 @@ class _ApuracaoState extends State<Apuracao> {
       this.controller = controller;
     });
     controller.scannedDataStream.listen((scanData) async {
-      _readCodes(scanData.code);
+      _readCodes(scanData.code!);
     });
   }
 
   void _readCodes(String code) async {
     textExterno = "";
     if (temp != null) {
-      temp.cancel();
+      temp!.cancel();
       temp = null;
     }
 
@@ -227,38 +227,37 @@ class _ApuracaoState extends State<Apuracao> {
                 .getProdutoPedidoByBarCodigo(code.trim());
           }
 
-          if (prodRead != null && prodRead.cod.isNotEmpty) {
+          if (prodRead != null && prodRead.cod!.isNotEmpty) {
             FlutterBeep.beep();
-            ProdutoModel prodDB = await new ProdutoModel().getByIdLoteIdPedido(
-                prodRead.idloteunico.toUpperCase(),
-                widget.operacaoModel.id.toUpperCase());
+            ProdutoModel? prodDB = await new ProdutoModel().getByIdLoteIdPedido(
+                prodRead.idloteunico!.toUpperCase(),
+                widget.operacaoModel.id!.toUpperCase());
 
             List<ProdutoModel> lProdDB = await ProdutoModel()
-                .getByIdProdIdOperacao(prodRead.idloteunico.toUpperCase(),
-                    widget.operacaoModel.id.toUpperCase());
+                .getByIdProdIdOperacao(prodRead.idloteunico!.toUpperCase(),
+                    widget.operacaoModel.id!.toUpperCase());
 
             if (lProdDB.length > 1) {
               var tqtd = 0;
               for (var i = 0; i < lProdDB.length; i++) {
-                tqtd = tqtd +
-                    int.parse(lProdDB[i].qtd == null ? 0 : lProdDB[i].qtd);
+                tqtd += int.parse(lProdDB[i].qtd ?? "0");
               }
             }
 
             if (prodDB != null) {
-              var tqtd = int.parse(prodDB.qtd);
+              var tqtd = int.parse(prodDB.qtd!);
 
               if (widget.operacaoModel.tipo == '21' ||
                   widget.operacaoModel.tipo == '31' ||
                   widget.operacaoModel.tipo == '72') {
                 if (prodDB.end != endRead) {
                   Dialogs.showToast(context,
-                      "O produto deve ser retirado do endereço " + prodDB.end,
+                      "O produto deve ser retirado do endereço " + prodDB.end!,
                       duration: Duration(seconds: 5),
                       bgColor: Colors.red.shade200);
 
                   isOK = false;
-                } else if (prodRead.infVali.trim() == 's' &&
+                } else if (prodRead.infVali!.trim() == 's' &&
                     (prodDB.lote != prodRead.lote ||
                         prodDB.vali != prodRead.vali)) {
                   Dialogs.showToast(context,
@@ -277,8 +276,8 @@ class _ApuracaoState extends State<Apuracao> {
                 ///fazer selecrt na endereçogrupo
                 if (contextoModel.enderecoGrupo == true &&
                     prodDB.codEndGrupo != null &&
-                    prodDB.codEndGrupo.isNotEmpty) {
-                  EnderecoGrupoModel enderecoGrupoModel =
+                    prodDB.codEndGrupo!.isNotEmpty) {
+                  EnderecoGrupoModel? enderecoGrupoModel =
                       await new EnderecoGrupoModel()
                           .getByGroupAndCod(endRead, prodDB.codEndGrupo);
 
@@ -341,7 +340,7 @@ class _ApuracaoState extends State<Apuracao> {
                       prodRead.qtd != null &&
                               prodRead.qtd != "" &&
                               prodRead.qtd != "0"
-                          ? prodRead.qtd
+                          ? prodRead.qtd!
                           : "1");
                 }
               }
@@ -362,7 +361,7 @@ class _ApuracaoState extends State<Apuracao> {
                 duration: Duration(seconds: 5), bgColor: Colors.red.shade200);
           } else {
             code = code.trim();
-            EnderecoModel end = await EnderecoModel().getById(code);
+            EnderecoModel? end = await EnderecoModel().getById(code);
 
             if (end == null) {
               FlutterBeep.beep(false);
@@ -397,12 +396,12 @@ class _ApuracaoState extends State<Apuracao> {
   Future<void> calcQtdProduto(
       ProdutoModel prodRead, ProdutoModel prodDB, String qtdeprod) async {
     List<ProdutoModel> lProdDB = await ProdutoModel().getByIdProdIdOperacao(
-        prodRead.idloteunico.toUpperCase(),
-        widget.operacaoModel.id.toUpperCase());
+        prodRead.idloteunico!.toUpperCase(),
+        widget.operacaoModel.id!.toUpperCase());
     var tqtd = 0;
     if (lProdDB.length >= 1) {
       for (var i = 0; i < lProdDB.length; i++) {
-        tqtd = tqtd + int.parse(lProdDB[i].qtd == null ? 0 : lProdDB[i].qtd);
+        tqtd += int.parse(lProdDB[i].qtd ?? "0");
       }
     }
 
@@ -417,25 +416,25 @@ class _ApuracaoState extends State<Apuracao> {
           duration: Duration(seconds: 5), bgColor: Colors.red.shade200);
     } else {
       if (lProdDB.length >= 1) {
-        ProdutoModel prodVirtual = await ProdutoModel()
-            .getByIdProdIdOperacaoVirtual(prodRead.idloteunico.toUpperCase(),
-                widget.operacaoModel.id.toUpperCase());
+        ProdutoModel? prodVirtual = await ProdutoModel()
+            .getByIdProdIdOperacaoVirtual(prodRead.idloteunico!.toUpperCase(),
+                widget.operacaoModel.id!.toUpperCase());
 
         String qtdtxt = qtdeprod;
         int qtdconsiderar = 0;
         int restante = 0;
 
         for (var i = 0; i < lProdDB.length; i++) {
-          if (int.parse(qtdeprod) >= int.parse(lProdDB[i].qtd) &&
+          if (int.parse(qtdeprod) >= int.parse(lProdDB[i].qtd!) &&
               restante == 0) {
-            restante = (int.parse(qtdeprod) - int.parse(lProdDB[i].qtd));
+            restante = (int.parse(qtdeprod) - int.parse(lProdDB[i].qtd!));
 
             qtdconsiderar = int.parse(qtdtxt) - restante;
           } else if (restante > 0) {
             qtdconsiderar = restante;
             qtdeprod = restante.toString();
 
-            if (restante <= int.parse(lProdDB[i].qtd)) {
+            if (restante <= int.parse(lProdDB[i].qtd!)) {
               restante = 0;
             }
           } else {
@@ -452,31 +451,31 @@ class _ApuracaoState extends State<Apuracao> {
             listProd.add(prodVirtual);
           } else {
             prodVirtual = listProd.firstWhere((e) =>
-                e.idloteunico == prodVirtual.idloteunico &&
+                e.idloteunico == prodVirtual!.idloteunico &&
                 e.isVirtual == '1' &&
                 e.idproduto == prodVirtual.idproduto);
 
             prodVirtual.qtd =
-                (int.parse(prodVirtual.qtd) + qtdconsiderar).toString();
+                (int.parse(prodVirtual.qtd!) + qtdconsiderar).toString();
             await prodVirtual.update();
           }
 
-          if (int.parse(lProdDB[i].qtd) <= qtdconsiderar) {
-            qtdeprod = (qtdconsiderar - int.parse(lProdDB[i].qtd)).toString();
+          if (int.parse(lProdDB[i].qtd!) <= qtdconsiderar) {
+            qtdeprod = (qtdconsiderar - int.parse(lProdDB[i].qtd!)).toString();
 
             setState(() {
               listProd.removeWhere((e) =>
                   e.idloteunico == lProdDB[i].idloteunico &&
                   e.id == lProdDB[i].id);
             });
-            await lProdDB[i].delete(lProdDB[i].id);
+            await lProdDB[i].delete(lProdDB[i].id!);
           } else {
-            qtdeprod = (qtdconsiderar - int.parse(lProdDB[i].qtd)).toString();
+            qtdeprod = (qtdconsiderar - int.parse(lProdDB[i].qtd!)).toString();
 
             lProdDB[i].qtd =
-                (int.parse(lProdDB[i].qtd) - qtdconsiderar).toString();
+                (int.parse(lProdDB[i].qtd!) - qtdconsiderar).toString();
 
-            if (int.parse(lProdDB[i].qtd) > 0) {
+            if (int.parse(lProdDB[i].qtd!) > 0) {
               await lProdDB[i].update();
               // if (int.parse(lProdDB[i].qtd) <=
               //     qtdconsiderar) {
@@ -491,27 +490,27 @@ class _ApuracaoState extends State<Apuracao> {
               idProdutoPai: lProdDB[i].id);
         }
       } else {
-        ProdutoModel prodVirtual = await ProdutoModel()
-            .getByIdProdIdOperacaoVirtual(prodRead.idloteunico.toUpperCase(),
-                widget.operacaoModel.id.toUpperCase());
+        ProdutoModel? prodVirtual = await ProdutoModel()
+            .getByIdProdIdOperacaoVirtual(prodRead.idloteunico!.toUpperCase(),
+                widget.operacaoModel.id!.toUpperCase());
 
         if (prodVirtual == null) {
           prodVirtual = await gerarProdVirtual(prodDB, qtdeprod);
           listProd.add(prodVirtual);
         } else {
           prodVirtual = listProd.firstWhere((e) =>
-              e.idloteunico == prodVirtual.idloteunico &&
+              e.idloteunico == prodVirtual!.idloteunico &&
               e.isVirtual == '1' &&
               e.idproduto == prodVirtual.idproduto);
 
           prodVirtual.qtd =
-              (int.parse(prodVirtual.qtd) + int.parse(qtdeprod)).toString();
+              (int.parse(prodVirtual.qtd!) + int.parse(qtdeprod)).toString();
           await prodVirtual.update();
         }
 
-        prodDB.qtd = (int.parse(prodDB.qtd) - int.parse(qtdeprod)).toString();
+        prodDB.qtd = (int.parse(prodDB.qtd!) - int.parse(qtdeprod)).toString();
 
-        if (int.parse(prodDB.qtd) > 0) {
+        if (int.parse(prodDB.qtd!) > 0) {
           await prodDB.update();
           // if (int.parse(prodDB.qtd) <=
           //     int.parse(qtdeprod)) {
@@ -521,7 +520,7 @@ class _ApuracaoState extends State<Apuracao> {
           prodlist.qtd = prodDB.qtd;
           // }
         } else {
-          await prodDB.delete(prodDB.id);
+          await prodDB.delete(prodDB.id!);
           setState(() {
             listProd.removeWhere((e) =>
                 e.idloteunico == prodDB.idloteunico &&
@@ -536,20 +535,20 @@ class _ApuracaoState extends State<Apuracao> {
   }
 
   Future<void> removeItem(ProdutoModel prod) async {
-    MovimentacaoModel moviDB = await new MovimentacaoModel()
-        .getModelById(prod.idproduto, prod.idOperacao);
+    MovimentacaoModel? moviDB = await new MovimentacaoModel()
+        .getModelById(prod.idproduto!, prod.idOperacao!);
 
     if (moviDB != null) {
       if (moviDB.qtd != null) {
-        moviDB.qtd = (int.parse(moviDB.qtd) - 1).toString();
+        moviDB.qtd = (int.parse(moviDB.qtd!) - 1).toString();
 
-        if (int.parse(moviDB.qtd) <= 0)
-          await moviDB.deleteById(moviDB.id);
+        if (int.parse(moviDB.qtd!) <= 0)
+          await moviDB.deleteById(moviDB.id!);
         else {
           await moviDB.updatebyId();
         }
       } else {
-        await moviDB.deleteById(moviDB.id);
+        await moviDB.deleteById(moviDB.id!);
       }
     }
 
@@ -558,10 +557,10 @@ class _ApuracaoState extends State<Apuracao> {
             e.idproduto == prod.idproduto &&
             e.idOperacao == prod.idOperacao &&
             (e.isVirtual == "0" || e.isVirtual == null),
-        orElse: () => null);
+        orElse: () => null as ProdutoModel);
 
     if (itemList != null) {
-      itemList.qtd = (int.parse(itemList.qtd) + 1).toString();
+      itemList.qtd = (int.parse(itemList.qtd!) + 1).toString();
       await itemList.update();
     } else {
       ProdutoModel newprod = ProdutoModel(
@@ -574,10 +573,10 @@ class _ApuracaoState extends State<Apuracao> {
           desc: prod.desc,
           idOperacao: prod.idOperacao,
           idloteunico: prod.idloteunico,
-          end: null,
+          end: '',
           qtd: "1",
           idprodutoPedido: prod.idprodutoPedido,
-          isVirtual: null,
+          isVirtual: '0',
           nome: prod.nome,
           lote: prod.lote,
           situacao: "0",
@@ -592,10 +591,10 @@ class _ApuracaoState extends State<Apuracao> {
       listProd.add(newprod);
     }
 
-    prod.qtd = (int.parse(prod.qtd) - 1).toString();
+    prod.qtd = (int.parse(prod.qtd!) - 1).toString();
 
-    if (int.parse(prod.qtd) <= 0) {
-      await prod.deleteOnlyV(prod.id);
+    if (int.parse(prod.qtd!) <= 0) {
+      await prod.deleteOnlyV(prod.id!);
       listProd.removeWhere((e) => e.id == prod.id && e.isVirtual == "1");
     } else {
       await prod.update();
@@ -606,12 +605,12 @@ class _ApuracaoState extends State<Apuracao> {
   }
 
   Future<void> saveMovimentacao(ProdutoModel prodDB, ProdutoModel prodRead,
-      {String idProdutoPai}) async {
+      {String? idProdutoPai}) async {
     prodDB.end = endRead;
     prodDB.situacao = "3";
     await prodDB.update();
-    MovimentacaoModel moviDB = await new MovimentacaoModel()
-        .getModelById(prodDB.idproduto, prodDB.idOperacao);
+    MovimentacaoModel? moviDB = await new MovimentacaoModel()
+        .getModelById(prodDB.idproduto!, prodDB.idOperacao!);
 
     if (moviDB == null || moviDB.endereco != endRead) {
       MovimentacaoModel movi = new MovimentacaoModel();
@@ -621,7 +620,7 @@ class _ApuracaoState extends State<Apuracao> {
       movi.codMovi = widget.operacaoModel.nrdoc;
       movi.operador = idOperador;
       movi.endereco = endRead;
-      movi.idProduto = prodDB.idproduto;
+      movi.idProduto = prodDB.idproduto!;
       movi.qtd = prodRead.qtd ?? "1";
       DateTime today = new DateTime.now();
       String dateSlug =
@@ -629,14 +628,14 @@ class _ApuracaoState extends State<Apuracao> {
       movi.dataMovimentacao = dateSlug;
       await movi.insert();
     } else {
-      moviDB.qtd = prodDB.qtd;
+      moviDB.qtd = prodDB.qtd!;
       await moviDB.updatebyIdOpProdEnd();
     }
 
     if (prodDB.isVirtual == '1') {
       setState(() {
         ProdutoModel itemList = listProd.firstWhere(
-            (element) => element.id.toUpperCase() == prodDB.id.toUpperCase());
+            (element) => element.id!.toUpperCase() == prodDB.id!.toUpperCase());
 
         itemList.end = endRead;
         itemList.situacao = "3";
@@ -645,9 +644,9 @@ class _ApuracaoState extends State<Apuracao> {
       if (listProd.where((element) => element.situacao != "3").length == 0) {
         await finalizarOp();
         if (widget.operacaoModel.tipo == '40') {
-          OperacaoModel opRetirada =
+          OperacaoModel? opRetirada =
               await OperacaoModel().getPendenteAramazenamento();
-          opRetirada.situacao = "3";
+          opRetirada!.situacao = "3";
           await opRetirada.update();
         }
 
@@ -671,7 +670,7 @@ class _ApuracaoState extends State<Apuracao> {
 
   void getIdUser() async {
     SharedPreferences userlogged = await SharedPreferences.getInstance();
-    this.idOperador = userlogged.getString('IdUser');
+    this.idOperador = userlogged.getString('IdUser')!;
   }
 
   @override
@@ -686,7 +685,7 @@ class _ApuracaoState extends State<Apuracao> {
 
   @override
   void initState() {
-    listProd = widget.operacaoModel.prods;
+    listProd = widget.operacaoModel.prods!;
     var count = listProd.where((element) => element.situacao == "3").length;
     getIdUser();
     getContexto();
@@ -698,7 +697,7 @@ class _ApuracaoState extends State<Apuracao> {
     }
 
     if (widget.operacaoModel.tipo != null)
-      widget.operacaoModel.tipo = widget.operacaoModel.tipo.trim();
+      widget.operacaoModel.tipo = widget.operacaoModel.tipo!.trim();
     else
       widget.operacaoModel.tipo = "";
 
@@ -926,8 +925,8 @@ class _ApuracaoState extends State<Apuracao> {
                                           context: context,
                                           barrierDismissible: false,
                                           builder: (_) => modalForcaFinalizacao(
-                                            op: widget.operacaoModel ,
-                                              psw: widget.operacaoModel.id
+                                              op: widget.operacaoModel,
+                                              psw: widget.operacaoModel.id!
                                                   .split('-')[1]));
                                     },
                                     child: Text('Finalizar')),
@@ -1043,7 +1042,7 @@ class _ApuracaoState extends State<Apuracao> {
                             color: MaterialStateColor.resolveWith(
                               (states) => index % 2 == 0
                                   ? Colors.white
-                                  : Colors.grey[200],
+                                  : Colors.grey[200]!,
                             ),
                             cells: [
                               DataCell(
@@ -1059,7 +1058,7 @@ class _ApuracaoState extends State<Apuracao> {
                                 Text(
                                   listProd[index].qtd == null
                                       ? ""
-                                      : listProd[index].qtd,
+                                      : listProd[index].qtd!,
                                   style: TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.bold,
@@ -1073,13 +1072,13 @@ class _ApuracaoState extends State<Apuracao> {
                                       ? ""
                                       : listProd[index].cod == null &&
                                               listProd[index].nome != null
-                                          ? listProd[index].nome
+                                          ? listProd[index].nome!
                                           : listProd[index].cod != null &&
                                                   listProd[index].nome == null
-                                              ? listProd[index].cod
-                                              : listProd[index].cod.trim() +
+                                              ? listProd[index].cod!
+                                              : listProd[index].cod!.trim() +
                                                   " - " +
-                                                  listProd[index].nome,
+                                                  listProd[index].nome!,
                                   style: TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.bold,
@@ -1089,7 +1088,7 @@ class _ApuracaoState extends State<Apuracao> {
                               DataCell(
                                 Text(
                                   listProd[index].end != null
-                                      ? listProd[index].end
+                                      ? listProd[index].end!
                                       : "",
                                   style: TextStyle(
                                     fontSize: 20,
@@ -1101,7 +1100,7 @@ class _ApuracaoState extends State<Apuracao> {
                                 Text(
                                   listProd[index].sl == null
                                       ? ""
-                                      : listProd[index].sl,
+                                      : listProd[index].sl!,
                                   style: TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.bold,
@@ -1112,7 +1111,7 @@ class _ApuracaoState extends State<Apuracao> {
                                 Text(
                                   listProd[index].qtd == null
                                       ? ""
-                                      : listProd[index].qtd,
+                                      : listProd[index].qtd!,
                                   style: TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.bold,
@@ -1171,7 +1170,7 @@ class _ApuracaoState extends State<Apuracao> {
                         textStyle: const TextStyle(fontSize: 15)),
                     onPressed: () {
                       setState(() {
-                        endRead = null;
+                        endRead = '';
                         hasAdress = false;
                       });
                     },
@@ -1227,7 +1226,7 @@ class _ApuracaoState extends State<Apuracao> {
     await prodVirtual.insert();
 
     List<ProdutoModel> list =
-        await ProdutoService().getProdutos(prod.idOperacao);
+        await ProdutoService().getProdutos(prod.idOperacao!);
     print(list);
 
     return prodVirtual;

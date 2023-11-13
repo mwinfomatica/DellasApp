@@ -8,7 +8,7 @@ import 'package:leitorqrcode/Shared/themes/app_images.dart';
 
 class QRLeituraExterna extends StatefulWidget {
   const QRLeituraExterna({
-    Key key,
+    Key? key,
     this.onChange,
     this.inputController,
     this.inputFocusNode,
@@ -17,20 +17,20 @@ class QRLeituraExterna extends StatefulWidget {
     this.bluetoothName,
     this.device,
   }) : super(key: key);
-  final StreamController onChange;
-  final TextEditingController inputController;
-  final FocusNode inputFocusNode;
-  final bool progress;
-  final bool bluetoothDisconect;
-  final String bluetoothName;
-  final BluetoothDevice device;
+  final StreamController? onChange;
+  final TextEditingController? inputController;
+  final FocusNode? inputFocusNode;
+  final bool? progress;
+  final bool? bluetoothDisconect;
+  final String? bluetoothName;
+  final BluetoothDevice? device;
 
   @override
   _QRLeituraExternaState createState() => _QRLeituraExternaState();
 }
 
 class _QRLeituraExternaState extends State<QRLeituraExterna> {
-  AnimationController controller;
+  AnimationController? controller;
 
   @override
   void initState() {
@@ -78,7 +78,7 @@ class _QRLeituraExternaState extends State<QRLeituraExterna> {
             ],
           ),
         ),
-        if (!widget.progress)
+        if (!widget.progress!)
           Center(
             heightFactor: 0,
             child: AnimatedCard(
@@ -110,7 +110,7 @@ class _QRLeituraExternaState extends State<QRLeituraExterna> {
               ),
             ),
           ),
-        if (!widget.progress)
+        if (!widget.progress!)
           Center(
             child: AnimatedCard(
               direction: AnimatedCardDirection.right,
@@ -119,9 +119,9 @@ class _QRLeituraExternaState extends State<QRLeituraExterna> {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.all(Radius.circular(2)),
                   border: Border.all(
-                    color: widget.bluetoothDisconect
+                    color: widget.bluetoothDisconect!
                         ? Colors.red
-                        : Colors.blue[300],
+                        : Colors.blue[300]!,
                     width: 2,
                   ),
                 ),
@@ -131,10 +131,10 @@ class _QRLeituraExternaState extends State<QRLeituraExterna> {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       Icon(
-                        widget.bluetoothDisconect
+                        widget.bluetoothDisconect!
                             ? Icons.bluetooth_disabled
                             : Icons.bluetooth_connected,
-                        color: widget.bluetoothDisconect
+                        color: widget.bluetoothDisconect!
                             ? Colors.red
                             : Colors.blue[300],
                         size: 34,
@@ -148,12 +148,12 @@ class _QRLeituraExternaState extends State<QRLeituraExterna> {
                       Container(
                         width: 1,
                         height: 32,
-                        color: widget.bluetoothDisconect
+                        color: widget.bluetoothDisconect!
                             ? Colors.red
                             : Colors.blue[300],
                       ),
                       Text(
-                        widget.bluetoothDisconect
+                        widget.bluetoothDisconect!
                             ? "Você ainda não conectou \n nenhum dispositivo para leitura"
                             : "Dispositivo conectado para \n realização da leitura",
                         textAlign: TextAlign.center,
@@ -167,7 +167,7 @@ class _QRLeituraExternaState extends State<QRLeituraExterna> {
               ),
             ),
           ),
-        if (widget.progress)
+        if (widget.progress!)
           Center(
             child: CircularProgressIndicator(
               backgroundColor: Colors.blue,

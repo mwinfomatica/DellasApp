@@ -2,17 +2,17 @@ import 'package:leitorqrcode/Infrastructure/DataBase/DataBase.dart';
 import 'package:sqflite/sqflite.dart';
 
 class pendenteArmazModel {
-  String id;
-  String idProd;
-  String idtransf;
-  String end;
-  String qtd;
-  String valid;
-  String lote;
-  String nomeProd;
-  String idoperador;
-  String situacao;
-  String barcode;
+  String? id;
+  String? idProd;
+  String? idtransf;
+  String? end;
+  String? qtd;
+  String? valid;
+  String? lote;
+  String? nomeProd;
+  String? idoperador;
+  String? situacao;
+  String? barcode;
 
   pendenteArmazModel(
       {this.id,
@@ -107,7 +107,7 @@ class pendenteArmazModel {
     await db.delete("pendenteArmaz");
   }
 
-  Future<pendenteArmazModel> getByIdProdIdTransf(
+  Future<pendenteArmazModel?> getByIdProdIdTransf(
       String idprod, String idtransf) async {
     Database db = await DatabaseHelper.instance.database;
     var result = await db.query("pendenteArmaz",
@@ -115,7 +115,7 @@ class pendenteArmazModel {
     if (result != null) {
       return result.isNotEmpty
           ? pendenteArmazModel.fromJson(result.first)
-          : Future<Null>.value(null);
+          : null;
     } else {
       return Future<Null>.value(null);
     }

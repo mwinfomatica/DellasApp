@@ -2,8 +2,8 @@ import 'package:leitorqrcode/Infrastructure/DataBase/DataBase.dart';
 import 'package:sqflite/sqflite.dart';
 
 class EnderecoGrupoModel {
-  String codendereco;
-  String codgrupo;
+  String? codendereco;
+  String? codgrupo;
 
   EnderecoGrupoModel({this.codendereco, this.codgrupo});
 
@@ -33,7 +33,7 @@ class EnderecoGrupoModel {
     await db.delete("enderecogrupo");
   }
 
-  Future<EnderecoGrupoModel> getByGroupAndCod(
+  Future<EnderecoGrupoModel?> getByGroupAndCod(
       String codendereco, codgrupo) async {
     Database db = await DatabaseHelper.instance.database;
 
@@ -41,8 +41,6 @@ class EnderecoGrupoModel {
         where: "codendereco = ? AND codgrupo = ?",
         whereArgs: [codendereco, codgrupo]);
 
-    return result.isNotEmpty
-        ? EnderecoGrupoModel.fromJson(result.first)
-        : Future<Null>.value(null);
+    return result.isNotEmpty ? EnderecoGrupoModel.fromJson(result.first) : null;
   }
 }

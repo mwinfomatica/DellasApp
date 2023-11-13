@@ -4,7 +4,7 @@ import 'package:http_interceptor/http_interceptor.dart';
 
 import 'Interceptador/Interceptador.dart';
 
-Client getClient({BuildContext context}) {
+Client getClient({BuildContext? context}) {
   return InterceptedClient.build(
     interceptors: [Interceptador(context: context)],
     requestTimeout: const Duration(seconds: 30),
@@ -16,7 +16,7 @@ const String baseUrl = 'http://3.224.148.218/Dellas';
 
 String getMessage(int statusCode) {
   if (_statusCodeResponses.containsKey(statusCode)) {
-    return _statusCodeResponses[statusCode];
+    return _statusCodeResponses[statusCode]!;
   }
   return 'Erro ao finalizar sua solicitação, gentileza entrar em contato com o suporte.';
 }

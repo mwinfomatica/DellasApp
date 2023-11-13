@@ -26,12 +26,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 class RetiradaTransf extends StatefulWidget {
-  final String titulo;
-  final String idtransf;
-  final List<retiradaprodModel> listRetirada;
+  final String? titulo;
+  final String? idtransf;
+  final List<retiradaprodModel>? listRetirada;
 
   const RetiradaTransf({
-    Key key,
+    Key? key,
     @required this.titulo,
     @required this.listRetirada,
     @required this.idtransf,
@@ -42,13 +42,17 @@ class RetiradaTransf extends StatefulWidget {
 }
 
 class _RetiradaTransfState extends State<RetiradaTransf> {
-  Barcode result;
+  TextEditingController _invisibleTextController = TextEditingController();
+  Barcode? result;
+  FocusNode _focusNode = FocusNode();
   bool reading = false;
   bool showCamera = false;
   bool hasAdress = false;
   bool prodReadSuccess = false;
-  String endRead = null;
-  String titleBtn = null;
+  bool isManual = false;
+  bool isExternalReadingEnabledApp = false;
+  String? endRead = null;
+  String? titleBtn = null;
   String idOperador = "";
   final animateListKey = GlobalKey<AnimatedListState>();
   final qtdeProdDialog = TextEditingController();
@@ -56,8 +60,8 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
   bool showLeituraExterna = false;
   bool leituraExterna = false;
   String tipoLeituraExterna = "endereco";
-  QRViewController controller;
-  Timer temp;
+  QRViewController? controller;
+  Timer? temp;
 
   int countleituraProd = 0;
 
@@ -74,11 +78,32 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
     );
   }
 
+  Future<void> _loadPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    bool collectMode = prefs.getBool('collectMode') ?? false;
+    bool cameraEnabled = prefs.getBool('useCamera') ?? false;
+    bool externalDeviceEnabled = prefs.getBool('leituraExterna') ?? false;
+
+    setState(() {
+      isCollectModeEnabled = collectMode;
+      isCameraEnabled = cameraEnabled;
+      isExternalDeviceEnabled = externalDeviceEnabled;
+      // Atualiza o título do botão com base no modo coletor
+      titleBtn = isCollectModeEnabled
+          ? "Aguardando leitura do leitor"
+          : "Iniciar Saída Transferência";
+    });
+    print('o modo coletor é $isCollectModeEnabled');
+  }
+
   String textExterno = "";
   final FlutterBlue flutterBlue = FlutterBlue.instance;
-  BluetoothDevice device;
-  BluetoothCharacteristic cNotify1;
-  StreamSubscription<List<int>> sub1;
+  BluetoothDevice? device;
+  BluetoothCharacteristic? cNotify1;
+  StreamSubscription<List<int>>? sub1;
+  bool isExternalDeviceEnabled = false;
+  bool isCollectModeEnabled = false;
+  bool isCameraEnabled = false;
 
   Future<void> getContexto() async {
     contextoModel = await contextoServices.getContexto();
@@ -96,7 +121,7 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
       if (conectados != null && conectados.length > 0) {
         device = conectados.firstWhere(
           (BluetoothDevice dev) => dev.id.id == contextoModel.uuidDevice,
-          orElse: () => null,
+          orElse: () => null as BluetoothDevice,
         );
       }
       if (device != null) {
@@ -104,7 +129,7 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
       } else {
         flutterBlue.scanResults.listen((List<ScanResult> results) {
           for (ScanResult result in results) {
-            if (contextoModel.uuidDevice.isNotEmpty &&
+            if (contextoModel.uuidDevice!.isNotEmpty &&
                 result.device.id.id == contextoModel.uuidDevice) {
               device = result.device;
               scanner();
@@ -121,9 +146,9 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
     if (device != null) {
       flutterBlue.stopScan();
       try {
-        await device.connect();
+        await device!.connect();
       } catch (e) {
-        if (e.code != 'already_connected') {
+        if (e != 'already_connected') {
           throw e;
         }
       } finally {
@@ -131,10 +156,10 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
         // await device.requestMtu(512);
       }
 
-      List<BluetoothService> _services = await device.discoverServices();
+      List<BluetoothService> _services = await device!.discoverServices();
 
       if (cNotify1 != null) {
-        sub1.cancel();
+        sub1!.cancel();
       }
       for (BluetoothService service in _services) {
         for (BluetoothCharacteristic characteristic
@@ -142,13 +167,13 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
           if (characteristic.properties.notify) {
             cNotify1 = characteristic;
 
-            sub1 = cNotify1.value.listen((value) {
+            sub1 = cNotify1!.value.listen((value) {
               textExterno = String.fromCharCodes(value);
               if (textExterno != "") {
                 setTimer(textExterno);
               }
             });
-            await cNotify1.setNotifyValue(true);
+            await cNotify1!.setNotifyValue(true);
 
             setState(() {});
           }
@@ -182,6 +207,10 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
           ProdutosDBService produtosDBService = ProdutosDBService();
           bool leituraQR = await produtosDBService.isLeituraQRCodeProduto(code);
           ProdutoModel prodRead = ProdutoModel();
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          // Verifica se o método de leitura externa está habilitado
+
+          isExternalReadingEnabledApp = prefs.getBool('collectMode') ?? false;
 
           if (leituraQR) {
             prodRead = ProdutoModel.fromJson(jsonDecode(code));
@@ -241,7 +270,7 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
                     prodRead.qtd != null &&
                             prodRead.qtd != "" &&
                             prodRead.qtd != "0"
-                        ? prodRead.qtd
+                        ? prodRead.qtd!
                         : "1");
               }
             }
@@ -256,7 +285,7 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
           } else {
             code = code.trim();
 
-            EnderecoModel end = await EnderecoModel().getById(code);
+            EnderecoModel? end = await EnderecoModel().getById(code);
 
             if (end == null) {
               FlutterBeep.beep(false);
@@ -290,52 +319,52 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
       this.controller = controller;
     });
     controller.scannedDataStream.listen((scanData) async {
-      await _readCodes(scanData.code);
+      await _readCodes(scanData.code!);
     });
   }
 
   Future<void> saveRetirada(ProdutoModel prod, String qtde) async {
-    retiradaprodModel retirada = await retiradaprodModel()
-        .getByIdProdIdTransfEnd(prod.idproduto, widget.idtransf, endRead);
+    retiradaprodModel? retirada = await retiradaprodModel()
+        .getByIdProdIdTransfEnd(prod.idproduto!, widget.idtransf!, endRead!);
     if (retirada == null) {
       retirada = new retiradaprodModel(
           idRetirado: new Uuid().v4().toUpperCase(),
-          endRetirado: endRead,
-          idtransfRetirado: widget.idtransf,
-          idProdRetirado: prod.idproduto,
-          nomeProdRetirado: prod.nome,
-          barcodeRetirado: prod.barcode,
+          endRetirado: endRead!,
+          idtransfRetirado: widget.idtransf!,
+          idProdRetirado: prod.idproduto!,
+          nomeProdRetirado: prod.nome!,
+          barcodeRetirado: prod.barcode!,
           qtdRetirado: qtde,
-          loteRetirado: prod.lote,
-          validRetirado: prod.vali,
+          loteRetirado: prod.lote!,
+          validRetirado: prod.vali!,
           idoperadorRetirado: idOperador);
       await retirada.insert();
     } else {
       retirada.qtdRetirado =
-          (int.parse(retirada.qtdRetirado) + int.parse(qtde)).toString();
+          (int.parse(retirada.qtdRetirado!) + int.parse(qtde)).toString();
       await retirada.update();
     }
     setState(() {});
 
-    pendenteArmazModel pendente = await pendenteArmazModel()
-        .getByIdProdIdTransf(prod.idproduto, widget.idtransf);
+    pendenteArmazModel? pendente = await pendenteArmazModel()
+        .getByIdProdIdTransf(prod.idproduto!, widget.idtransf!);
 
     if (pendente == null) {
       pendente = new pendenteArmazModel(
           id: new Uuid().v4().toUpperCase(),
           end: "",
-          idProd: prod.idproduto,
+          idProd: prod.idproduto!,
           idoperador: idOperador,
-          idtransf: widget.idtransf,
-          lote: prod.lote,
+          idtransf: widget.idtransf!,
+          lote: prod.lote!,
           qtd: qtde,
-          valid: prod.vali,
-          barcode: prod.barcode,
-          nomeProd: prod.nome,
+          valid: prod.vali!,
+          barcode: prod.barcode!,
+          nomeProd: prod.nome!,
           situacao: "0");
       await pendente.insert();
     } else {
-      pendente.qtd = (int.parse(pendente.qtd) + int.parse(qtde)).toString();
+      pendente.qtd = (int.parse(pendente.qtd!) + int.parse(qtde)).toString();
       await pendente.update();
     }
     setState(() {});
@@ -348,7 +377,7 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
           (element) =>
               element.idProdRetirado == prod.idproduto &&
               element.endRetirado == endRead,
-          orElse: () => null);
+          orElse: () => null as retiradaprodModel);
       if (item != null) {
         item.qtdRetirado = retirada.qtdRetirado;
       } else {
@@ -361,7 +390,7 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
 
   void getIdUser() async {
     SharedPreferences userlogged = await SharedPreferences.getInstance();
-    this.idOperador = userlogged.getString('IdUser');
+    this.idOperador = userlogged.getString('IdUser')!;
   }
 
   Future<void> removeItem(retiradaprodModel prodremove) async {
@@ -370,9 +399,9 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
         e.idtransfRetirado == prodremove.idtransfRetirado);
     setState(() {});
 
-    await prodremove.delete(prodremove.idRetirado);
+    await prodremove.delete(prodremove.idRetirado!);
     new pendenteArmazModel()
-        .deleteByProd(prodremove.idProdRetirado, prodremove.idtransfRetirado);
+        .deleteByProd(prodremove.idProdRetirado!, prodremove.idtransfRetirado!);
 
     setState(() {});
   }
@@ -380,22 +409,41 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
   @override
   void dispose() {
     if (sub1 != null) {
-      sub1.cancel();
+      sub1!.cancel();
       //device.disconnect();
     }
-    controller.dispose();
+    _invisibleTextController.dispose();
+    controller!.dispose();
     super.dispose();
   }
 
   @override
   void initState() {
-    if (widget.listRetirada.isNotEmpty) list = widget.listRetirada;
+    super.initState();
+
+    if (widget.listRetirada!.isNotEmpty) {
+      list = widget.listRetirada!;
+    }
 
     getIdUser();
     getContexto();
+    _loadPreferences(); // Carrega as preferências para o estado do widget
 
-    titleBtn = "Iniciar Saída Transferência";
-    super.initState();
+    _invisibleTextController.addListener(() {
+      final String code = _invisibleTextController.text;
+      if (code.isNotEmpty) {
+        _readCodes(code);
+        _invisibleTextController
+            .clear(); // Limpa o controlador para a próxima leitura
+      }
+    });
+
+    // Focar o TextField invisível se o modo coletor estiver habilitado
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (isCollectModeEnabled) {
+        FocusScope.of(context).requestFocus(_focusNode);
+      }
+    });
   }
 
   @override
@@ -403,9 +451,9 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
     super.reassemble();
     if (controller != null) {
       if (Platform.isAndroid) {
-        controller.pauseCamera();
+        controller!.pauseCamera();
       }
-      controller.resumeCamera();
+      controller!.resumeCamera();
     }
   }
 
@@ -414,103 +462,145 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
     return SafeArea(
       child: Scaffold(
           appBar: AppBar(
-            backgroundColor: primaryColor,
-            title: Text(widget.titulo),
-            automaticallyImplyLeading: countleituraProd == 0
-          ),
+              backgroundColor: primaryColor,
+              title: Text(widget.titulo!),
+              automaticallyImplyLeading: countleituraProd == 0),
           body: Column(
             mainAxisSize: MainAxisSize.max,
             children: [
+              if (isCollectModeEnabled)
+                Offstage(
+                  offstage:
+                      true, // Este widget não será pintado, mas ainda estará na árvore
+                  child: TextField(
+                    focusNode: _focusNode,
+                    controller: _invisibleTextController,
+                    autofocus: true,
+                    readOnly: true,
+                  ),
+                ),
               if (!prodReadSuccess)
-                leituraExterna
-                    ? showLeituraExterna == false
-                        ? BotaoIniciarApuracao(
-                            titulo: titleBtn == null ? "" : titleBtn,
-                            onPressed: () {
-                              setState(() {
-                                showLeituraExterna = true;
-                              });
-                            },
-                          )
-                        : Stack(
-                            children: [
-                              Container(
-                                padding: EdgeInsets.all(10),
-                                color: !hasAdress
-                                    ? Colors.grey[400]
-                                    : Colors.yellow[400],
-                                child: Center(
-                                  child: Text(
-                                    !hasAdress
-                                        ? "Aguardando leitura do Endereço"
-                                        : "Aguardando leitura dos Produtos",
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(fontSize: 18),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          )
-                    : showCamera == false
-                        ? BotaoIniciarApuracao(
-                            titulo: titleBtn == null ? "" : titleBtn,
-                            onPressed: () {
-                              setState(() {
-                                showCamera = true;
-                              });
-                            },
-                          )
-                        : Stack(
-                            children: [
-                              Container(
-                                height:
-                                    (MediaQuery.of(context).size.height * 0.20),
-                                child: _buildQrView(context),
-                                // child: Container(),
-                              ),
-                              Center(
-                                child: Container(
-                                  margin: EdgeInsets.symmetric(
-                                    vertical: !hasAdress
-                                        ? (MediaQuery.of(context).size.height *
-                                            0.05)
-                                        : (MediaQuery.of(context).size.height *
-                                            0.01),
-                                    horizontal: !hasAdress
-                                        ? 25
-                                        : (MediaQuery.of(context).size.width *
-                                            0.3),
-                                  ),
-                                  height: !hasAdress
-                                      ? (MediaQuery.of(context).size.height *
-                                          0.10)
-                                      : (MediaQuery.of(context).size.height *
-                                          0.17),
-                                  child: DashedRect(
-                                    color: primaryColor,
-                                    gap: !hasAdress ? 10 : 25,
-                                    strokeWidth: !hasAdress ? 2 : 5,
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 10,
+                isManual
+                    ? Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: TextField(
+                          autofocus: true,
+                          onSubmitted: (value) async {
+                            await _readCodes(value);
+                            setState(() {
+                              isManual = false;
+                            });
+                          },
+                          decoration: InputDecoration(
+                            border: OutlineInputBorder(),
+                            labelText: 'Digite o código',
+                          ),
+                        ),
+                      )
+                    : isCollectModeEnabled
+                        ? showLeituraExterna == false
+                            ? BotaoIniciarApuracao(
+                                titulo: titleBtn == null ? "" : titleBtn!,
+                                onPressed: () {
+                                  if (isCollectModeEnabled) {
+                                    null;
+                                  } else {
+                                    setState(() {
+                                      showLeituraExterna = true;
+                                    });
+                                  }
+                                },
+                              )
+                            : Stack(
+                                children: [
+                                  Container(
+                                    padding: EdgeInsets.all(10),
+                                    color: !hasAdress
+                                        ? Colors.grey[400]
+                                        : Colors.yellow[400],
+                                    child: Center(
+                                      child: Text(
+                                        !hasAdress
+                                            ? "Aguardando leitura do Endereço"
+                                            : "Aguardando leitura dos Produtos",
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(fontSize: 18),
                                       ),
-                                      child: Center(
-                                        child: Text(
-                                          hasAdress
-                                              ? "Leia o QRCode \n do produto"
-                                              : "Realize a leitura do \n Endereço",
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                              fontSize: 25,
-                                              color: Colors.white),
+                                    ),
+                                  ),
+                                ],
+                              )
+                        : showCamera == false
+                            ? BotaoIniciarApuracao(
+                                titulo: titleBtn == null ? "" : titleBtn!,
+                                onPressed: () {
+                                  setState(() {
+                                    showCamera = true;
+                                  });
+                                },
+                              )
+                            : Stack(
+                                children: [
+                                  Container(
+                                    height:
+                                        (MediaQuery.of(context).size.height *
+                                            0.20),
+                                    child: _buildQrView(context),
+                                    // child: Container(),
+                                  ),
+                                  Center(
+                                    child: Container(
+                                      margin: EdgeInsets.symmetric(
+                                        vertical: !hasAdress
+                                            ? (MediaQuery.of(context)
+                                                    .size
+                                                    .height *
+                                                0.05)
+                                            : (MediaQuery.of(context)
+                                                    .size
+                                                    .height *
+                                                0.01),
+                                        horizontal: !hasAdress
+                                            ? 25
+                                            : (MediaQuery.of(context)
+                                                    .size
+                                                    .width *
+                                                0.3),
+                                      ),
+                                      height: !hasAdress
+                                          ? (MediaQuery.of(context)
+                                                  .size
+                                                  .height *
+                                              0.10)
+                                          : (MediaQuery.of(context)
+                                                  .size
+                                                  .height *
+                                              0.17),
+                                      child: DashedRect(
+                                        color: primaryColor,
+                                        gap: !hasAdress ? 10 : 25,
+                                        strokeWidth: !hasAdress ? 2 : 5,
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 10,
+                                          ),
+                                          child: Center(
+                                            child: Text(
+                                              hasAdress
+                                                  ? "Leia o QRCode \n do produto"
+                                                  : "Realize a leitura do \n Endereço",
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                  fontSize: 25,
+                                                  color: Colors.white),
+                                            ),
+                                          ),
                                         ),
                                       ),
                                     ),
                                   ),
-                                ),
+                                ],
                               ),
-                            ],
-                          ),
               SizedBox(
                 height: 1,
               ),
@@ -528,7 +618,7 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
                           textAlign: TextAlign.center,
                         )
                       : Text(
-                          endRead,
+                          endRead!,
                           style: TextStyle(
                             fontSize: 25,
                             fontWeight: FontWeight.bold,
@@ -610,7 +700,7 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
                       return DataRow(
                         color: MaterialStateColor.resolveWith(
                           (states) =>
-                              index % 2 == 0 ? Colors.white : Colors.grey[200],
+                              index % 2 == 0 ? Colors.white : Colors.grey[200]!,
                         ),
                         cells: [
                           DataCell(
@@ -624,7 +714,7 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
                             Text(
                               list[index].qtdRetirado == null
                                   ? ""
-                                  : list[index].qtdRetirado,
+                                  : list[index].qtdRetirado!,
                               style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
@@ -633,7 +723,7 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
                           ),
                           DataCell(
                             Text(
-                              list[index].nomeProdRetirado,
+                              list[index].nomeProdRetirado!,
                               style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
@@ -643,7 +733,7 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
                           DataCell(
                             Text(
                               list[index].endRetirado != null
-                                  ? list[index].endRetirado
+                                  ? list[index].endRetirado!
                                   : "-",
                               style: TextStyle(
                                 fontSize: 15,
@@ -655,7 +745,7 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
                             Text(
                               list[index].loteRetirado == null
                                   ? ""
-                                  : list[index].loteRetirado,
+                                  : list[index].loteRetirado!,
                               style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
@@ -706,60 +796,88 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
               ),
             ],
           ),
-          bottomSheet: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Container(
-                width: 190,
-                // padding: EdgeInsets.fromLTRB(10, 0, 10, ),
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                      primary: primaryColor,
-                      textStyle: const TextStyle(fontSize: 15)),
-                  onPressed: () async {
-                    Navigator.pop(context);
-                    List<pendenteArmazModel> list =
-                        await pendenteArmazModel().getAllpendente();
-                    List<armprodModel> armlist = await armprodModel().getAll();
-                    if ((list != null && list.length > 0) ||
-                        (armlist != null && armlist.length > 0)) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (BuildContext context) =>
-                              ArmazenamentoTransf(
-                            listPendente: list,
-                            listarm: armlist,
-                          ),
-                        ),
-                      );
-                    } else {
-                      Dialogs.showToast(
-                          context, "Não há itens a serem armazenados.",
-                          duration: Duration(seconds: 5),
-                          bgColor: Colors.red.shade200);
-                    }
-                  },
-                  child: Text('Inciar Armazenamento'),
-                ),
-              ),
-              if (hasAdress)
+          bottomSheet: SizedBox(
+            height: MediaQuery.of(context).size.height * .2,
+            width: double.infinity,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
                 Container(
-                  width: 150,
+                  width: 190,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                         primary: primaryColor,
                         textStyle: const TextStyle(fontSize: 15)),
-                    onPressed: () {
+                    onPressed: () async {
                       setState(() {
-                        endRead = null;
-                        hasAdress = false;
+                        isManual = !isManual;
+                        showCamera = false;
+                        showLeituraExterna = false;
                       });
                     },
-                    child: Text('Alterar endereço'),
+                    child: Text(
+                        isManual ? 'Cancelar digitação' : 'Digitar código'),
                   ),
                 ),
-            ],
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Container(
+                      width: 190,
+                      // padding: EdgeInsets.fromLTRB(10, 0, 10, ),
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                            primary: primaryColor,
+                            textStyle: const TextStyle(fontSize: 15)),
+                        onPressed: () async {
+                          Navigator.pop(context);
+                          List<pendenteArmazModel> list =
+                              await pendenteArmazModel().getAllpendente();
+                          List<armprodModel> armlist =
+                              await armprodModel().getAll();
+                          if ((list != null && list.length > 0) ||
+                              (armlist != null && armlist.length > 0)) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (BuildContext context) =>
+                                    ArmazenamentoTransf(
+                                  listPendente: list,
+                                  listarm: armlist,
+                                ),
+                              ),
+                            );
+                          } else {
+                            Dialogs.showToast(
+                                context, "Não há itens a serem armazenados.",
+                                duration: Duration(seconds: 5),
+                                bgColor: Colors.red.shade200);
+                          }
+                        },
+                        child: Text('Iniciar Armazenamento'),
+                      ),
+                    ),
+                    if (hasAdress)
+                      Container(
+                        width: 150,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                              primary: primaryColor,
+                              textStyle: const TextStyle(fontSize: 15)),
+                          onPressed: () {
+                            setState(() {
+                              endRead = null;
+                              hasAdress = false;
+                            });
+                          },
+                          child: Text('Alterar endereço'),
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            ),
           ),
           bottomNavigationBar: BottomBar()),
     );

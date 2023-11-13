@@ -14,7 +14,7 @@ class ProdutosDBService {
       for (var i = 0; i < prods.length; i++) {
         ProdutoDBModel end = new ProdutoDBModel();
         end = prods[i];
-        end.cod = end.cod.trim();
+        end.cod = end.cod!.trim();
         await end.insert();
       }
     }
@@ -33,7 +33,7 @@ class ProdutosDBService {
       RetornoBaseModel rtn =
           RetornoBaseModel.fromJson(jsonDecode(response.body));
 
-      if (rtn != null && !rtn.error) {
+      if (rtn != null && !rtn.error!) {
         // prods = prods.map((e) => ProdutoModel.fromJson(e.toJson())).toList();
         // print(prods);
         prods = (rtn.data as List)
@@ -41,19 +41,19 @@ class ProdutosDBService {
             .toList();
         return prods;
       } else
-        return Future<Null>.value(null);
+        return Future.value(null);
     } catch (ex) {
       print(ex);
-      return Future<Null>.value(null);
+      return Future.value(null);
     }
   }
 
   Future<ProdutoModel> getProdutoPedidoByBarCodigo(String codigo) async {
     try {
-      ProdutoDBModel produtoDBModel =
+      ProdutoDBModel? produtoDBModel =
           await ProdutoDBModel().getByBar_coddum(codigo);
 
-      if (produtoDBModel != null && produtoDBModel.cod.isNotEmpty) {
+      if (produtoDBModel != null && produtoDBModel.cod!.isNotEmpty) {
         ProdutoModel produtoModel = ProdutoModel();
         produtoModel.id = new Uuid().v4().toUpperCase();
         produtoModel.idproduto = produtoDBModel.id;
@@ -76,35 +76,35 @@ class ProdutosDBService {
         produtoModel.isVirtual = null;
         return produtoModel;
       } else
-        return Future<Null>.value(null);
+        return Future.value(null);
     } catch (ex) {
       print(ex);
-      return Future<Null>.value(null);
+      return Future.value(null);
     }
   }
 
   Future<ProdutoModel> getProdutoPedidoByProduto(
       ProdutoModel produtoModel) async {
     try {
-      ProdutoDBModel produtoDBModel =
-          await ProdutoDBModel().getByCodigo(produtoModel.cod);
+      ProdutoDBModel? produtoDBModel =
+          await ProdutoDBModel().getByCodigo(produtoModel.cod!);
 
-      if (produtoDBModel != null && produtoDBModel.cod.isNotEmpty) {
+      if (produtoDBModel != null && produtoDBModel.cod!.isNotEmpty) {
         produtoModel.infVali = produtoDBModel.infvali;
         produtoModel.barcode = produtoDBModel.barcode;
         return produtoModel;
       } else
-        return Future<Null>.value(null);
+        return Future.value(null);
     } catch (ex) {
       print(ex);
-      return Future<Null>.value(null);
+      return Future.value(null);
     }
   }
 
   Future<bool> isLeituraQRCodeProduto(String code) async {
     try {
       ProdutoModel prodRead = ProdutoModel.fromJson(jsonDecode(code));
-      if (prodRead != null && prodRead.cod.isNotEmpty)
+      if (prodRead != null && prodRead.cod!.isNotEmpty)
         return true;
       else
         return false;

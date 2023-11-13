@@ -18,19 +18,18 @@ class Armazenamento extends StatefulWidget {
 }
 
 class _ArmazenamentoState extends State<Armazenamento> {
-  Barcode result;
+  late Barcode result;
   bool reading = false;
   Random r = new Random();
-  QRViewController controller;
+  late QRViewController controller;
   final GlobalKey qrAKey = GlobalKey(debugLabel: 'QR');
   final animateListKey = GlobalKey<AnimatedListState>();
 
   List<ArmazenamentoModel> lista = [];
 
-
   @override
   void dispose() {
-    controller?.dispose();
+    controller.dispose();
     super.dispose();
   }
 
@@ -64,7 +63,9 @@ class _ArmazenamentoState extends State<Armazenamento> {
                   ),
                   Center(
                     child: Container(
-                      margin: EdgeInsets.symmetric(vertical: (MediaQuery.of(context).size.height * 0.05),horizontal: 15),
+                      margin: EdgeInsets.symmetric(
+                          vertical: (MediaQuery.of(context).size.height * 0.05),
+                          horizontal: 15),
                       height: (MediaQuery.of(context).size.height * 0.10),
                       child: DashedRect(
                         color: primaryColor,
@@ -78,7 +79,8 @@ class _ArmazenamentoState extends State<Armazenamento> {
                             child: Text(
                               "Posicione a câmera \n em frente ao código",
                               textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 16, color: Colors.white),
+                              style:
+                                  TextStyle(fontSize: 16, color: Colors.white),
                             ),
                           ),
                         ),
@@ -110,7 +112,7 @@ class _ArmazenamentoState extends State<Armazenamento> {
   void _addItem() {
     int a = r.nextInt(5);
     ProdutoModel produto = listaProduto[a];
-    animateListKey.currentState.insertItem(0);
+    animateListKey.currentState!.insertItem(0);
     lista.insert(
       0,
       ArmazenamentoModel(
@@ -125,7 +127,7 @@ class _ArmazenamentoState extends State<Armazenamento> {
   void _removeItem(int index) {
     final item = lista.removeAt(index);
 
-    animateListKey.currentState.removeItem(
+    animateListKey.currentState!.removeItem(
       index,
       (context, animation) => ListItem(
         armazenamento: item,

@@ -21,15 +21,15 @@ class Retirada extends StatefulWidget {
 }
 
 class _RetiradaState extends State<Retirada> {
-  Barcode result;
+  Barcode? result;
   bool reading = false;
   Random r = new Random();
-  QRViewController controller;
+  QRViewController? controller;
   final GlobalKey qrAKey = GlobalKey(debugLabel: 'QR');
   final animateListKey = GlobalKey<AnimatedListState>();
 
   List<ProdutoModel> listProd = [];
-  OperacaoModel op = new OperacaoModel();
+  OperacaoModel? op = new OperacaoModel();
 
   @override
   void dispose() {
@@ -48,9 +48,9 @@ class _RetiradaState extends State<Retirada> {
     super.reassemble();
     if (controller != null) {
       if (Platform.isAndroid) {
-        controller.pauseCamera();
+        controller!.pauseCamera();
       }
-      controller.resumeCamera();
+      controller!.resumeCamera();
     }
   }
 
@@ -119,10 +119,10 @@ class _RetiradaState extends State<Retirada> {
                     primary: primaryColor,
                     textStyle: const TextStyle(fontSize: 20)),
                 onPressed: () {
-                  op.situacao = "2";
-                  op.update();
-                  op.prods = listProd;
-                  if (op.prods != null && op.prods.length > 0)
+                  op!.situacao = "2";
+                  op!.update();
+                  op!.prods = listProd;
+                  if (op!.prods != null && op!.prods!.length > 0)
                     Navigator.pop(context);
                   Navigator.push(
                     context,
@@ -143,27 +143,27 @@ class _RetiradaState extends State<Retirada> {
     var prodExist = listProd.where((element) => prod.id == element.id);
 
     if (prodExist.length == 0) {
-      prod.idOperacao = op.id.toUpperCase();
- prod.idproduto = prod.id;
+      prod.idOperacao = op!.id!.toUpperCase();
+      prod.idproduto = prod.id;
       prod.id = new Uuid().v4().toUpperCase();
       prod.qtd = prod.qtd == null ? "1" : prod.qtd;
       listProd.add(prod);
       prod.insert();
-      animateListKey.currentState.insertItem(0);
+      animateListKey.currentState!.insertItem(0);
     } else {
       ProdutoModel prod = prodExist.single;
       prod.idproduto = prod.id;
       prod.id = new Uuid().v4().toUpperCase();
       prod.qtd = prod.qtd == null ? "1" : prod.qtd;
-      prod.qtd = (int.parse(prod.qtd) + 1).toString();
+      prod.qtd = (int.parse(prod.qtd!) + 1).toString();
       prod.edit(prod);
     }
   }
 
   void _removeItem(int index) {
     final item = listProd.removeAt(index);
-    item.delete(item.id);
-    animateListKey.currentState.removeItem(
+    item.delete(item.id!);
+    animateListKey.currentState!.removeItem(
       index,
       (context, animation) => ListItem(
         produto: item,
@@ -187,7 +187,7 @@ class _RetiradaState extends State<Retirada> {
       try {
         if (!reading) {
           reading = true;
-          var prodjson = json.decode(scanData.code);
+          var prodjson = json.decode(scanData.code!);
           ProdutoModel prod = ProdutoModel.fromJson(prodjson);
           _addItem(prod);
           FlutterBeep.beep();
@@ -212,7 +212,7 @@ class _RetiradaState extends State<Retirada> {
           cnpj: '11.377.757/0001-15',
           tipo: '41',
           situacao: '1');
-      op.insert();
+      op!.insert();
     }
   }
 }

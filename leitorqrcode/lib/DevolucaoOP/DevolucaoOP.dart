@@ -18,11 +18,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 class DevolucaoOP extends StatefulWidget {
-  final String titulo;
-  final OperacaoModel operacaoModel;
+  final String? titulo;
+  final OperacaoModel? operacaoModel;
 
   const DevolucaoOP({
-    Key key,
+    Key? key,
     @required this.titulo,
     @required this.operacaoModel,
   }) : super(key: key);
@@ -32,19 +32,19 @@ class DevolucaoOP extends StatefulWidget {
 }
 
 class _DevolucaoOPState extends State<DevolucaoOP> {
-  Barcode result;
+  Barcode? result;
   bool reading = false;
   bool showCamera = false;
   bool hasAdress = false;
   bool prodReadSuccess = false;
   Random r = new Random();
-  String endRead = null;
-  String titleBtn = null;
+  String? endRead = null;
+  String? titleBtn = null;
   String idOperador = "";
   final animateListKey = GlobalKey<AnimatedListState>();
   final qtdeProdDialog = TextEditingController();
   final GlobalKey qrAKey = GlobalKey(debugLabel: 'QR');
-  QRViewController controller;
+  QRViewController? controller;
 
   List<ProdutoModel> listProd = [];
 
@@ -69,96 +69,96 @@ class _DevolucaoOPState extends State<DevolucaoOP> {
             bool isOK = true;
 
             ProdutoModel prodRead =
-                ProdutoModel.fromJson(jsonDecode(scanData.code));
+                ProdutoModel.fromJson(jsonDecode(scanData.code!));
 
             FlutterBeep.beep();
 
-            ProdutoModel prodDB = await new ProdutoModel().getByIdLoteIdPedido(
-                prodRead.idloteunico.toUpperCase(),
-                widget.operacaoModel.id.toUpperCase());
+            ProdutoModel? prodDB = await new ProdutoModel().getByIdLoteIdPedido(
+                prodRead.idloteunico!.toUpperCase(),
+                widget.operacaoModel!.id!.toUpperCase());
 
             if (prodDB != null) {
               if (isOK) {
-                  qtdeProdDialog.text = "";
+                qtdeProdDialog.text = "";
 
-                  showDialog(
-                    context: context,
-                    builder: (_) => AlertDialog(
-                      title: Text(
-                        "Informe a quantidade do produto scaneado",
-                        style: TextStyle(fontWeight: FontWeight.w500),
-                      ),
-                      content: TextField(
-                        controller: qtdeProdDialog,
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                            border: OutlineInputBorder(),
-                            focusedBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: primaryColor),
-                            ),
-                            labelText: 'Qtde'),
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            if (int.parse(prodDB.qtd) ==
-                                int.parse(qtdeProdDialog.text)) {
-                              prodDB.qtd = qtdeProdDialog.text;
-                              qtdeProdDialog.text = "";
-                              saveMovimentacao(prodDB, prodRead);
-                              Navigator.pop(context);
-                            } else if (int.parse(prodDB.qtd) <
-                                int.parse(qtdeProdDialog.text)) {
-                              Dialogs.showToast(context,
-                                  "A quantidade não pode ser maior que a informada na nota fiscal.");
-                            } else {
-                              ProdutoModel prodVirtual = new ProdutoModel(
-                                  id: new Uuid().v4().toUpperCase(),
-                                  cod: prodDB.cod,
-                                  idprodutoPedido: prodDB.idprodutoPedido,
-                                  idproduto: prodDB.idproduto,
-                                  desc: prodDB.desc,
-                                  end: prodDB.end,
-                                  idOperacao: prodDB.idOperacao,
-                                  idloteunico: prodDB.idloteunico,
-                                  infq: prodDB.infq,
-                                  sl: prodDB.sl,
-                                  lote: prodDB.lote,
-                                  nome: prodDB.nome,
-                                  qtd: qtdeProdDialog.text,
-                                  situacao: prodDB.situacao,
-                                  vali: prodDB.vali);
-
-                              prodVirtual.isVirtual = '1';
-                              prodVirtual.insert();
-                              prodDB.qtd = (int.parse(prodDB.qtd) -
-                                      int.parse(qtdeProdDialog.text))
-                                  .toString();
-
-                              if (int.parse(prodDB.qtd) > 0) {
-                                prodDB.update();
-                              } else {
-                                prodDB.delete(prodDB.id);
-                              }
-
-                              listProd.add(prodVirtual);
-                              saveMovimentacao(prodVirtual, prodRead,
-                                  idProdutoPai: prodDB.id);
-                              Navigator.pop(context);
-                            }
-                          },
-                          child: Text("Salvar"),
-                        ),
-                      ],
-                      elevation: 24.0,
+                showDialog(
+                  context: context,
+                  builder: (_) => AlertDialog(
+                    title: Text(
+                      "Informe a quantidade do produto scaneado",
+                      style: TextStyle(fontWeight: FontWeight.w500),
                     ),
-                  );
+                    content: TextField(
+                      controller: qtdeProdDialog,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: primaryColor),
+                          ),
+                          labelText: 'Qtde'),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          if (int.parse(prodDB.qtd!) ==
+                              int.parse(qtdeProdDialog.text)) {
+                            prodDB.qtd = qtdeProdDialog.text;
+                            qtdeProdDialog.text = "";
+                            saveMovimentacao(prodDB, prodRead);
+                            Navigator.pop(context);
+                          } else if (int.parse(prodDB.qtd!) <
+                              int.parse(qtdeProdDialog.text)) {
+                            Dialogs.showToast(context,
+                                "A quantidade não pode ser maior que a informada na nota fiscal.");
+                          } else {
+                            ProdutoModel prodVirtual = new ProdutoModel(
+                                id: new Uuid().v4().toUpperCase(),
+                                cod: prodDB.cod,
+                                idprodutoPedido: prodDB.idprodutoPedido,
+                                idproduto: prodDB.idproduto,
+                                desc: prodDB.desc,
+                                end: prodDB.end,
+                                idOperacao: prodDB.idOperacao,
+                                idloteunico: prodDB.idloteunico,
+                                infq: prodDB.infq,
+                                sl: prodDB.sl,
+                                lote: prodDB.lote,
+                                nome: prodDB.nome,
+                                qtd: qtdeProdDialog.text,
+                                situacao: prodDB.situacao,
+                                vali: prodDB.vali);
+
+                            prodVirtual.isVirtual = '1';
+                            prodVirtual.insert();
+                            prodDB.qtd = (int.parse(prodDB.qtd!) -
+                                    int.parse(qtdeProdDialog.text))
+                                .toString();
+
+                            if (int.parse(prodDB.qtd!) > 0) {
+                              prodDB.update();
+                            } else {
+                              prodDB.delete(prodDB.id!);
+                            }
+
+                            listProd.add(prodVirtual);
+                            saveMovimentacao(prodVirtual, prodRead,
+                                idProdutoPai: prodDB.id);
+                            Navigator.pop(context);
+                          }
+                        },
+                        child: Text("Salvar"),
+                      ),
+                    ],
+                    elevation: 24.0,
+                  ),
+                );
               }
             } else
               Dialogs.showToast(context, "Produto não encontrado");
           } else {
             //Habilita camera
-            if (scanData.code.isEmpty || scanData.code.length > 20) {
+            if (scanData.code!.isEmpty || scanData.code!.length > 20) {
               FlutterBeep.beep(false);
               Dialogs.showToast(context, "Código de barras inválido");
             } else {
@@ -183,24 +183,24 @@ class _DevolucaoOPState extends State<DevolucaoOP> {
   }
 
   void saveMovimentacao(ProdutoModel prodDB, ProdutoModel prodRead,
-      {String idProdutoPai}) async {
-    prodDB.end = endRead;
+      {String? idProdutoPai}) async {
+    prodDB.end = endRead!;
     prodDB.situacao = "3";
     await prodDB.update();
-    MovimentacaoModel moviDB = await new MovimentacaoModel()
-        .getModelById(prodDB.id, prodDB.idOperacao);
+    MovimentacaoModel? moviDB = await new MovimentacaoModel()
+        .getModelById(prodDB.id!, prodDB.idOperacao!);
 
     if (moviDB == null || prodDB.isVirtual == '1') {
       MovimentacaoModel movi = new MovimentacaoModel();
       movi.id = new Uuid().v4().toUpperCase();
-      movi.operacao = widget.operacaoModel.tipo;
-      movi.idOperacao = widget.operacaoModel.id;
+      movi.operacao = widget.operacaoModel!.tipo;
+      movi.idOperacao = widget.operacaoModel!.id;
       movi.codMovi =
-          widget.operacaoModel.nrdoc + "_" + movi.operacao + "_" + endRead;
+          widget.operacaoModel!.nrdoc! + "_" + movi.operacao! + "_" + endRead!;
       movi.operador = idOperador;
-      movi.endereco = endRead;
-      movi.idProduto = prodDB.idproduto;
-      movi.qtd = prodDB.qtd;
+      movi.endereco = endRead!;
+      movi.idProduto = prodDB.idproduto!;
+      movi.qtd = prodDB.qtd!;
       DateTime today = new DateTime.now();
       String dateSlug =
           "${today.day.toString().padLeft(2, '0')}/${today.month.toString().padLeft(2, '0')}/${today.year.toString()} ${today.hour}:${today.minute}:${today.second}";
@@ -209,25 +209,25 @@ class _DevolucaoOPState extends State<DevolucaoOP> {
 
       setState(() {
         ProdutoModel itemList = listProd.firstWhere(
-            (element) => element.id.toUpperCase() == prodDB.id.toUpperCase());
+            (element) => element.id!.toUpperCase() == prodDB.id!.toUpperCase());
 
-        itemList.end = endRead;
+        itemList.end = endRead!;
         itemList.situacao = "3";
 
         if (prodDB.isVirtual == '1') {
           ProdutoModel itemList1 =
               listProd.firstWhere((element) => element.id == idProdutoPai);
           itemList1.qtd =
-              (int.parse(itemList1.qtd) - int.parse(itemList.qtd)).toString();
-          if (int.parse(itemList1.qtd) == 0) {
+              (int.parse(itemList1.qtd!) - int.parse(itemList.qtd!)).toString();
+          if (int.parse(itemList1.qtd!) == 0) {
             listProd.remove(itemList1);
           }
         }
       });
 
       if (listProd.where((element) => element.situacao != "3").length == 0) {
-        widget.operacaoModel.situacao = "3";
-        await widget.operacaoModel.update();
+        widget.operacaoModel!.situacao = "3";
+        await widget.operacaoModel!.update();
         Dialogs.showToast(context, "Leitura concluída");
         setState(() {
           this.hasAdress = false;
@@ -239,7 +239,7 @@ class _DevolucaoOPState extends State<DevolucaoOP> {
 
   void getIdUser() async {
     SharedPreferences userlogged = await SharedPreferences.getInstance();
-    this.idOperador = userlogged.getString('IdUser');
+    this.idOperador = userlogged.getString('IdUser')!;
   }
 
   @override
@@ -250,7 +250,7 @@ class _DevolucaoOPState extends State<DevolucaoOP> {
 
   @override
   void initState() {
-    listProd = widget.operacaoModel.prods;
+    listProd = widget.operacaoModel!.prods!;
     var count = listProd.where((element) => element.situacao == "3").length;
 
     getIdUser();
@@ -262,22 +262,23 @@ class _DevolucaoOPState extends State<DevolucaoOP> {
       this.hasAdress = false;
     }
 
-    if (widget.operacaoModel.tipo != null)
-      widget.operacaoModel.tipo = widget.operacaoModel.tipo.trim();
+    if (widget.operacaoModel!.tipo != null)
+      widget.operacaoModel!.tipo = widget.operacaoModel!.tipo!.trim();
     else
-      widget.operacaoModel.tipo = "";
+      widget.operacaoModel!.tipo = "";
 
-    if (widget.operacaoModel.tipo == "10" || widget.operacaoModel.tipo == "40")
+    if (widget.operacaoModel!.tipo == "10" ||
+        widget.operacaoModel!.tipo == "40")
       titleBtn = "Iniciar Armazenamento";
-    else if (widget.operacaoModel.tipo == "21" ||
-        widget.operacaoModel.tipo == "31")
+    else if (widget.operacaoModel!.tipo == "21" ||
+        widget.operacaoModel!.tipo == "31")
       titleBtn = "Iniciar Retirada";
-    else if (widget.operacaoModel.tipo == "41")
+    else if (widget.operacaoModel!.tipo == "41")
       titleBtn = "Iniciar Armazenamento";
-    else if (widget.operacaoModel.tipo == "20" ||
-        widget.operacaoModel.tipo == "30")
+    else if (widget.operacaoModel!.tipo == "20" ||
+        widget.operacaoModel!.tipo == "30")
       titleBtn = "Iniciar Devolução";
-    else if (widget.operacaoModel.tipo == "90") titleBtn = "Iniciar Contagem";
+    else if (widget.operacaoModel!.tipo == "90") titleBtn = "Iniciar Contagem";
 
     super.initState();
   }
@@ -287,9 +288,9 @@ class _DevolucaoOPState extends State<DevolucaoOP> {
     super.reassemble();
     if (controller != null) {
       if (Platform.isAndroid) {
-        controller.pauseCamera();
+        controller!.pauseCamera();
       }
-      controller.resumeCamera();
+      controller!.resumeCamera();
     }
   }
 
@@ -299,7 +300,7 @@ class _DevolucaoOPState extends State<DevolucaoOP> {
       child: Scaffold(
           appBar: AppBar(
             backgroundColor: primaryColor,
-            title: Text(widget.titulo),
+            title: Text(widget.titulo!),
           ),
           body: Column(
             mainAxisSize: MainAxisSize.max,
@@ -381,7 +382,7 @@ class _DevolucaoOPState extends State<DevolucaoOP> {
                                   style: TextStyle(fontSize: 40),
                                 )
                               : Text(
-                                  endRead,
+                                  endRead!,
                                   style: TextStyle(
                                       fontSize: 40,
                                       fontWeight: FontWeight.bold),
@@ -448,7 +449,7 @@ class _DevolucaoOPState extends State<DevolucaoOP> {
                       return DataRow(
                         color: MaterialStateColor.resolveWith(
                           (states) =>
-                              index % 2 == 0 ? Colors.white : Colors.grey[200],
+                              index % 2 == 0 ? Colors.white : Colors.grey[200]!,
                         ),
                         cells: [
                           DataCell(
@@ -462,7 +463,7 @@ class _DevolucaoOPState extends State<DevolucaoOP> {
                           DataCell(
                             Text(
                               listProd[index].end != null
-                                  ? listProd[index].end
+                                  ? listProd[index].end!
                                   : "",
                               style: TextStyle(
                                 fontSize: 20,
@@ -472,7 +473,7 @@ class _DevolucaoOPState extends State<DevolucaoOP> {
                           ),
                           DataCell(
                             Text(
-                              listProd[index].qtd,
+                              listProd[index].qtd!,
                               style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
@@ -481,7 +482,7 @@ class _DevolucaoOPState extends State<DevolucaoOP> {
                           ),
                           DataCell(
                             Text(
-                              listProd[index].nome,
+                              listProd[index].nome!,
                               style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
@@ -490,7 +491,7 @@ class _DevolucaoOPState extends State<DevolucaoOP> {
                           ),
                           DataCell(
                             Text(
-                              listProd[index].sl,
+                              listProd[index].sl!,
                               style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
@@ -516,10 +517,10 @@ class _DevolucaoOPState extends State<DevolucaoOP> {
                             .toList();
 
                         for (int i = 0; i < notvirtual.length; i++) {
-                          await notvirtual[i].delete(notvirtual[i].id);
+                          await notvirtual[i].delete(notvirtual[i].id!);
                         }
-                        widget.operacaoModel.situacao = '3';
-                        await widget.operacaoModel.update();
+                        widget.operacaoModel!.situacao = '3';
+                        await widget.operacaoModel!.update();
                         Navigator.pop(context);
                       },
                       child: Text('Finalizar'),

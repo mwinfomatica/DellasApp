@@ -15,8 +15,8 @@ import 'package:leitorqrcode/Transferencia/components/Button.dart';
 import 'package:uuid/uuid.dart';
 
 class MenuTransferencia extends StatelessWidget {
-  final OperacaoModel op;
-  const MenuTransferencia({Key key, @required this.op}) : super(key: key);
+  final OperacaoModel? op;
+  const MenuTransferencia({Key? key, @required this.op}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -91,9 +91,9 @@ class MenuTransferencia extends StatelessWidget {
                 onTap: () async {
                   List<pendenteArmazModel> list =
                       await pendenteArmazModel().getAllpendente();
-                  List<armprodModel> armlist =
-                      await armprodModel().getAll();
-                  if ((list != null && list.length > 0) || (armlist != null && armlist.length > 0)) {
+                  List<armprodModel> armlist = await armprodModel().getAll();
+                  if ((list != null && list.length > 0) ||
+                      (armlist != null && armlist.length > 0)) {
                     Navigator.push(
                       context,
                       MaterialPageRoute(

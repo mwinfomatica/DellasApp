@@ -10,11 +10,11 @@ import 'package:leitorqrcode/Models/ProdutoModel.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 
 class DetalhesProduto extends StatefulWidget {
-  final String titulo;
-  final List<ProdutoModel> listProd;
+  final String? titulo;
+  final List<ProdutoModel>? listProd;
 
   const DetalhesProduto(
-      {Key key, @required this.titulo, @required this.listProd})
+      {Key? key, @required this.titulo, @required this.listProd})
       : super(key: key);
 
   @override
@@ -22,10 +22,10 @@ class DetalhesProduto extends StatefulWidget {
 }
 
 class _DetalhesProdutoState extends State<DetalhesProduto> {
-  Barcode result;
-  bool reading = false;
+  Barcode? result;
+  bool? reading = false;
   Random r = new Random();
-  QRViewController controller;
+  QRViewController? controller;
   final GlobalKey qrAKey = GlobalKey(debugLabel: 'QR');
   final animateListKey = GlobalKey<AnimatedListState>();
   List<ProdutoModel> lista = [];
@@ -38,7 +38,7 @@ class _DetalhesProdutoState extends State<DetalhesProduto> {
 
   @override
   void initState() {
-    lista = widget.listProd;
+    lista = widget.listProd!;
     super.initState();
   }
 
@@ -47,9 +47,9 @@ class _DetalhesProdutoState extends State<DetalhesProduto> {
     super.reassemble();
     if (controller != null) {
       if (Platform.isAndroid) {
-        controller.pauseCamera();
+        controller!.pauseCamera();
       }
-      controller.resumeCamera();
+      controller!.resumeCamera();
     }
   }
 
@@ -59,7 +59,7 @@ class _DetalhesProdutoState extends State<DetalhesProduto> {
       child: Scaffold(
           appBar: AppBar(
             backgroundColor: primaryColor,
-            title: Text(widget.titulo),
+            title: Text(widget.titulo!),
           ),
           body: Column(
             mainAxisSize: MainAxisSize.max,
@@ -166,7 +166,7 @@ class _DetalhesProdutoState extends State<DetalhesProduto> {
                                 Container(
                                   width:
                                       MediaQuery.of(context).size.width * 0.15,
-                                  child: Text(lista[index].endereco),
+                                  child: Text(lista[index].endereco!),
                                 ),
                               ],
                             ),
@@ -175,7 +175,7 @@ class _DetalhesProdutoState extends State<DetalhesProduto> {
                                 Container(
                                   width:
                                       MediaQuery.of(context).size.width * 0.23,
-                                  child: Text(lista[index].validade),
+                                  child: Text(lista[index].validade!),
                                 ),
                               ],
                             ),
@@ -185,12 +185,12 @@ class _DetalhesProdutoState extends State<DetalhesProduto> {
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(lista[index].nome),
+                                  Text(lista[index].nome!),
                                   SizedBox(
                                     height: 5,
                                   ),
                                   Text(
-                                    lista[index].descricao,
+                                    lista[index].descricao!,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
                                       color: Color.fromRGBO(132, 141, 149, 1),
@@ -205,7 +205,7 @@ class _DetalhesProdutoState extends State<DetalhesProduto> {
                             ),
                             Icon(
                               Icons.check_box,
-                              color: lista[index].checked
+                              color: lista[index].checked!
                                   ? Colors.green
                                   : Colors.grey,
                             )
@@ -224,7 +224,7 @@ class _DetalhesProdutoState extends State<DetalhesProduto> {
 
   void _addItem() {
     for (var i = 0; i < lista.length; i++) {
-      if (!lista[i].checked) {
+      if (!lista[i].checked!) {
         setState(() {
           lista[i].checked = true;
         });
@@ -258,7 +258,7 @@ class _DetalhesProdutoState extends State<DetalhesProduto> {
       this.controller = controller;
     });
     controller.scannedDataStream.listen((scanData) {
-      if (!reading) {
+      if (!reading!) {
         reading = true;
         print("aqui");
         _addItem();

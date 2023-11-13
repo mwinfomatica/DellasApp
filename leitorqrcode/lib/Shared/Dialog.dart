@@ -78,7 +78,7 @@ class Dialogs {
   }
 
   static Future<void> showToast(BuildContext context, String message,
-      {Duration duration, double elevation, Color bgColor}) async {
+      {Duration? duration, double? elevation, Color? bgColor}) async {
     final snackBar = SnackBar(
       content: Text(message),
       elevation: elevation != null ? elevation : 6.0,
