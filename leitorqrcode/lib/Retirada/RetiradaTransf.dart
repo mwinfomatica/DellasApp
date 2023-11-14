@@ -199,6 +199,7 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
       if (!reading) {
         reading = true;
         bool showDialogQtd = false;
+        print('tem endereço? $hasAdress');
 
         //Atualizar produto & Criar movimentação
         if (hasAdress) {
@@ -432,9 +433,11 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
     _invisibleTextController.addListener(() {
       final String code = _invisibleTextController.text;
       if (code.isNotEmpty) {
+        print(code);
         _readCodes(code);
         _invisibleTextController
             .clear(); // Limpa o controlador para a próxima leitura
+        FocusScope.of(context).requestFocus(_focusNode);
       }
     });
 
@@ -476,7 +479,6 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
                     focusNode: _focusNode,
                     controller: _invisibleTextController,
                     autofocus: true,
-                    readOnly: true,
                   ),
                 ),
               if (!prodReadSuccess)
@@ -487,9 +489,6 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
                           autofocus: true,
                           onSubmitted: (value) async {
                             await _readCodes(value);
-                            setState(() {
-                              isManual = false;
-                            });
                           },
                           decoration: InputDecoration(
                             border: OutlineInputBorder(),
