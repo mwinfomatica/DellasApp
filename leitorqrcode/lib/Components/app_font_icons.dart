@@ -29,4 +29,5 @@ class MWAppFont {
       IconData(0xe802, fontFamily: _kFontFam, fontPackage: _kFontPkg);
   static const IconData map_reload =
       IconData(0xe803, fontFamily: _kFontFam, fontPackage: _kFontPkg);
+      
 }

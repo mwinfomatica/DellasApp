@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter_barcode_listener/flutter_barcode_listener.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 
 import 'package:flutter/material.dart';
@@ -16,8 +17,10 @@ import 'package:leitorqrcode/Services/ProdutoService.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:leitorqrcode/Home/Home.dart';
 import 'package:leitorqrcode/Shared/Dialog.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'package:f_logs/f_logs.dart' as logging;
+import 'package:visibility_detector/visibility_detector.dart';
 
 import 'Components/Constants.dart';
 
@@ -45,12 +48,14 @@ class _QrCoderFirstState extends State<QrCoderFirst> {
   String resultado = "";
   String titlePageOp = "";
   bool reading = false;
+  bool leituraExterna = false;
 
   TextEditingController inputController = TextEditingController();
   FocusNode inputFocusNode = FocusNode();
   AnimationController? animationController;
   bool progress = false;
   bool bluetoothDisconect = true;
+  bool coletorMode = true;
 
   String textExterno = "";
   final FlutterBlue flutterBlue = FlutterBlue.instance;
@@ -59,35 +64,30 @@ class _QrCoderFirstState extends State<QrCoderFirst> {
   StreamSubscription<List<int>>? sub2;
   Timer? temp;
 
+  Future<void> _loadPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    bool collectMode = prefs.getBool('collectMode') ?? false;
+
+    setState(() {
+      this.coletorMode = collectMode;
+    });
+  }
+
   Future<void> getContexto() async {
     contextoModel = await contextoServices.getContexto();
-
-    // logging.FLog.logThis(
-    //   text: "Dispositivos selecionado UUID ${contextoModel.uuidDevice}",
-    //   type: logging.LogLevel.SEVERE,
-    //   dataLogType: logging.DataLogType.DEVICE.toString(),
-    // );
 
     if (contextoModel == null) {
       contextoModel = ContextoModel(leituraExterna: false);
       contextoModel.descLeituraExterna = "Leitor Externo Desabilitado";
     } else {
+      setState(() {
+        leituraExterna =
+            (contextoModel != null && contextoModel.leituraExterna == true);
+      });
       flutterBlue.connectedDevices
           .asStream()
           .listen((List<BluetoothDevice> devices) {
-        // logging.FLog.logThis(
-        //   text: "Dispositivos conectados - Quantidade: ${devices.length}",
-        //   type: logging.LogLevel.SEVERE,
-        //   dataLogType: logging.DataLogType.DEVICE.toString(),
-        // );
-
         for (BluetoothDevice dev in devices) {
-          // logging.FLog.logThis(
-          //   text: "Dispositivo Conectado ${dev.name} - UUID ${dev.id.id}",
-          //   type: logging.LogLevel.SEVERE,
-          //   dataLogType: logging.DataLogType.DEVICE.toString(),
-          // );
-
           if (contextoModel.uuidDevice!.isNotEmpty &&
               dev.id.id.trim() == contextoModel.uuidDevice!.trim()) {
             device = dev;
@@ -97,20 +97,7 @@ class _QrCoderFirstState extends State<QrCoderFirst> {
       });
 
       flutterBlue.scanResults.listen((List<ScanResult> results) {
-        // logging.FLog.logThis(
-        //   text: "Dispositivos disponiveis - Quantidade: ${results.length}",
-        //   type: logging.LogLevel.SEVERE,
-        //   dataLogType: logging.DataLogType.DEVICE.toString(),
-        // );
-
         for (ScanResult result in results) {
-          // logging.FLog.logThis(
-          //   text:
-          //       "Dispositivo disponiveis ${result.device.name} - UUID ${result.device.id.id}",
-          //   type: logging.LogLevel.SEVERE,
-          //   dataLogType: logging.DataLogType.DEVICE.toString(),
-          // );
-
           if (contextoModel.uuidDevice!.isNotEmpty &&
               result.device.id.id.trim() == contextoModel.uuidDevice!.trim()) {
             device = result.device;
@@ -498,6 +485,7 @@ class _QrCoderFirstState extends State<QrCoderFirst> {
   @override
   void initState() {
     getContexto();
+    _loadPreferences();
 
     super.initState();
   }
@@ -513,9 +501,13 @@ class _QrCoderFirstState extends State<QrCoderFirst> {
 
   @override
   Widget build(BuildContext context) {
+    bool visible = true;
+
     return Scaffold(
       body: SafeArea(
-        child: contextoModel != null && !contextoModel.leituraExterna!
+        child: contextoModel != null &&
+                !contextoModel.leituraExterna! &&
+                !coletorMode
             ? Stack(
                 children: [
                   _buildQrView(context),
@@ -543,7 +535,7 @@ class _QrCoderFirstState extends State<QrCoderFirst> {
                                 setState(() {});
                               },
                               child: FutureBuilder(
-                                // future: controller != null ? controller.getFlashStatus() : false,
+                                future: null,
                                 builder: (context, snapshot) {
                                   if (snapshot.data != true) {
                                     return Icon(
@@ -599,12 +591,42 @@ class _QrCoderFirstState extends State<QrCoderFirst> {
                   ),
                 ],
               )
-            : QRLeituraExterna(
-                progress: progress,
-                bluetoothDisconect: bluetoothDisconect,
-                bluetoothName: device != null ? device!.name : "",
-                device: device,
-              ),
+            : coletorMode
+                ? Stack(
+                    children: <Widget>[
+                      Offstage(
+                        offstage: true,
+                        child: VisibilityDetector(
+                          onVisibilityChanged: (VisibilityInfo info) {
+                            visible = info.visibleFraction > 0;
+                          },
+                          key: Key('visible-detector-key'),
+                          child: BarcodeKeyboardListener(
+                            bufferDuration: Duration(milliseconds: 200),
+                            onBarcodeScanned: (barcode) {
+                              print(barcode);
+                              _readCodes(barcode);
+                            },
+                            child: Text(""),
+                          ),
+                        ),
+                      ),
+                      QRLeituraExterna(
+                        progress: progress,
+                        bluetoothDisconect: bluetoothDisconect,
+                        coletorMode: coletorMode,
+                        bluetoothName: "",
+                        device: device,
+                      ),
+                    ],
+                  )
+                : QRLeituraExterna(
+                    progress: progress,
+                    bluetoothDisconect: bluetoothDisconect,
+                    coletorMode: coletorMode,
+                    bluetoothName: device != null ? device!.name : "",
+                    device: device,
+                  ),
       ),
     );
   }

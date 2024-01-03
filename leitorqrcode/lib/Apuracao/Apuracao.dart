@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'package:flutter_barcode_listener/flutter_barcode_listener.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 
 import 'package:flutter/material.dart';
@@ -25,6 +26,7 @@ import 'package:leitorqrcode/Shared/Dialog.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 
 class Apuracao extends StatefulWidget {
   final String titulo;
@@ -47,6 +49,7 @@ class _ApuracaoState extends State<Apuracao> {
   bool showLeituraExterna = false;
   bool hasAdress = false;
   bool prodReadSuccess = false;
+  bool isManual = false;
   bool leituraExterna = false;
   Random r = new Random();
   String endRead = '';
@@ -75,11 +78,32 @@ class _ApuracaoState extends State<Apuracao> {
     );
   }
 
+  Future<void> _loadPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    bool collectMode = prefs.getBool('collectMode') ?? false;
+    bool cameraEnabled = prefs.getBool('useCamera') ?? false;
+    bool externalDeviceEnabled = prefs.getBool('leituraExterna') ?? false;
+
+    setState(() {
+      isCollectModeEnabled = collectMode;
+      isCameraEnabled = cameraEnabled;
+      isExternalDeviceEnabled = externalDeviceEnabled;
+      // Atualiza o título do botão com base no modo coletor
+      titleBtn = isCollectModeEnabled
+          ? "Aguardando leitura do leitor"
+          : "Iniciar Saída Transferência";
+    });
+    print('o modo coletor é $isCollectModeEnabled');
+  }
+
   String textExterno = "";
   final FlutterBlue flutterBlue = FlutterBlue.instance;
   late BluetoothDevice device;
   late BluetoothCharacteristic cNotify3;
   late StreamSubscription<List<int>> sub3;
+  bool isExternalDeviceEnabled = false;
+  bool isCollectModeEnabled = false;
+  bool isCameraEnabled = false;
 
   Future<void> getContexto() async {
     contextoModel = await contextoServices.getContexto();
@@ -679,7 +703,7 @@ class _ApuracaoState extends State<Apuracao> {
       sub3.cancel();
       // device.disconnect();
     }
-    controller?.dispose();
+    controller.dispose();
     super.dispose();
   }
 
@@ -689,6 +713,7 @@ class _ApuracaoState extends State<Apuracao> {
     var count = listProd.where((element) => element.situacao == "3").length;
     getIdUser();
     getContexto();
+    _loadPreferences();
 
     if (count == listProd.length) {
       Dialogs.showToast(context, "Leitura já realizada");
@@ -714,16 +739,6 @@ class _ApuracaoState extends State<Apuracao> {
       titleBtn = "Iniciar Devolução";
     else if (widget.operacaoModel.tipo == "90") titleBtn = "Iniciar Contagem";
 
-    // inputFocusNode.addListener(() {
-    //   print("hasFocus");
-    //   print(inputFocusNode.hasFocus);
-    //   print("hasPrimaryFocus");
-    //   print(inputFocusNode.hasPrimaryFocus);
-    //   if (!inputFocusNode.hasFocus && !this.hasAdress) {
-    //     showLeituraExterna = false;
-    //   }
-    // });
-
     super.initState();
   }
 
@@ -740,6 +755,8 @@ class _ApuracaoState extends State<Apuracao> {
 
   @override
   Widget build(BuildContext context) {
+    late bool visible;
+
     return SafeArea(
       child: Scaffold(
           appBar: AppBar(
@@ -765,10 +782,15 @@ class _ApuracaoState extends State<Apuracao> {
                       height: 35,
                       width: 35,
                       child: bluetoothDisconect
-                          ? Icon(
-                              Icons.bluetooth_disabled,
-                              color: Colors.red,
-                            )
+                          ? isCollectModeEnabled
+                              ? Icon(
+                                  Icons.qr_code_scanner,
+                                  color: Colors.blue,
+                                )
+                              : Icon(
+                                  Icons.bluetooth_disabled,
+                                  color: Colors.red,
+                                )
                           : Icon(
                               Icons.bluetooth_connected,
                               color: Colors.blue,
@@ -785,107 +807,153 @@ class _ApuracaoState extends State<Apuracao> {
             child: Column(
               mainAxisSize: MainAxisSize.max,
               children: [
+                if (isCollectModeEnabled)
+                  Offstage(
+                    offstage: true,
+                    child: VisibilityDetector(
+                      onVisibilityChanged: (VisibilityInfo info) {
+                        visible = info.visibleFraction > 0;
+                      },
+                      key: Key('visible-detector-key'),
+                      child: BarcodeKeyboardListener(
+                        bufferDuration: Duration(milliseconds: 50),
+                        onBarcodeScanned: (barcode) async {
+                          print(barcode);
+                          _readCodes(barcode);
+                        },
+                        child: Text(""),
+                      ),
+                    ),
+                  ),
                 if (!prodReadSuccess)
-                  leituraExterna
-                      ? showLeituraExterna == false
-                          ? BotaoIniciarApuracao(
-                              titulo: titleBtn == null ? "" : titleBtn,
-                              onPressed: () {
-                                if (bluetoothDisconect) {
-                                  Dialogs.showToast(context,
-                                      "Leitor externo não conectado, favor verificar a conexão bluetooth com o dispositivo.",
-                                      duration: Duration(seconds: 7),
-                                      bgColor: Colors.red.shade200);
-                                } else {
-                                  setState(() {
-                                    showLeituraExterna = true;
-                                  });
-                                }
-                              },
-                            )
-                          : Stack(
-                              children: [
-                                Container(
-                                  padding: EdgeInsets.all(10),
-                                  color: !hasAdress
-                                      ? Colors.grey[400]
-                                      : Colors.yellow[400],
-                                  child: Center(
-                                    child: Text(
-                                      !hasAdress
-                                          ? "Aguardando leitura do Endereço"
-                                          : "Aguardando leitura dos Produtos",
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(fontSize: 18),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            )
-                      : showCamera == false
-                          ? BotaoIniciarApuracao(
-                              titulo: titleBtn == null ? "" : titleBtn,
-                              onPressed: () {
-                                setState(() {
-                                  showCamera = true;
-                                });
-                              },
-                            )
-                          : Stack(
-                              children: [
-                                Container(
-                                  height: (MediaQuery.of(context).size.height *
-                                      0.20),
-                                  child: _buildQrView(context),
-                                  // child: Container(),
-                                ),
-                                Center(
-                                  child: Container(
-                                    margin: EdgeInsets.symmetric(
-                                      vertical: !hasAdress
-                                          ? (MediaQuery.of(context)
-                                                  .size
-                                                  .height *
-                                              0.05)
-                                          : (MediaQuery.of(context)
-                                                  .size
-                                                  .height *
-                                              0.01),
-                                      horizontal: !hasAdress
-                                          ? 25
-                                          : (MediaQuery.of(context).size.width *
-                                              0.3),
-                                    ),
-                                    height: !hasAdress
-                                        ? (MediaQuery.of(context).size.height *
-                                            0.10)
-                                        : (MediaQuery.of(context).size.height *
-                                            0.17),
-                                    child: DashedRect(
-                                      color: primaryColor,
-                                      gap: !hasAdress ? 10 : 25,
-                                      strokeWidth: !hasAdress ? 2 : 5,
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 10,
+                  isManual
+                      ? Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: TextField(
+                            autofocus: true,
+                            onSubmitted: (value) async {
+                              _readCodes(value);
+                              setState(() {
+                                isManual = false;
+                              });
+                            },
+                            decoration: InputDecoration(
+                              border: OutlineInputBorder(),
+                              labelText: 'Digite o código',
+                            ),
+                          ),
+                        )
+                      : isCollectModeEnabled
+                          ? showLeituraExterna == false
+                              ? Stack(
+                                  children: [
+                                    Container(
+                                      padding: EdgeInsets.all(10),
+                                      color: !hasAdress
+                                          ? Colors.grey[400]
+                                          : Colors.yellow[400],
+                                      child: Center(
+                                        child: Text(
+                                          !hasAdress
+                                              ? "Aguardando leitura do Endereço"
+                                              : "Aguardando leitura dos Produtos",
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(fontSize: 18),
                                         ),
-                                        child: Center(
-                                          child: Text(
-                                            hasAdress
-                                                ? "Leia o QRCode \n do produto"
-                                                : "Realize a leitura do \n Endereço",
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                                fontSize: 25,
-                                                color: Colors.white),
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : Stack(
+                                  children: [
+                                    Container(
+                                      padding: EdgeInsets.all(10),
+                                      color: !hasAdress
+                                          ? Colors.grey[400]
+                                          : Colors.yellow[400],
+                                      child: Center(
+                                        child: Text(
+                                          !hasAdress
+                                              ? "Aguardando leitura do Endereço"
+                                              : "Aguardando leitura dos Produtos",
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(fontSize: 18),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                )
+                          : showCamera == false
+                              ? BotaoIniciarApuracao(
+                                  titulo: titleBtn == null ? "" : titleBtn,
+                                  onPressed: () {
+                                    setState(() {
+                                      showCamera = true;
+                                    });
+                                  },
+                                )
+                              : Stack(
+                                  children: [
+                                    Container(
+                                      height:
+                                          (MediaQuery.of(context).size.height *
+                                              0.20),
+                                      child: _buildQrView(context),
+                                      // child: Container(),
+                                    ),
+                                    Center(
+                                      child: Container(
+                                        margin: EdgeInsets.symmetric(
+                                          vertical: !hasAdress
+                                              ? (MediaQuery.of(context)
+                                                      .size
+                                                      .height *
+                                                  0.05)
+                                              : (MediaQuery.of(context)
+                                                      .size
+                                                      .height *
+                                                  0.01),
+                                          horizontal: !hasAdress
+                                              ? 25
+                                              : (MediaQuery.of(context)
+                                                      .size
+                                                      .width *
+                                                  0.3),
+                                        ),
+                                        height: !hasAdress
+                                            ? (MediaQuery.of(context)
+                                                    .size
+                                                    .height *
+                                                0.10)
+                                            : (MediaQuery.of(context)
+                                                    .size
+                                                    .height *
+                                                0.17),
+                                        child: DashedRect(
+                                          color: primaryColor,
+                                          gap: !hasAdress ? 10 : 25,
+                                          strokeWidth: !hasAdress ? 2 : 5,
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 10,
+                                            ),
+                                            child: Center(
+                                              child: Text(
+                                                hasAdress
+                                                    ? "Leia o QRCode \n do produto"
+                                                    : "Realize a leitura do \n Endereço",
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                    fontSize: 25,
+                                                    color: Colors.white),
+                                              ),
+                                            ),
                                           ),
                                         ),
                                       ),
                                     ),
-                                  ),
+                                  ],
                                 ),
-                              ],
-                            ),
                 SizedBox(
                   height: 1,
                 ),

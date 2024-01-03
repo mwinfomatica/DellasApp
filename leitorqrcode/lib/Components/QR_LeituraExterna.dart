@@ -16,12 +16,14 @@ class QRLeituraExterna extends StatefulWidget {
     this.bluetoothDisconect,
     this.bluetoothName,
     this.device,
+    this.coletorMode,
   }) : super(key: key);
   final StreamController? onChange;
   final TextEditingController? inputController;
   final FocusNode? inputFocusNode;
   final bool? progress;
   final bool? bluetoothDisconect;
+  final bool? coletorMode;
   final String? bluetoothName;
   final BluetoothDevice? device;
 
@@ -68,7 +70,7 @@ class _QRLeituraExternaState extends State<QRLeituraExterna> {
                 width: 25,
               ),
               Text(
-                "Leitura código externo",
+                "Leitura código " + (!widget.coletorMode! ? "externo" : "coletor"),
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 20,
@@ -120,7 +122,9 @@ class _QRLeituraExternaState extends State<QRLeituraExterna> {
                   borderRadius: BorderRadius.all(Radius.circular(2)),
                   border: Border.all(
                     color: widget.bluetoothDisconect!
-                        ? Colors.red
+                        ? !widget.coletorMode!
+                            ? Colors.red
+                            : Colors.blue[300]!
                         : Colors.blue[300]!,
                     width: 2,
                   ),
@@ -132,11 +136,14 @@ class _QRLeituraExternaState extends State<QRLeituraExterna> {
                     children: [
                       Icon(
                         widget.bluetoothDisconect!
-                            ? Icons.bluetooth_disabled
+                            ? !widget.coletorMode!
+                                ? Icons.bluetooth_disabled
+                                : Icons.qr_code_scanner
                             : Icons.bluetooth_connected,
-                        color: widget.bluetoothDisconect!
-                            ? Colors.red
-                            : Colors.blue[300],
+                        color:
+                            widget.bluetoothDisconect! && !widget.coletorMode!
+                                ? Colors.red
+                                : Colors.blue[300],
                         size: 34,
                       ),
                       // Image.asset(
@@ -148,14 +155,17 @@ class _QRLeituraExternaState extends State<QRLeituraExterna> {
                       Container(
                         width: 1,
                         height: 32,
-                        color: widget.bluetoothDisconect!
-                            ? Colors.red
-                            : Colors.blue[300],
+                        color:
+                            widget.bluetoothDisconect! && !widget.coletorMode!
+                                ? Colors.red
+                                : Colors.blue[300],
                       ),
                       Text(
-                        widget.bluetoothDisconect!
+                        widget.bluetoothDisconect! && !widget.coletorMode!
                             ? "Você ainda não conectou \n nenhum dispositivo para leitura"
-                            : "Dispositivo conectado para \n realização da leitura",
+                            : widget.coletorMode!
+                                ? "Aguardando a realização da leitura"
+                                : "Dispositivo conectado para \n realização da leitura",
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Colors.black,

@@ -33,7 +33,7 @@ class MenuHome extends StatelessWidget {
               ButtonHome(
                 titulo: "Armazenamento",
                 descricao: "Informe aqui o local \n de armazenamento",
-                icone: ArmazenamentoApp.armazenamento,
+                icone: Icons.all_inbox_outlined,
                 onTap: () {
                   Navigator.push(
                     context,
@@ -48,7 +48,7 @@ class MenuHome extends StatelessWidget {
               ButtonHome(
                 titulo: "Transferência",
                 descricao: "Para tranferir produtos \n entre locais",
-                icone: ArmazenamentoApp.transferencia,
+                icone: Icons.sync_alt,
                 onTap: () {
                   Navigator.push(
                     context,
@@ -105,7 +105,7 @@ class MenuHome extends StatelessWidget {
               ButtonHome(
                 titulo: "Inventário",
                 descricao: "Contagem de produtos \n no inventário",
-                icone: EcoFont.inventory,
+                icone: Icons.inventory_outlined,
                 onTap: () {
                   Navigator.push(
                     context,
@@ -118,7 +118,7 @@ class MenuHome extends StatelessWidget {
               ButtonHome(
                 titulo: "Carga",
                 descricao: "Informe aqui as cargas \n a serem retiradas",
-                icone: ArmazenamentoApp.armazenamento,
+                icone: Icons.outbox_outlined,
                 onTap: () {
                   Navigator.push(
                     context,
@@ -141,7 +141,7 @@ class MenuHome extends StatelessWidget {
               ButtonHome(
                 titulo: "Sincronizar",
                 descricao: "Clique aqui para enviar os dados para o servidor",
-                icone: EcoFont.sync_icon,
+                icone: Icons.sync_sharp,
                 onTap: () async {
                   await syncOp(context, true);
                 },

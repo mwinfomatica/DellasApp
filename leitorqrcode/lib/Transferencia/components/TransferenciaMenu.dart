@@ -58,7 +58,7 @@ class MenuTransferencia extends StatelessWidget {
               ButtonMenuTransferencia(
                 titulo: "Retirar",
                 descricao: "Descritivo da função armazenar",
-                icone: ArmazenamentoApp.armazenamento,
+                icone: Icons.outbox_outlined,
                 onTap: () async {
                   await getReitirada();
                   Navigator.push(
@@ -87,7 +87,7 @@ class MenuTransferencia extends StatelessWidget {
               ButtonMenuTransferencia(
                 titulo: "Armazenar",
                 descricao: "Descritivo da função armazenar",
-                icone: ArmazenamentoApp.op,
+                icone: Icons.all_inbox_outlined,
                 onTap: () async {
                   List<pendenteArmazModel> list =
                       await pendenteArmazModel().getAllpendente();
@@ -113,23 +113,23 @@ class MenuTransferencia extends StatelessWidget {
               )
             ],
           ),
-          SizedBox(
-            height: 25,
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              ButtonMenuTransferencia(
-                titulo: "Delete",
-                descricao: "Descritivo da função armazenar",
-                icone: ArmazenamentoApp.armazenamento,
-                onTap: () async {
-                  await delete();
-                  Navigator.pop(context);
-                },
-              )
-            ],
-          ),
+          // SizedBox(
+          //   height: 25,
+          // ),
+          // Row(
+          //   mainAxisAlignment: MainAxisAlignment.spaceAround,
+          //   children: [
+          //     ButtonMenuTransferencia(
+          //       titulo: "Delete",
+          //       descricao: "Descritivo da função armazenar",
+          //       icone: ArmazenamentoApp.armazenamento,
+          //       onTap: () async {
+          //         await delete();
+          //         Navigator.pop(context);
+          //       },
+          //     )
+          //   ],
+          // ),
         ],
       ),
     );

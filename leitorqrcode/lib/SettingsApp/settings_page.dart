@@ -269,28 +269,13 @@ class _SettingsPageState extends State<SettingsPage> {
               setState(() {
                 collectMode = value;
                 _updateSwitchPreference('collectMode', value);
-                if (collectMode) {
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    myFocusNode.requestFocus();
-                  });
-                }
+                // if (collectMode) {
+                //   WidgetsBinding.instance.addPostFrameCallback((_) {
+                //     myFocusNode.requestFocus();
+                //   });
+                // }
               });
             },
-          ),
-
-          Visibility(
-            visible: collectMode == true,
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 8.0),
-              child: TextFormField(
-                focusNode: myFocusNode,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                ),
-              ),
-            ),
           ),
           Divider(
             color: primaryColor,
@@ -324,7 +309,7 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           ListTile(
             leading: const Icon(
-              MWAppFont.items_reload,
+               Icons.sync_sharp,
               color: primaryColor,
               size: 25,
             ),
@@ -353,7 +338,7 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           ListTile(
             leading: const Icon(
-              MWAppFont.product_reload,
+              Icons.sync_sharp,
               color: primaryColor,
               size: 25,
             ),

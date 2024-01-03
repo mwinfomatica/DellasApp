@@ -31,7 +31,7 @@ class MyApp extends StatelessWidget {
           child: child!,
         );
       },
-      title: 'Flutter Demo',
+      title: 'Dellas',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.blue,
