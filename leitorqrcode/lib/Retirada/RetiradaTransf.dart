@@ -504,6 +504,46 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
                       )
                     : isCollectModeEnabled
                         ? showLeituraExterna == false
+                          ? Stack(
+                                  children: [
+                                    Container(
+                                      padding: EdgeInsets.all(10),
+                                      color: !hasAdress
+                                          ? Colors.grey[400]
+                                          : Colors.yellow[400],
+                                      child: Center(
+                                        child: Text(
+                                          !hasAdress
+                                              ? "Aguardando leitura do Endereço"
+                                              : "Aguardando leitura dos Produtos",
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(fontSize: 18),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                )
+                          : Stack(
+                                  children: [
+                                    Container(
+                                      padding: EdgeInsets.all(10),
+                                      color: !hasAdress
+                                          ? Colors.grey[400]
+                                          : Colors.yellow[400],
+                                      child: Center(
+                                        child: Text(
+                                          !hasAdress
+                                              ? "Aguardando leitura do Endereço"
+                                              : "Aguardando leitura dos Produtos",
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(fontSize: 18),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                )
+                        : leituraExterna
+                          ? showLeituraExterna == false
                             ? BotaoIniciarApuracao(
                                 titulo: titleBtn == null ? "" : titleBtn!,
                                 onPressed: () {
