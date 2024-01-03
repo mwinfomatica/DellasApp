@@ -468,15 +468,22 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
             children: [
               if (isCollectModeEnabled)
                 Offstage(
-                  offstage:
-                      true, // Este widget não será pintado, mas ainda estará na árvore
-                  child: TextField(
-                    focusNode: _focusNode,
-                    controller: _invisibleTextController,
-                    autofocus: true,
-                    readOnly: true,
+                    offstage: true,
+                    child: VisibilityDetector(
+                      onVisibilityChanged: (VisibilityInfo info) {
+                        visible = info.visibleFraction > 0;
+                      },
+                      key: Key('visible-detector-key-1'),
+                      child: BarcodeKeyboardListener(
+                        bufferDuration: Duration(milliseconds: 50),
+                        onBarcodeScanned: (barcode) async {
+                          print(barcode);
+                          await _readCodes(barcode);
+                        },
+                        child: Text(""),
+                      ),
+                    ),
                   ),
-                ),
               if (!prodReadSuccess)
                 isManual
                     ? Padding(
