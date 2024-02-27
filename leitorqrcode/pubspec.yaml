@@ -48,13 +48,12 @@ flutter:
 
   assets:
     - assets/img/
-    - assets/icons/
     - assets/fonts/
 
   fonts:
     - family: ArmazenamentoApp 
       fonts:
-        - asset: assets/icons/ArmazenamentoApp.ttf
+        - asset: assets/fonts/ArmazenamentoApp.ttf
     - family: MWAppFont
       fonts:
         - asset: assets/fonts/MWAppFont.ttf

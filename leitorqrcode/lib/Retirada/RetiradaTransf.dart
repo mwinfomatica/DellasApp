@@ -461,29 +461,32 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
       child: Scaffold(
           appBar: AppBar(
               backgroundColor: primaryColor,
-              title: Text(widget.titulo!),
+              title: Text(
+                widget.titulo!,
+                style: TextStyle(color: Colors.white),
+              ),
               automaticallyImplyLeading: countleituraProd == 0),
           body: Column(
             mainAxisSize: MainAxisSize.max,
             children: [
               if (isCollectModeEnabled)
                 Offstage(
-                    offstage: true,
-                    child: VisibilityDetector(
-                      onVisibilityChanged: (VisibilityInfo info) {
-                        visible = info.visibleFraction > 0;
+                  offstage: true,
+                  child: VisibilityDetector(
+                    onVisibilityChanged: (VisibilityInfo info) {
+                      visible = info.visibleFraction > 0;
+                    },
+                    key: Key('visible-detector-key-1'),
+                    child: BarcodeKeyboardListener(
+                      bufferDuration: Duration(milliseconds: 50),
+                      onBarcodeScanned: (barcode) async {
+                        print(barcode);
+                        await _readCodes(barcode);
                       },
-                      key: Key('visible-detector-key-1'),
-                      child: BarcodeKeyboardListener(
-                        bufferDuration: Duration(milliseconds: 50),
-                        onBarcodeScanned: (barcode) async {
-                          print(barcode);
-                          await _readCodes(barcode);
-                        },
-                        child: Text(""),
-                      ),
+                      child: Text(""),
                     ),
                   ),
+                ),
               if (!prodReadSuccess)
                 isManual
                     ? Padding(
@@ -504,57 +507,24 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
                       )
                     : isCollectModeEnabled
                         ? showLeituraExterna == false
-                          ? Stack(
-                                  children: [
-                                    Container(
-                                      padding: EdgeInsets.all(10),
-                                      color: !hasAdress
-                                          ? Colors.grey[400]
-                                          : Colors.yellow[400],
-                                      child: Center(
-                                        child: Text(
-                                          !hasAdress
-                                              ? "Aguardando leitura do Endereço"
-                                              : "Aguardando leitura dos Produtos",
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(fontSize: 18),
-                                        ),
+                            ? Stack(
+                                children: [
+                                  Container(
+                                    padding: EdgeInsets.all(10),
+                                    color: !hasAdress
+                                        ? Colors.grey[400]
+                                        : Colors.yellow[400],
+                                    child: Center(
+                                      child: Text(
+                                        !hasAdress
+                                            ? "Aguardando leitura do Endereço"
+                                            : "Aguardando leitura dos Produtos",
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(fontSize: 18),
                                       ),
                                     ),
-                                  ],
-                                )
-                          : Stack(
-                                  children: [
-                                    Container(
-                                      padding: EdgeInsets.all(10),
-                                      color: !hasAdress
-                                          ? Colors.grey[400]
-                                          : Colors.yellow[400],
-                                      child: Center(
-                                        child: Text(
-                                          !hasAdress
-                                              ? "Aguardando leitura do Endereço"
-                                              : "Aguardando leitura dos Produtos",
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(fontSize: 18),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                )
-                        : leituraExterna
-                          ? showLeituraExterna == false
-                            ? BotaoIniciarApuracao(
-                                titulo: titleBtn == null ? "" : titleBtn!,
-                                onPressed: () {
-                                  if (isCollectModeEnabled) {
-                                    null;
-                                  } else {
-                                    setState(() {
-                                      showLeituraExterna = true;
-                                    });
-                                  }
-                                },
+                                  ),
+                                ],
                               )
                             : Stack(
                                 children: [
@@ -575,77 +545,112 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
                                   ),
                                 ],
                               )
-                        : showCamera == false
-                            ? BotaoIniciarApuracao(
-                                titulo: titleBtn == null ? "" : titleBtn!,
-                                onPressed: () {
-                                  setState(() {
-                                    showCamera = true;
-                                  });
-                                },
-                              )
-                            : Stack(
-                                children: [
-                                  Container(
-                                    height:
-                                        (MediaQuery.of(context).size.height *
-                                            0.20),
-                                    child: _buildQrView(context),
-                                    // child: Container(),
-                                  ),
-                                  Center(
-                                    child: Container(
-                                      margin: EdgeInsets.symmetric(
-                                        vertical: !hasAdress
-                                            ? (MediaQuery.of(context)
-                                                    .size
-                                                    .height *
-                                                0.05)
-                                            : (MediaQuery.of(context)
-                                                    .size
-                                                    .height *
-                                                0.01),
-                                        horizontal: !hasAdress
-                                            ? 25
-                                            : (MediaQuery.of(context)
-                                                    .size
-                                                    .width *
-                                                0.3),
-                                      ),
-                                      height: !hasAdress
-                                          ? (MediaQuery.of(context)
-                                                  .size
-                                                  .height *
-                                              0.10)
-                                          : (MediaQuery.of(context)
-                                                  .size
-                                                  .height *
-                                              0.17),
-                                      child: DashedRect(
-                                        color: primaryColor,
-                                        gap: !hasAdress ? 10 : 25,
-                                        strokeWidth: !hasAdress ? 2 : 5,
-                                        child: Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                            vertical: 10,
+                        : leituraExterna
+                            ? showLeituraExterna == false
+                                ? BotaoIniciarApuracao(
+                                    titulo: titleBtn == null ? "" : titleBtn!,
+                                    onPressed: () {
+                                      if (isCollectModeEnabled) {
+                                        null;
+                                      } else {
+                                        setState(() {
+                                          showLeituraExterna = true;
+                                        });
+                                      }
+                                    },
+                                  )
+                                : Stack(
+                                    children: [
+                                      Container(
+                                        padding: EdgeInsets.all(10),
+                                        color: !hasAdress
+                                            ? Colors.grey[400]
+                                            : Colors.yellow[400],
+                                        child: Center(
+                                          child: Text(
+                                            !hasAdress
+                                                ? "Aguardando leitura do Endereço"
+                                                : "Aguardando leitura dos Produtos",
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(fontSize: 18),
                                           ),
-                                          child: Center(
-                                            child: Text(
-                                              hasAdress
-                                                  ? "Leia o QRCode \n do produto"
-                                                  : "Realize a leitura do \n Endereço",
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(
-                                                  fontSize: 25,
-                                                  color: Colors.white),
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                            : showCamera == false
+                                ? BotaoIniciarApuracao(
+                                    titulo: titleBtn == null ? "" : titleBtn!,
+                                    onPressed: () {
+                                      setState(() {
+                                        showCamera = true;
+                                      });
+                                    },
+                                  )
+                                : Stack(
+                                    children: [
+                                      Container(
+                                        height: (MediaQuery.of(context)
+                                                .size
+                                                .height *
+                                            0.20),
+                                        child: _buildQrView(context),
+                                        // child: Container(),
+                                      ),
+                                      Center(
+                                        child: Container(
+                                          margin: EdgeInsets.symmetric(
+                                            vertical: !hasAdress
+                                                ? (MediaQuery.of(context)
+                                                        .size
+                                                        .height *
+                                                    0.05)
+                                                : (MediaQuery.of(context)
+                                                        .size
+                                                        .height *
+                                                    0.01),
+                                            horizontal: !hasAdress
+                                                ? 25
+                                                : (MediaQuery.of(context)
+                                                        .size
+                                                        .width *
+                                                    0.3),
+                                          ),
+                                          height: !hasAdress
+                                              ? (MediaQuery.of(context)
+                                                      .size
+                                                      .height *
+                                                  0.10)
+                                              : (MediaQuery.of(context)
+                                                      .size
+                                                      .height *
+                                                  0.17),
+                                          child: DashedRect(
+                                            color: primaryColor,
+                                            gap: !hasAdress ? 10 : 25,
+                                            strokeWidth: !hasAdress ? 2 : 5,
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                vertical: 10,
+                                              ),
+                                              child: Center(
+                                                child: Text(
+                                                  hasAdress
+                                                      ? "Leia o QRCode \n do produto"
+                                                      : "Realize a leitura do \n Endereço",
+                                                  textAlign: TextAlign.center,
+                                                  style: TextStyle(
+                                                      fontSize: 25,
+                                                      color: Colors.white),
+                                                ),
+                                              ),
                                             ),
                                           ),
                                         ),
                                       ),
-                                    ),
+                                    ],
                                   ),
-                                ],
-                              ),
               SizedBox(
                 height: 1,
               ),
@@ -862,7 +867,9 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
                       });
                     },
                     child: Text(
-                        isManual ? 'Cancelar digitação' : 'Digitar código'),
+                      isManual ? 'Cancelar digitação' : 'Digitar código',
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ),
                 ),
                 Row(
@@ -900,7 +907,12 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
                                 bgColor: Colors.red.shade200);
                           }
                         },
-                        child: Text('Iniciar Armazenamento'),
+                        child: Center(
+                          child: Text(
+                            'Iniciar Armazenamento',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
                       ),
                     ),
                     if (hasAdress)
