@@ -2,9 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:leitorqrcode/Components/Bottom.dart';
 import 'package:leitorqrcode/Components/Constants.dart';
 import 'package:leitorqrcode/Conferencia/components/button_conferencia.dart';
+import 'package:leitorqrcode/Conferencia/conferenciaExpedicao.dart';
+import 'package:leitorqrcode/Infrastructure/AtualizarDados/atualizaOp.dart';
 import 'package:leitorqrcode/Models/APIModels/NfEmbalagemResponse.dart';
+import 'package:leitorqrcode/Models/APIModels/RetornoConfItensPedidoModel.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoPedidoCargaModel.dart';
+import 'package:leitorqrcode/Services/CargasService.dart';
 import 'package:leitorqrcode/Services/ContextoServices.dart';
+import 'package:leitorqrcode/Shared/Dialog.dart';
 import 'package:leitorqrcode/notaFiscal/components/select_card_fiscal.dart';
 
 class SelecionarNotaFiscalExpedicao extends StatefulWidget {
@@ -23,6 +28,7 @@ class _SelecionarNotaFiscalExpedicaoState
     extends State<SelecionarNotaFiscalExpedicao> {
   ContextoServices contextoServices = ContextoServices();
   int? selectedCardIndex;
+  String idUser = "";
 
   // Método para simular os dados retornados pelo endpoint
   NfeEmbalagemResponse getSimulatedData() {
@@ -50,6 +56,16 @@ class _SelecionarNotaFiscalExpedicaoState
         ),
       ],
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await getIdUser();
+      // await _getCargas();
+    });
   }
 
   @override
@@ -88,8 +104,30 @@ class _SelecionarNotaFiscalExpedicaoState
           ),
           ButtonConference(
             label: 'Finalizar Expedição',
+            onTap: () async {
+              CargasServices cargasServices = CargasServices(context);
+
+              RetornoConfItensPedidoModel? respostaConfItensPedido =
+                  await cargasServices.getConfItensPedido(idUser,
+                      widget.retorno.data![selectedCardIndex!].idPedido);
+
+              if (respostaConfItensPedido != null &&
+                  !respostaConfItensPedido.error) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ConferenciaExpedicaoScreen(
+                        retorno: respostaConfItensPedido),
+                  ),
+                );
+              } else {
+                Dialogs.showToast(context,
+                    "Erro ao buscar pedidos de carga: ${respostaConfItensPedido?.message}",
+                    duration: Duration(seconds: 5),
+                    bgColor: Colors.red.shade200);
+              }
+            },
           ),
-          // Botão e demais widgets
         ],
       ),
       bottomNavigationBar: BottomBar(),
