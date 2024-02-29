@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:leitorqrcode/Components/Bottom.dart';
 import 'package:leitorqrcode/Components/Constants.dart';
+import 'package:leitorqrcode/Conferencia/components/button_conferencia.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoConfItensPedidoModel.dart';
+import 'package:leitorqrcode/Services/CargasService.dart';
 import 'package:leitorqrcode/Services/ContextoServices.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 
@@ -40,44 +42,116 @@ class _ConferenciaExpedicaoScreenState
           ),
         ),
         body: SingleChildScrollView(
-          child: Column(
-            children: [
-              SizedBox(
-                height: height * 0.15,
-                child: _buildQrView(context),
-              ),
-              SizedBox(
-                height: height * 0.02,
-              ),
-              _buildButtons(width),
-              SizedBox(
-                height: 20,
-              ),
-              Text(
-                'Itens da Nota Fiscal',
-                style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
-              ),
-              Container(
-                width:
-                    width * 0.9, // Define a largura para 90% da largura da tela
-                child: _buildCustomTable(width),
-              ),
-              SizedBox(
-                height: 40,
-              ),
-              Text(
-                'Itens da Embalagem',
-                style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
-              ),
-              Container(
-                width:
-                    width * 0.9, // Define a largura para 90% da largura da tela
-                child: _buildItensEmbalagem(width),
-              ),
-            ],
+          child: Center(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SizedBox(
+                  height: height * 0.15,
+                  child: _buildQrView(context),
+                ),
+                SizedBox(
+                  height: 20,
+                ),
+                _buildHeaderNF(height),
+                SizedBox(
+                  height: 10,
+                ),
+                Container(
+                  width: width * 0.9,
+                  child: _buildCustomTable(width),
+                ),
+                SizedBox(
+                  height: 40,
+                ),
+                ButtonConference(
+                  label: 'Finalizar',
+                  onTap: () async {},
+                ),
+              ],
+            ),
           ),
         ),
         bottomNavigationBar: BottomBar());
+  }
+
+  Widget _buildHeaderNF(double height) {
+    return Stack(
+      children: [
+        Container(
+          height: height * 0.09,
+          color: Colors.yellow.shade300,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 6.0),
+            child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        'Nota: ${widget.retorno.data.nroNFE}/${widget.retorno.data.serieNfe.isEmpty ? 'SN' : widget.retorno.data.serieNfe}',
+                        style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(
+                        width: 8.0,
+                      ),
+                      Text(
+                        '- <${widget.retorno.data.cliente ?? 'Cliente não identificado'}>',
+                        style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'ChaveNFe: ${widget.retorno.data.chaveNfe.isEmpty ? 'Sem número' : widget.retorno.data.chaveNfe.isEmpty}',
+                      style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ]),
+          ),
+        ),
+        _buildForceButton()
+      ],
+    );
+  }
+
+  Widget _buildForceButton() {
+    return Positioned(
+      right: 10,
+      top: 15,
+      child: GestureDetector(
+        onTap: () async {
+          await forcarConferencia();
+        },
+        child: Container(
+          width: 40.0,
+          height: 40.0,
+          decoration: BoxDecoration(
+              color: Colors.grey.shade300, border: Border.all(width: 0.5)),
+          child: Center(
+            child: Container(
+              width: 25.0,
+              height: 25.0,
+              decoration: BoxDecoration(
+                border: Border.all(width: 0.5),
+                color: Colors.redAccent.shade100,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildQrView(BuildContext context) {
@@ -110,67 +184,12 @@ class _ConferenciaExpedicaoScreenState
     });
   }
 
-  Widget _buildButtons(double width) {
-    return Center(
-      child: SizedBox(
-        width: width * 0.9,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            GestureDetector(
-              onTap: () {},
-              child: Container(
-                width: width * 0.43,
-                height: 60,
-                decoration: BoxDecoration(
-                    border: Border.all(),
-                    borderRadius: BorderRadius.circular(10),
-                    color: Colors.green),
-                child: Center(
-                  child: Text(
-                    'Cancelar',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-            ),
-            GestureDetector(
-              onTap: () {},
-              child: Container(
-                width: width * 0.43,
-                height: 60,
-                decoration: BoxDecoration(
-                    border: Border.all(),
-                    borderRadius: BorderRadius.circular(10),
-                    color: Colors.green),
-                child: Center(
-                  child: Text(
-                    'Finalizar',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-            )
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildCustomTable(double width) {
-    // Estilos de texto para os cabeçalhos e células
     TextStyle headerStyle = TextStyle(fontWeight: FontWeight.bold);
     TextStyle cellStyle = TextStyle();
 
     double cellHeight = 48.0;
 
-    // Cria uma linha de cabeçalho com fundo cinza e texto em negrito
     TableRow _buildHeader() {
       return TableRow(
         decoration: BoxDecoration(color: Colors.grey.shade400),
@@ -184,14 +203,19 @@ class _ConferenciaExpedicaoScreenState
               child: Center(
                   child: SizedBox(
                       height: cellHeight,
-                      child: Center(
-                          child: Text('Qtde Total', style: headerStyle))))),
+                      child: Center(child: Text('', style: headerStyle))))),
           TableCell(
               child: Center(
                   child: SizedBox(
                       height: cellHeight,
                       child:
-                          Center(child: Text('Qtd Emb', style: headerStyle))))),
+                          Center(child: Text('Qtde NF', style: headerStyle))))),
+          TableCell(
+              child: Center(
+                  child: SizedBox(
+                      height: cellHeight,
+                      child: Center(
+                          child: Text('Qtd Conf', style: headerStyle))))),
           TableCell(
               child: Center(
                   child: SizedBox(
@@ -203,23 +227,24 @@ class _ConferenciaExpedicaoScreenState
     }
 
     // Cria uma única linha de dados
-    TableRow _buildRow(int index) {
+    TableRow _buildRow(ItemConferenciaNfs item) {
       return TableRow(
         children: [
           TableCell(child: Center(child: Text('', style: cellStyle))),
           TableCell(
-              child: Center(child: Text('${index + 1}', style: cellStyle))),
-          TableCell(child: Center(child: Text('Em Aberto', style: cellStyle))),
-          TableCell(
             child: Center(
               child: IconButton(
-                icon: Icon(Icons.edit),
-                onPressed: () {
-                  // Ação quando o ícone é pressionado
-                },
+                icon: Icon(Icons.delete),
+                onPressed: () {},
               ),
             ),
           ),
+          TableCell(
+              child: Center(child: Text('${item.qtde}', style: cellStyle))),
+          TableCell(child: Center(child: Text('0', style: cellStyle))),
+          TableCell(
+              child:
+                  Center(child: Text('${item.descricao}', style: cellStyle))),
         ],
       );
     }
@@ -231,89 +256,34 @@ class _ConferenciaExpedicaoScreenState
         outside: BorderSide(width: 1, color: Colors.black),
       ),
       columnWidths: {
-        0: FlexColumnWidth(0.5),
-        1: FlexColumnWidth(1),
-        2: FlexColumnWidth(1),
-        3: FlexColumnWidth(2),
+        0: FlexColumnWidth(0.4),
+        1: FlexColumnWidth(0.5),
+        2: FlexColumnWidth(0.4),
+        3: FlexColumnWidth(0.4),
+        4: FlexColumnWidth(2),
       },
       defaultVerticalAlignment: TableCellVerticalAlignment.middle,
       children: [
         _buildHeader(),
-        ...List.generate(3, (index) => _buildRow(index)).toList(),
+        ...widget.retorno.data.itensConferenciaNfs
+            .map((item) => _buildRow(item))
+            .toList(),
       ],
     );
   }
 
-  Widget _buildItensEmbalagem(double width) {
-    // Estilos de texto para os cabeçalhos e células
-    TextStyle headerStyle = TextStyle(fontWeight: FontWeight.bold);
-    TextStyle cellStyle = TextStyle();
+  Future<void> forcarConferencia() async {
+    print('entrou aqui');
+    CargasServices cargasServices = CargasServices(context);
 
-    double cellHeight = 48.0;
+    // RetornoConfBaixaModel? respostaForcarCarga =
+    //     await cargasServices.baixaPedido(
+    //         widget.retorno.data.idsEmbalagens, cargasSelecionadas, true);
 
-    // Cria uma linha de cabeçalho com fundo cinza e texto em negrito
-    TableRow _buildHeader() {
-      return TableRow(
-        decoration: BoxDecoration(color: Colors.grey.shade400),
-        children: [
-          TableCell(
-              child: Center(
-                  child: SizedBox(
-                      height: cellHeight,
-                      child: Center(
-                          child: Text('Qtde Emb.', style: headerStyle))))),
-          TableCell(
-              child: Center(
-                  child: SizedBox(
-                      height: cellHeight,
-                      child:
-                          Center(child: Text('Produto', style: headerStyle))))),
-          TableCell(
-              child: Center(
-                  child: SizedBox(
-                      height: cellHeight,
-                      child: Center(child: Text('Ação', style: headerStyle))))),
-        ],
-      );
-    }
-
-    // Cria uma única linha de dados
-    TableRow _buildRow(int index) {
-      return TableRow(
-        children: [
-          TableCell(
-              child: Center(child: Text('${index + 1}', style: cellStyle))),
-          TableCell(child: Center(child: Text('Em Aberto', style: cellStyle))),
-          TableCell(
-            child: Center(
-              child: IconButton(
-                icon: Icon(Icons.delete),
-                onPressed: () {
-                  // Ação quando o ícone é pressionado
-                },
-              ),
-            ),
-          ),
-        ],
-      );
-    }
-
-    // Cria a tabela completa com todas as linhas
-    return Table(
-      border: TableBorder.symmetric(
-        inside: BorderSide(width: 1, color: Colors.black),
-        outside: BorderSide(width: 1, color: Colors.black),
-      ),
-      columnWidths: {
-        0: FlexColumnWidth(1),
-        1: FlexColumnWidth(2),
-        2: FlexColumnWidth(1),
-      },
-      defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-      children: [
-        _buildHeader(),
-        ...List.generate(2, (index) => _buildRow(index)).toList(),
-      ],
-    );
+    // if (respostaForcarCarga != null && !respostaForcarCarga.error) {
+    // } else {
+    //   Dialogs.showToast(context, "Erro forçar Conferência",
+    //       duration: Duration(seconds: 5), bgColor: Colors.red.shade200);
+    // }
   }
 }

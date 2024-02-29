@@ -3,7 +3,6 @@ import 'package:leitorqrcode/Components/Bottom.dart';
 import 'package:leitorqrcode/Components/Constants.dart';
 import 'package:leitorqrcode/Conferencia/components/button_conferencia.dart';
 import 'package:leitorqrcode/Conferencia/conferenciaExpedicao.dart';
-import 'package:leitorqrcode/Infrastructure/AtualizarDados/atualizaOp.dart';
 import 'package:leitorqrcode/Models/APIModels/NfEmbalagemResponse.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoConfItensPedidoModel.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoPedidoCargaModel.dart';
@@ -11,6 +10,7 @@ import 'package:leitorqrcode/Services/CargasService.dart';
 import 'package:leitorqrcode/Services/ContextoServices.dart';
 import 'package:leitorqrcode/Shared/Dialog.dart';
 import 'package:leitorqrcode/notaFiscal/components/select_card_fiscal.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SelecionarNotaFiscalExpedicao extends StatefulWidget {
   final RetornoPedidoCargaModel retorno;
@@ -132,5 +132,12 @@ class _SelecionarNotaFiscalExpedicaoState
       ),
       bottomNavigationBar: BottomBar(),
     );
+  }
+
+  Future<void> getIdUser() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      idUser = prefs.getString('IdUser') ?? "";
+    });
   }
 }
