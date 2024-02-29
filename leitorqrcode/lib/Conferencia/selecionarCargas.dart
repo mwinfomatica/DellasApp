@@ -151,7 +151,9 @@ class _SelecionarCargasState extends State<SelecionarCargas> {
   }
 
   Future<void> enviarCargasSelecionadas() async {
+    print('entrou aqui');
     CargasServices cargasServices = CargasServices(context);
+    print('entrou aqui 2');
     List<String> cargasSelecionadas =
         selecionados.map((carga) => carga.carga).toList();
 

@@ -44,19 +44,20 @@ class CargasServices {
 
   Future<RetornoPedidoCargaModel?> getPedidosDeCarga(
       String idUser, List<String> cargas) async {
+    print('entrou aqui 3');
     try {
       String url = '$baseUrl/ApiCliente/ConfListaPedidoCarga';
 
-      var response =
-          await getClient(context: context).post(Uri.parse(url), headers: {
-        'Content-Type': 'application/json',
-      }, body: {
-        "IdUser": idUser,
-        "Cargas": cargas,
-      });
+      var response = await getClient(context: context).post(Uri.parse(url),
+          headers: {
+            'Content-type': 'application/json',
+          },
+          body: jsonEncode({
+            "IdUser": idUser,
+            "Cargas": cargas,
+          }));
 
       print(response.body);
-      print(response.statusCode);
 
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
@@ -76,15 +77,15 @@ class CargasServices {
 
   Future<RetornoConfItensPedidoModel?> getConfItensPedido(
       String idUser, String idPedido) async {
+    print('entrou no getConfItensPedido');
     try {
-      String url = '$baseUrl/ApiCliente/ConfItensPedido';
+      String url =
+          '$baseUrl/ApiCliente/ConfItensPedido?idUser=$idUser&idPedido=$idPedido';
+      print(url);
 
       var response =
-          await getClient(context: context).post(Uri.parse(url), headers: {
+          await getClient(context: context).get(Uri.parse(url), headers: {
         'Content-Type': 'application/json',
-      }, body: {
-        "IdUser": idUser,
-        "idPedido": idPedido,
       });
 
       print(response.body);
@@ -111,12 +112,13 @@ class CargasServices {
     try {
       String url = '$baseUrl/ApiCliente/ConfItensEmbalagem';
 
-      var response =
-          await getClient(context: context).post(Uri.parse(url), headers: {
-        'Content-Type': 'application/json',
-      }, body: {
-        "IdUser": idEmbalagem,
-      });
+      var response = await getClient(context: context).post(Uri.parse(url),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: jsonEncode({
+            "idEmbalagem": idEmbalagem,
+          }));
 
       print(response.body);
       print(response.statusCode);
@@ -144,14 +146,15 @@ class CargasServices {
 
       String url = '$baseUrl/ApiCliente/ConfBaixaPedido';
 
-      var response =
-          await getClient(context: context).post(Uri.parse(url), headers: {
-        'Content-Type': 'application/json',
-      }, body: {
-        "TipoBaixa": tipoBaixa,
-        "IdEmbalagens": embalagens,
-        "IdPedidos": idPedidos
-      });
+      var response = await getClient(context: context).post(Uri.parse(url),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: jsonEncode({
+            "TipoBaixa": tipoBaixa,
+            "IdEmbalagens": embalagens,
+            "IdPedidos": idPedidos
+          }));
 
       print(response.body);
       print(response.statusCode);
