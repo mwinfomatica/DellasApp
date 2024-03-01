@@ -10,6 +10,7 @@ import 'package:leitorqrcode/Components/Bottom.dart';
 import 'package:leitorqrcode/Components/Constants.dart';
 import 'package:leitorqrcode/Components/DashedRect.dart';
 import 'package:leitorqrcode/Models/APIModels/ProdutoModel.dart';
+import 'package:leitorqrcode/Models/APIModels/RetornoGetCreateEmbalagemModel.dart';
 import 'package:leitorqrcode/Models/ContextoModel.dart';
 import 'package:leitorqrcode/Services/ContextoServices.dart';
 import 'package:leitorqrcode/Services/ProdutosDBService.dart';
@@ -20,8 +21,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
 class MontarEmbalagem extends StatefulWidget {
+  final RetornoGetCreateEmbalagemModel dadosCreateEmbalagem;
   const MontarEmbalagem({
     Key? key,
+    required this.dadosCreateEmbalagem,
   }) : super(key: key);
 
   @override
@@ -474,7 +477,6 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
                                     ),
                                   ],
                                 ),
-
                 SizedBox(
                   height: 10,
                 ),
@@ -489,7 +491,8 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
                 Container(
                   width: width *
                       0.95, // Define a largura para 90% da largura da tela
-                  child: _buildCustomTable(width),
+                  child: _buildCustomTable(
+                      width, widget.dadosCreateEmbalagem.data),
                 ),
                 SizedBox(
                   height: 20,
@@ -577,7 +580,7 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
     );
   }
 
-  Widget _buildCustomTable(double width) {
+  Widget _buildCustomTable(double width, List<DadosEmbalagem> dadosEmbalagem) {
     // Estilos de texto para os cabeçalhos e células
     TextStyle headerStyle = TextStyle(fontWeight: FontWeight.bold);
     TextStyle cellStyle = TextStyle();
@@ -616,29 +619,23 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
       );
     }
 
-    // Cria uma única linha de dados
-    TableRow _buildRow(int index) {
+    TableRow _buildRow(DadosEmbalagem embalagem, int index) {
       return TableRow(
         children: [
           TableCell(child: Center(child: Text('', style: cellStyle))),
           TableCell(
-              child: Center(child: Text('${index + 1}', style: cellStyle))),
-          TableCell(child: Center(child: Text('Em Aberto', style: cellStyle))),
+              child: Center(
+                  child: Text('${embalagem.quantNota}', style: cellStyle))),
           TableCell(
-            child: Center(
-              child: IconButton(
-                icon: Icon(Icons.edit),
-                onPressed: () {
-                  // Ação quando o ícone é pressionado
-                },
-              ),
-            ),
-          ),
+              child: Center(
+                  child: Text('${embalagem.quantEmbalado}', style: cellStyle))),
+          TableCell(
+              child:
+                  Center(child: Text(embalagem.descProduto, style: cellStyle))),
         ],
       );
     }
 
-    // Cria a tabela completa com todas as linhas
     return Table(
       border: TableBorder.symmetric(
         inside: BorderSide(width: 1, color: Colors.black),
@@ -653,7 +650,11 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
       defaultVerticalAlignment: TableCellVerticalAlignment.middle,
       children: [
         _buildHeader(),
-        ...List.generate(3, (index) => _buildRow(index)).toList(),
+        ...dadosEmbalagem
+            .asMap()
+            .entries
+            .map((entry) => _buildRow(entry.value, entry.key))
+            .toList(),
       ],
     );
   }
