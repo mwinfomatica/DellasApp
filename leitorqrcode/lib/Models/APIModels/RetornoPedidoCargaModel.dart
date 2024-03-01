@@ -27,6 +27,7 @@ class PedidoCarga {
   final String serie;
   final String? cliente;
   final String chave;
+  // final String idGrupo;
 
   PedidoCarga({
     required this.idPedido,
@@ -34,6 +35,7 @@ class PedidoCarga {
     required this.serie,
     this.cliente,
     required this.chave,
+    // required this.idGrupo,
   });
 
   factory PedidoCarga.fromJson(Map<String, dynamic> json) {
@@ -43,6 +45,26 @@ class PedidoCarga {
       serie: json['serie'],
       cliente: json['cliente'],
       chave: json['chave'],
+      // idGrupo:  json['idGrupo']
     );
+  }
+}
+
+class ListarConfNf {
+  String? idUser;
+  List<String> Cargas = [];
+
+  ListarConfNf(this.Cargas, this.idUser);
+
+  ListarConfNf.fromJson(Map<String, dynamic> json) {
+    idUser = json['id'];
+    Cargas = json['operacao'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['IdUser'] = this.idUser;
+    data['Cargas'] = this.Cargas;
+    return data;
   }
 }

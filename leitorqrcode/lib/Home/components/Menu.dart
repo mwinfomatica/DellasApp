@@ -5,7 +5,6 @@ import 'package:leitorqrcode/Infrastructure/AtualizarDados/atualizaOp.dart';
 import 'package:leitorqrcode/Inventario/Inventario.dart';
 import 'package:leitorqrcode/QrCoderFirst.dart';
 import 'package:leitorqrcode/Transferencia/Transferencias.dart';
-import 'package:leitorqrcode/notaFiscal/selecionarNotaFiscal.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MenuHome extends StatelessWidget {
@@ -38,13 +37,10 @@ class MenuHome extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (BuildContext context) => SelecionarNotaFiscal(
-                              idPedido: '8D80912E-E844-485F-808C-0001F0143B8F',
-                            )
-                        //  QrCoderFirst(
-                        //   tipo: 1,
-                        // ),
-                        ),
+                      builder: (BuildContext context) => QrCoderFirst(
+                        tipo: 1,
+                      ),
+                    ),
                   );
                 },
               ),
@@ -142,6 +138,33 @@ class MenuHome extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               ButtonHome(
+                titulo: "Conferência",
+                descricao: "Conferência de Retirada",
+                icone: Icons.inventory_outlined,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (BuildContext context) => SelecionarCargas(),
+                    ),
+                  );
+                },
+              ),
+              // ButtonHome(
+              //   titulo: "Embalagem",
+              //   descricao: "Montar embalagem",
+              //   icone: Icons.outbox_outlined,
+              //   onTap: () {
+              //     Navigator.push(
+              //       context,
+              //       MaterialPageRoute(
+              //         builder: (BuildContext context) => MontarEmbalagem(),
+              //       ),
+              //     );
+              //   },
+              // ),
+
+              ButtonHome(
                 titulo: "Sincronizar",
                 descricao: "Clique aqui para enviar os dados para o servidor",
                 icone: Icons.sync_sharp,
@@ -150,7 +173,14 @@ class MenuHome extends StatelessWidget {
                 },
               ),
             ],
-          )
+          ),
+          SizedBox(
+            height: 25,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [],
+          ),
         ],
       ),
     );

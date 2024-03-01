@@ -78,9 +78,8 @@ class _InventarioState extends State<Inventario> {
       isCameraEnabled = cameraEnabled;
       isExternalDeviceEnabled = externalDeviceEnabled;
       // Atualiza o título do botão com base no modo coletor
-      titleBtn = isCollectModeEnabled
-          ? "Aguardando leitura do leitor"
-          : "Iniciar Saída Transferência";
+      titleBtn =
+          isCollectModeEnabled ? "Aguardando leitura do leitor" : titleBtn;
     });
     print('o modo coletor é $isCollectModeEnabled');
   }

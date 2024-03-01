@@ -86,7 +86,8 @@ class _SelecionarNotaFiscalState extends State<SelecionarNotaFiscal> {
                   MaterialPageRoute(
                     builder: (BuildContext context) => SelecionarEmbalagem(
                       nfeDados: selectedData,
-                      dadosEmbalagem: dadosNotaFiscal!.data,
+                      dadosEmbalagem:
+                          dadosNotaFiscal != null ? dadosNotaFiscal!.data : [],
                     ),
                   ),
                 );

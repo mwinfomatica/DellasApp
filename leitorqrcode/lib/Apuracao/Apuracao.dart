@@ -23,6 +23,7 @@ import 'package:leitorqrcode/Services/ContextoServices.dart';
 import 'package:leitorqrcode/Services/ProdutoService.dart';
 import 'package:leitorqrcode/Services/ProdutosDBService.dart';
 import 'package:leitorqrcode/Shared/Dialog.dart';
+import 'package:leitorqrcode/notaFiscal/selecionarNotaFiscal.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
@@ -89,9 +90,8 @@ class _ApuracaoState extends State<Apuracao> {
       isCameraEnabled = cameraEnabled;
       isExternalDeviceEnabled = externalDeviceEnabled;
       // Atualiza o título do botão com base no modo coletor
-      titleBtn = isCollectModeEnabled
-          ? "Aguardando leitura do leitor"
-          : "Iniciar Saída Transferência";
+      titleBtn =
+          isCollectModeEnabled ? "Aguardando leitura do leitor" : titleBtn;
     });
     print('o modo coletor é $isCollectModeEnabled');
   }
@@ -1216,18 +1216,34 @@ class _ApuracaoState extends State<Apuracao> {
           bottomSheet: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              if (prodReadSuccess)
+              if (true)
                 Container(
-                  width: 100,
+                  width: MediaQuery.of(context).size.width * 0.5,
                   child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                          primary: primaryColor,
-                          textStyle: const TextStyle(fontSize: 15)),
-                      onPressed: () async {
-                        await syncOp(context, false);
+                    style: ElevatedButton.styleFrom(
+                        primary: primaryColor,
+                        textStyle: const TextStyle(fontSize: 15)),
+                    onPressed: () async {
+                      await syncOp(context, false);
+
+                      if (widget.operacaoModel.tipo == "72") {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (BuildContext context) =>
+                                SelecionarNotaFiscal(idPedido: widget.operacaoModel.id!),
+                          ),
+                        );
+                      } else
                         Navigator.pop(context);
-                      },
-                      child: Text('Finalizar')),
+                    },
+                    child: Text(
+                      'Finalizar',
+                      style: TextStyle(
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
                 ),
               if (hasAdress)
                 Container(
@@ -1245,27 +1261,6 @@ class _ApuracaoState extends State<Apuracao> {
                     child: Text('Alterar endereço'),
                   ),
                 ),
-              // Container(
-              //   width: 200,
-              //   child: ElevatedButton(
-              //     style: ElevatedButton.styleFrom(
-              //       primary: primaryColor,
-              //       textStyle: const TextStyle(fontSize: 20),
-              //     ),
-              //     onPressed: () async {
-              //       await widget.operacaoModel.reset();
-              //       listProd = await ProdutoModel()
-              //           .getByIdOperacao(widget.operacaoModel.id);
-
-              //       setState(() {
-              //         endRead = null;
-              //         hasAdress = false;
-              //         prodReadSuccess = false;
-              //       });
-              //     },
-              //     child: Text('Refazer'),
-              //   ),
-              // ),
             ],
           ),
           bottomNavigationBar: BottomBar()),

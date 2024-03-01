@@ -26,7 +26,7 @@ class ButtonConference extends StatelessWidget {
             end: Alignment.bottomCenter,
             colors: [
               primaryColor,
-              Colors.black,
+              Color.fromARGB(255, 11, 27, 59),
             ],
           ),
         ),
