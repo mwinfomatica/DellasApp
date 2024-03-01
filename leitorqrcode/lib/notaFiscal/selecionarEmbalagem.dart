@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:leitorqrcode/Components/Bottom.dart';
 import 'package:leitorqrcode/Components/Constants.dart';
 import 'package:leitorqrcode/Models/APIModels/EmbalagemListResponse.dart';
 import 'package:leitorqrcode/Models/APIModels/NfEmbalagemResponse.dart';
 import 'package:leitorqrcode/Services/ContextoServices.dart';
 import 'package:leitorqrcode/notaFiscal/montarEmbalagem.dart';
+import 'package:blue_thermal_printer/blue_thermal_printer.dart';
+import 'package:leitorqrcode/printer/printer_controller.dart';
 
 class SelecionarEmbalagem extends StatefulWidget {
   final NfeDados nfeDados;
@@ -21,9 +24,59 @@ class _SelecionarEmbalagemState extends State<SelecionarEmbalagem> {
   ContextoServices contextoServices = ContextoServices();
   int? selectedCardIndex;
   List<EmbalagemDados> dadosEmbalagem = [];
+  BlueThermalPrinter bluetooth = BlueThermalPrinter.instance;
+  bool bluetoothConnected = false;
+
+  Future<void> _initValidationPrinter() async {
+    List<BluetoothDevice> devices = [];
+
+    try {
+      devices = await bluetooth.getBondedDevices();
+      // ignore: empty_catches
+    } on PlatformException {}
+
+    bluetooth.onStateChanged().listen((state) {
+      switch (state) {
+        case BlueThermalPrinter.CONNECTED:
+          bluetoothConnected = true;
+          setState(() {});
+          break;
+        case BlueThermalPrinter.DISCONNECTED:
+          bluetoothConnected = false;
+          setState(() {});
+          break;
+        default:
+          break;
+      }
+    });
+
+    for (var i = 0; i < devices.length; i++) {
+      if (devices[i].name!.trim().toUpperCase().contains("4B-2044PA-43C8")) {
+        _connect(devices[i]);
+        break;
+      }
+    }
+
+    if (!mounted) return;
+    setState(() {});
+  }
+
+  void _connect(BluetoothDevice device) {
+    if (device == null) {
+      bluetoothConnected = false;
+    } else {
+      bluetooth.isConnected.then((isConnected) {
+        bluetoothConnected = isConnected == true;
+        if (!isConnected!) {
+          bluetooth.connect(device).catchError((error) {});
+        }
+      });
+    }
+  }
 
   @override
   void initState() {
+    _initValidationPrinter();
     super.initState();
     // chamada de API para buscar os dados da embalagem
   }
@@ -86,7 +139,13 @@ class _SelecionarEmbalagemState extends State<SelecionarEmbalagem> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             GestureDetector(
-              onTap: () {},
+              onTap: () async => {
+                PrinterController().printCupomComandaIndividual(
+                  username: "",
+                  bluetooth: bluetooth,
+                  context: context,
+                )
+              },
               child: Container(
                 width: width * 0.43,
                 height: 60,

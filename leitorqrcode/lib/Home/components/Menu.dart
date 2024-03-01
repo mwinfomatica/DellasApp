@@ -5,6 +5,7 @@ import 'package:leitorqrcode/Infrastructure/AtualizarDados/atualizaOp.dart';
 import 'package:leitorqrcode/Inventario/Inventario.dart';
 import 'package:leitorqrcode/QrCoderFirst.dart';
 import 'package:leitorqrcode/Transferencia/Transferencias.dart';
+import 'package:leitorqrcode/notaFiscal/montarEmbalagem.dart';
 import 'package:leitorqrcode/notaFiscal/selecionarNotaFiscal.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -140,6 +141,33 @@ class MenuHome extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               ButtonHome(
+                titulo: "Conferência",
+                descricao: "Conferência de Retirada",
+                icone: Icons.inventory_outlined,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (BuildContext context) => SelecionarCargas(),
+                    ),
+                  );
+                },
+              ),
+              // ButtonHome(
+              //   titulo: "Embalagem",
+              //   descricao: "Montar embalagem",
+              //   icone: Icons.outbox_outlined,
+              //   onTap: () {
+              //     Navigator.push(
+              //       context,
+              //       MaterialPageRoute(
+              //         builder: (BuildContext context) => MontarEmbalagem(),
+              //       ),
+              //     );
+              //   },
+              // ),
+
+              ButtonHome(
                 titulo: "Sincronizar",
                 descricao: "Clique aqui para enviar os dados para o servidor",
                 icone: Icons.sync_sharp,
@@ -148,7 +176,14 @@ class MenuHome extends StatelessWidget {
                 },
               ),
             ],
-          )
+          ),
+          SizedBox(
+            height: 25,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [],
+          ),
         ],
       ),
     );
