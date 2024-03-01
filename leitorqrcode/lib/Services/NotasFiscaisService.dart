@@ -3,14 +3,21 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import 'package:leitorqrcode/Infrastructure/Http/WebClient.dart';
+import 'package:leitorqrcode/Models/APIModels/RetornoGetCreateEmbalagemModel.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoGetEmbalagemListModel.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoNotasFiscaisModel.dart';
 import 'package:leitorqrcode/Shared/Dialog.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class NotasFiscaisService {
   final BuildContext context;
 
   NotasFiscaisService(this.context);
+
+  Future<String> _getIdUser() async {
+    SharedPreferences userlogged = await SharedPreferences.getInstance();
+    return userlogged.getString('IdUser')!;
+  }
 
   Future<RetornoNotasFiscaisModel?> getNotasFiscais(String idPedido) async {
     try {
@@ -56,6 +63,38 @@ class NotasFiscaisService {
 
       final respostaCarga =
           RetornoGetEmbalagemListModel.fromJson(jsonDecode(response.body));
+
+      if (respostaCarga.error) {
+        Dialogs.showToast(context, respostaCarga.message, bgColor: Colors.red);
+        return null;
+      } else {
+        return respostaCarga;
+      }
+    } catch (ex) {
+      Dialogs.showToast(context,
+          "Ocorreu um erro em nossos servidores, tente novamente mais tarde.");
+      print(ex);
+      return null;
+    }
+  }
+
+  Future<RetornoGetCreateEmbalagemModel?> getCreateEmbalagem(
+      String idPedido) async {
+    try {
+      String idUser = await _getIdUser();
+      print('chegou getEmbalagemList');
+      final Response response = await getClient(context: context).get(
+        Uri.parse(baseUrl +
+            "/ApiCliente/GetCreateEmbalagem?idPedido=$idPedido&idUsuario=$idUser"),
+        headers: {
+          'Content-type': 'application/json',
+        },
+      );
+
+      print(response.body);
+
+      final respostaCarga =
+          RetornoGetCreateEmbalagemModel.fromJson(jsonDecode(response.body));
 
       if (respostaCarga.error) {
         Dialogs.showToast(context, respostaCarga.message, bgColor: Colors.red);

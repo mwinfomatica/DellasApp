@@ -5,6 +5,7 @@ import 'package:leitorqrcode/Infrastructure/AtualizarDados/atualizaOp.dart';
 import 'package:leitorqrcode/Inventario/Inventario.dart';
 import 'package:leitorqrcode/QrCoderFirst.dart';
 import 'package:leitorqrcode/Transferencia/Transferencias.dart';
+import 'package:leitorqrcode/notaFiscal/selecionarNotaFiscal.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MenuHome extends StatelessWidget {
@@ -37,11 +38,20 @@ class MenuHome extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (BuildContext context) => QrCoderFirst(
-                        tipo: 1,
+                      builder: (BuildContext context) => SelecionarNotaFiscal(
+                        idPedido: '8d80912e-e844-485f-808c-0001f0143b8f',
                       ),
                     ),
                   );
+
+                  // Navigator.push(
+                  //   context,
+                  //   MaterialPageRoute(
+                  //     builder: (BuildContext context) => QrCoderFirst(
+                  //       tipo: 1,
+                  //     ),
+                  //   ),
+                  // );
                 },
               ),
               ButtonHome(

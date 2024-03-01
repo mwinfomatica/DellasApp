@@ -3,9 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:leitorqrcode/Components/Bottom.dart';
 import 'package:leitorqrcode/Components/Constants.dart';
 import 'package:leitorqrcode/Models/APIModels/EmbalagemListResponse.dart';
+import 'package:leitorqrcode/Models/APIModels/RetornoGetCreateEmbalagemModel.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoGetEmbalagemListModel.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoNotasFiscaisModel.dart';
 import 'package:leitorqrcode/Services/ContextoServices.dart';
+import 'package:leitorqrcode/Services/NotasFiscaisService.dart';
 import 'package:leitorqrcode/notaFiscal/montarEmbalagem.dart';
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:leitorqrcode/printer/printer_controller.dart';
@@ -29,6 +31,7 @@ class _SelecionarEmbalagemState extends State<SelecionarEmbalagem> {
   List<EmbalagemDados> dadosEmbalagem = [];
   BlueThermalPrinter bluetooth = BlueThermalPrinter.instance;
   bool bluetoothConnected = false;
+  RetornoGetCreateEmbalagemModel? dadosRetornoCreateEmbalagem;
 
   Future<void> _initValidationPrinter() async {
     List<BluetoothDevice> devices = [];
@@ -124,11 +127,16 @@ class _SelecionarEmbalagemState extends State<SelecionarEmbalagem> {
             SizedBox(
               height: 20,
             ),
-            Container(
-              width:
-                  width * 0.9, // Define a largura para 90% da largura da tela
-              child: _buildCustomTable(width),
-            ),
+            dadosEmbalagem.isNotEmpty
+                ? Container(
+                    width: width * 0.9,
+                    child: _buildCustomTable(width),
+                  )
+                : Center(
+                    child: Text(
+                    'Sem embalagens',
+                    style: TextStyle(fontSize: 18.0),
+                  ))
           ],
         ),
         bottomNavigationBar: BottomBar());
@@ -169,11 +177,7 @@ class _SelecionarEmbalagemState extends State<SelecionarEmbalagem> {
             ),
             GestureDetector(
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (BuildContext context) => MontarEmbalagem()),
-                );
+                _createEmbalagem(widget.nfeDados.idPedido);
               },
               child: Container(
                 width: width * 0.43,
@@ -197,6 +201,29 @@ class _SelecionarEmbalagemState extends State<SelecionarEmbalagem> {
         ),
       ),
     );
+  }
+
+  Future<void> _createEmbalagem(String idPedido) async {
+    NotasFiscaisService notasFiscaisService = NotasFiscaisService(context);
+
+    try {
+      RetornoGetCreateEmbalagemModel? dadosNotaFiscal =
+          await notasFiscaisService.getCreateEmbalagem(idPedido);
+      if (dadosNotaFiscal != null) {
+        setState(() {
+          dadosRetornoCreateEmbalagem = dadosNotaFiscal;
+        });
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (BuildContext context) => MontarEmbalagem(
+                    dadosCreateEmbalagem: dadosRetornoCreateEmbalagem!,
+                  )),
+        );
+      }
+    } catch (e) {
+      print('Erro ao processar carga: $e');
+    }
   }
 
   Widget _buildCustomTable(double width) {
