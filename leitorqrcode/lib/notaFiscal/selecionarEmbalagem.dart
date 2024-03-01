@@ -81,7 +81,6 @@ class _SelecionarEmbalagemState extends State<SelecionarEmbalagem> {
   void initState() {
     _initValidationPrinter();
     super.initState();
-    dadosEmbalagem = widget.dadosEmbalagem;
     // chamada de API para buscar os dados da embalagem
   }
 
