@@ -3,7 +3,6 @@ import 'package:leitorqrcode/Components/Bottom.dart';
 import 'package:leitorqrcode/Components/Constants.dart';
 import 'package:leitorqrcode/Conferencia/components/button_conferencia.dart';
 import 'package:leitorqrcode/Conferencia/conferenciaExpedicao.dart';
-import 'package:leitorqrcode/Models/APIModels/NfEmbalagemResponse.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoConfItensPedidoModel.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoPedidoCargaModel.dart';
 import 'package:leitorqrcode/Services/CargasService.dart';
@@ -30,41 +29,12 @@ class _SelecionarNotaFiscalExpedicaoState
   int? selectedCardIndex;
   String idUser = "";
 
-  // Método para simular os dados retornados pelo endpoint
-  NfeEmbalagemResponse getSimulatedData() {
-    return NfeEmbalagemResponse(
-      error: false,
-      message: "sucesso",
-      data: [
-        NfeDados(
-          idPedido: "a9fb2fd1-eab8-4aec-bd15-0a403759d9d5",
-          nrNfe: "059547",
-          serieNfe: "1",
-          nomeCliente: "Cliente A",
-        ),
-        NfeDados(
-          idPedido: "a9fb2fd1-eab8-4aec-bd15-0a403759d9d5",
-          nrNfe: "059548",
-          serieNfe: "2",
-          nomeCliente: "Cliente B",
-        ),
-        NfeDados(
-          idPedido: "a9fb2fd1-eab8-4aec-bd15-0a403759d9d5",
-          nrNfe: "059549",
-          serieNfe: "3",
-          nomeCliente: "Cliente C",
-        ),
-      ],
-    );
-  }
-
   @override
   void initState() {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await getIdUser();
-      // await _getCargas();
     });
   }
 

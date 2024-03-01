@@ -2,15 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:leitorqrcode/Components/Bottom.dart';
 import 'package:leitorqrcode/Components/Constants.dart';
 import 'package:leitorqrcode/Models/APIModels/EmbalagemListResponse.dart';
-import 'package:leitorqrcode/Models/APIModels/NfEmbalagemResponse.dart';
+import 'package:leitorqrcode/Models/APIModels/RetornoGetEmbalagemListModel.dart';
+import 'package:leitorqrcode/Models/APIModels/RetornoNotasFiscaisModel.dart';
 import 'package:leitorqrcode/Services/ContextoServices.dart';
 import 'package:leitorqrcode/notaFiscal/montarEmbalagem.dart';
 
 class SelecionarEmbalagem extends StatefulWidget {
-  final NfeDados nfeDados;
+  final List<EmbalagemData> dadosEmbalagem;
+  final Pedido nfeDados;
   const SelecionarEmbalagem({
     Key? key,
     required this.nfeDados,
+    required this.dadosEmbalagem,
   }) : super(key: key);
 
   @override
@@ -20,11 +23,12 @@ class SelecionarEmbalagem extends StatefulWidget {
 class _SelecionarEmbalagemState extends State<SelecionarEmbalagem> {
   ContextoServices contextoServices = ContextoServices();
   int? selectedCardIndex;
-  List<EmbalagemDados> dadosEmbalagem = [];
+  List<EmbalagemData> dadosEmbalagem = [];
 
   @override
   void initState() {
     super.initState();
+    dadosEmbalagem = widget.dadosEmbalagem;
     // chamada de API para buscar os dados da embalagem
   }
 
@@ -71,7 +75,7 @@ class _SelecionarEmbalagemState extends State<SelecionarEmbalagem> {
             Container(
               width:
                   width * 0.9, // Define a largura para 90% da largura da tela
-              child: _buildCustomTable(width, dadosEmbalagemSimulados),
+              child: _buildCustomTable(width),
             ),
           ],
         ),
@@ -137,7 +141,7 @@ class _SelecionarEmbalagemState extends State<SelecionarEmbalagem> {
     );
   }
 
-  Widget _buildCustomTable(double width, List<EmbalagemDados> dadosEmbalagem) {
+  Widget _buildCustomTable(double width) {
     TextStyle headerStyle = TextStyle(fontWeight: FontWeight.bold);
     TextStyle cellStyle = TextStyle();
 
@@ -175,7 +179,7 @@ class _SelecionarEmbalagemState extends State<SelecionarEmbalagem> {
       );
     }
 
-    TableRow _buildRow(EmbalagemDados embalagem, int index) {
+    TableRow _buildRow(EmbalagemData embalagem, int index) {
       return TableRow(
         children: [
           TableCell(
@@ -216,8 +220,8 @@ class _SelecionarEmbalagemState extends State<SelecionarEmbalagem> {
       defaultVerticalAlignment: TableCellVerticalAlignment.middle,
       children: [
         _buildHeader(),
-        ...List.generate(dadosEmbalagem.length,
-            (index) => _buildRow(dadosEmbalagem[index], index)).toList(),
+        ...List.generate(widget.dadosEmbalagem.length,
+            (index) => _buildRow(widget.dadosEmbalagem[index], index)).toList(),
       ],
     );
   }
