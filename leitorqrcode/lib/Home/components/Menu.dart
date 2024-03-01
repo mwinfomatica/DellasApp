@@ -39,7 +39,9 @@ class MenuHome extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (BuildContext context) => SelecionarCargas()
+                        builder: (BuildContext context) => SelecionarNotaFiscal(
+                              idPedido: '8D80912E-E844-485F-808C-0001F0143B8F',
+                            )
                         //  QrCoderFirst(
                         //   tipo: 1,
                         // ),
