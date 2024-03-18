@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:leitorqrcode/Components/Bottom.dart';
 import 'package:leitorqrcode/Components/Constants.dart';
 import 'package:leitorqrcode/Models/APIModels/EmbalagemListResponse.dart';
+import 'package:leitorqrcode/Models/APIModels/EmbalagemModel.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoGetCreateEmbalagemModel.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoGetEmbalagemListModel.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoNotasFiscaisModel.dart';
@@ -28,7 +29,7 @@ class SelecionarEmbalagem extends StatefulWidget {
 class _SelecionarEmbalagemState extends State<SelecionarEmbalagem> {
   ContextoServices contextoServices = ContextoServices();
   int? selectedCardIndex;
-  List<EmbalagemDados> dadosEmbalagem = [];
+  List<EmbalagemDados> listdadosEmbalagem = [];
   BlueThermalPrinter bluetooth = BlueThermalPrinter.instance;
   bool bluetoothConnected = false;
   RetornoGetCreateEmbalagemModel? dadosRetornoCreateEmbalagem;
@@ -80,6 +81,22 @@ class _SelecionarEmbalagemState extends State<SelecionarEmbalagem> {
     }
   }
 
+  Future<void> _getEmbalagemList(String idPedido) async {
+    NotasFiscaisService notasFiscaisService = NotasFiscaisService(context);
+
+    try {
+      RetornoGetEmbalagemListModel? dadosNotaFiscal =
+          await notasFiscaisService.getEmbalagemList(idPedido);
+      if (dadosNotaFiscal != null) {
+        setState(() {
+          dadosNotaFiscal = dadosNotaFiscal;
+        });
+      }
+    } catch (e) {
+      print('Erro ao processar carga: $e');
+    }
+  }
+
   @override
   void initState() {
     _initValidationPrinter();
@@ -87,21 +104,21 @@ class _SelecionarEmbalagemState extends State<SelecionarEmbalagem> {
     // chamada de API para buscar os dados da embalagem
   }
 
-  final List<EmbalagemDados> dadosEmbalagemSimulados = [
-    EmbalagemDados(
-      idPedido: "a9fb2fd1-eab8-4aec-bd15-0a403759d9d5",
-      sequencial: "1",
-      idEmbalagem: "e64f1c8a-7919-4383-b19b-47c199041f83",
-      status: "Finalizada",
-    ),
-    EmbalagemDados(
-      idPedido: "a9fb2fd1-eab8-4aec-bd15-0a403759d9d5",
-      sequencial: "2",
-      idEmbalagem: "59b58468-23d8-40ed-96cb-9eb543d625f6",
-      status: "Em Aberto",
-    ),
-    // Adicione mais objetos EmbalagemDados conforme necessário para simulação
-  ];
+  // final List<EmbalagemDados> dadosEmbalagemSimulados = [
+  //   EmbalagemDados(
+  //     idPedido: "a9fb2fd1-eab8-4aec-bd15-0a403759d9d5",
+  //     sequencial: "1",
+  //     idEmbalagem: "e64f1c8a-7919-4383-b19b-47c199041f83",
+  //     status: "Finalizada",
+  //   ),
+  //   EmbalagemDados(
+  //     idPedido: "a9fb2fd1-eab8-4aec-bd15-0a403759d9d5",
+  //     sequencial: "2",
+  //     idEmbalagem: "59b58468-23d8-40ed-96cb-9eb543d625f6",
+  //     status: "Em Aberto",
+  //   ),
+  //   // Adicione mais objetos EmbalagemDados conforme necessário para simulação
+  // ];
 
   @override
   Widget build(BuildContext context) {
@@ -127,11 +144,8 @@ class _SelecionarEmbalagemState extends State<SelecionarEmbalagem> {
             SizedBox(
               height: 20,
             ),
-            dadosEmbalagem.isNotEmpty
-                ? Container(
-                    width: width * 0.9,
-                    child: _buildCustomTable(width),
-                  )
+            widget.dadosEmbalagem.isNotEmpty
+                ? tableItensNotafiscal()
                 : Center(
                     child: Text(
                     'Sem embalagens',
@@ -151,8 +165,8 @@ class _SelecionarEmbalagemState extends State<SelecionarEmbalagem> {
           children: [
             GestureDetector(
               onTap: () async => {
-                PrinterController().printCupomComandaIndividual(
-                  username: "",
+                PrinterController().printQrCodeEmbalagem(
+                  emb: EmbalagemModel("", "", "", []),
                   bluetooth: bluetooth,
                   context: context,
                 )
@@ -217,6 +231,7 @@ class _SelecionarEmbalagemState extends State<SelecionarEmbalagem> {
           context,
           MaterialPageRoute(
               builder: (BuildContext context) => MontarEmbalagem(
+                    idPedido: idPedido,
                     dadosCreateEmbalagem: dadosRetornoCreateEmbalagem!,
                   )),
         );
@@ -224,6 +239,102 @@ class _SelecionarEmbalagemState extends State<SelecionarEmbalagem> {
     } catch (e) {
       print('Erro ao processar carga: $e');
     }
+  }
+
+  Widget tableItensNotafiscal() {
+    return Center(
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.vertical,
+          child: DataTable(
+            headingRowColor: MaterialStateColor.resolveWith(
+              (states) => Colors.grey,
+            ),
+            border: TableBorder.all(
+              color: Colors.black,
+            ),
+            headingRowHeight: 20,
+            dataRowHeight: 30,
+            columnSpacing: 50,
+            horizontalMargin: 20,
+            columns: [
+              DataColumn(
+                label: Text(
+                  "Seq",
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              DataColumn(
+                label: Text(
+                  "Stauts",
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              DataColumn(
+                label: Text(
+                  "",
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+            rows: List.generate(
+              widget.dadosEmbalagem.length,
+              (index) {
+                return DataRow(
+                  color: MaterialStateColor.resolveWith(
+                    (states) =>
+                        index % 2 == 0 ? Colors.white : Colors.grey[200]!,
+                  ),
+                  cells: [
+                    DataCell(
+                      Text(
+                        widget.dadosEmbalagem[index].sequencial,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Text(
+                        widget.dadosEmbalagem[index].status.toString(),
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    DataCell(Ink(
+                      child: InkWell(
+                        child: Icon(
+                          Icons.edit_document,
+                          size: 20,
+                          color: Colors.orange.shade400,
+                        ),
+                        onTap: () async => {
+                         await editEmb(widget.dadosEmbalagem[index]),
+                        },
+                      ),
+                    )),
+                  ],
+                );
+              },
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildCustomTable(double width) {
@@ -309,5 +420,25 @@ class _SelecionarEmbalagemState extends State<SelecionarEmbalagem> {
             (index) => _buildRow(widget.dadosEmbalagem[index], index)).toList(),
       ],
     );
+  }
+
+  editEmb(EmbalagemData dadosemb) async {
+    NotasFiscaisService notaservice = NotasFiscaisService(context);
+    RetornoGetCreateEmbalagemModel? dadosNotaFiscal =
+        await notaservice.getCreateEmbalagem(dadosemb.idPedido);
+    if (dadosNotaFiscal != null) {
+      setState(() {
+        dadosRetornoCreateEmbalagem = dadosNotaFiscal;
+      });
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (BuildContext context) => MontarEmbalagem(
+                  idPedido: dadosemb.idPedido,
+                  dadosCreateEmbalagem: dadosRetornoCreateEmbalagem!,
+                  idEmbalagem: dadosemb.idEmbalagem,
+                )),
+      );
+    }
   }
 }

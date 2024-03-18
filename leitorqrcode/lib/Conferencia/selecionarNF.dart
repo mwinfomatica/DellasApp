@@ -73,8 +73,8 @@ class _SelecionarNotaFiscalExpedicaoState
             ),
           ),
           ButtonConference(
-            label: 'Finalizar Expedição',
-            onTap: () async {
+            titulo: 'Iniciar Conferência',
+            onPressed: () async {
               CargasServices cargasServices = CargasServices(context);
 
               RetornoConfItensPedidoModel? respostaConfItensPedido =

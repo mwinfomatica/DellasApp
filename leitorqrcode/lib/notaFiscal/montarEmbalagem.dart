@@ -9,10 +9,13 @@ import 'package:flutter_blue/flutter_blue.dart';
 import 'package:leitorqrcode/Components/Bottom.dart';
 import 'package:leitorqrcode/Components/Constants.dart';
 import 'package:leitorqrcode/Components/DashedRect.dart';
+import 'package:leitorqrcode/Models/APIModels/EmbalagemModel.dart';
 import 'package:leitorqrcode/Models/APIModels/ProdutoModel.dart';
+import 'package:leitorqrcode/Models/APIModels/RetornoBase.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoGetCreateEmbalagemModel.dart';
 import 'package:leitorqrcode/Models/ContextoModel.dart';
 import 'package:leitorqrcode/Services/ContextoServices.dart';
+import 'package:leitorqrcode/Services/NotasFiscaisService.dart';
 import 'package:leitorqrcode/Services/ProdutosDBService.dart';
 import 'package:leitorqrcode/Shared/Dialog.dart';
 import 'package:leitorqrcode/notaFiscal/components/IniciarMontagem.dart';
@@ -22,9 +25,13 @@ import 'package:visibility_detector/visibility_detector.dart';
 
 class MontarEmbalagem extends StatefulWidget {
   final RetornoGetCreateEmbalagemModel dadosCreateEmbalagem;
+  final String idPedido;
+  final String? idEmbalagem;
   const MontarEmbalagem({
     Key? key,
     required this.dadosCreateEmbalagem,
+    required this.idPedido,
+    this.idEmbalagem,
   }) : super(key: key);
 
   @override
@@ -43,24 +50,41 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
   bool showLeituraExterna = false;
   String idOperador = "";
   String titleBtn = '';
-  final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
+  final GlobalKey qrKeyM = GlobalKey(debugLabel: 'QR');
   final animateListKey = GlobalKey<AnimatedListState>();
   String textExterno = "";
   final FlutterBlue flutterBlue = FlutterBlue.instance;
   late BluetoothDevice device;
-  late BluetoothCharacteristic cNotify3;
-  late StreamSubscription<List<int>> sub3;
+  late BluetoothCharacteristic cNotify5;
+  late StreamSubscription<List<int>> sub5;
   bool isExternalDeviceEnabled = false;
   bool isCollectModeEnabled = false;
   bool isCameraEnabled = false;
+
+  final qtdeProdDialog = TextEditingController();
 
   List<ProdutoModel> listProd = [];
   bool bluetoothDisconect = true;
   Timer? temp;
 
+  List<ItensEmbalagem> list = [];
+
   ContextoServices contextoServices = ContextoServices();
   ContextoModel contextoModel =
       ContextoModel(leituraExterna: false, descLeituraExterna: "");
+
+  _getItens() async {
+    NotasFiscaisService notaservice = NotasFiscaisService(context);
+    RetornoGetEditEmbalagemModel? rtnItens =
+        await notaservice.getItensEmbalagem(widget.idEmbalagem!);
+
+    if (rtnItens != null) {
+      if (!rtnItens.error) {
+        list = rtnItens.data;
+        setState(() {});
+      }
+    }
+  }
 
   void getIdUser() async {
     SharedPreferences userlogged = await SharedPreferences.getInstance();
@@ -69,7 +93,7 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
 
   Widget _buildQrView(BuildContext context) {
     return QRView(
-      key: qrKey,
+      key: qrKeyM,
       onQRViewCreated: _onQRViewCreated,
     );
   }
@@ -136,7 +160,7 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
     }
 
     temp = Timer.periodic(Duration(milliseconds: 500), (timer) {
-      _readCodes(texto);
+      _readCodesM(texto);
       timer.cancel();
     });
   }
@@ -171,16 +195,16 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
 
       List<BluetoothService> _services = await device.discoverServices();
 
-      if (cNotify3 != null) {
-        await sub3.cancel();
+      if (cNotify5 != null) {
+        await sub5.cancel();
       }
       for (BluetoothService service in _services) {
         for (BluetoothCharacteristic characteristic
             in service.characteristics) {
           if (characteristic.properties.notify) {
-            cNotify3 = characteristic;
+            cNotify5 = characteristic;
 
-            sub3 = cNotify3.value.listen(
+            sub5 = cNotify5.value.listen(
               (value) {
                 textExterno += String.fromCharCodes(value);
                 if (textExterno != "") {
@@ -188,7 +212,7 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
                 }
               },
             );
-            await cNotify3.setNotifyValue(true);
+            await cNotify5.setNotifyValue(true);
 
             setState(() {});
           }
@@ -200,7 +224,7 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
     }
   }
 
-  void _readCodes(String code) async {
+  void _readCodesM(String code) async {
     textExterno = "";
     if (temp != null) {
       temp!.cancel();
@@ -229,19 +253,67 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
 
         if (prodRead != null && prodRead.cod!.isNotEmpty) {
           FlutterBeep.beep();
-          // ProdutoModel? prodDB = await new ProdutoModel().getByIdLoteIdPedido(
-          //     prodRead.idloteunico!.toUpperCase(),
-          //     widget.operacaoModel.id!.toUpperCase());
+          bool qtdOk = false;
 
-          List<ProdutoModel> lProdDB = [];
-          // List<ProdutoModel> lProdDB = await ProdutoModel()
-          //     .getByIdProdIdOperacao(prodRead.idloteunico!.toUpperCase(),
-          //         widget.operacaoModel.id!.toUpperCase());
+          if (prodRead.infq == "s") {
+            qtdeProdDialog.text = "";
+            showDialogQtd = true;
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (_) => AlertDialog(
+                title: Text(
+                  "Informe a quantidade do produto scaneado",
+                  style: TextStyle(fontWeight: FontWeight.w500),
+                ),
+                content: TextField(
+                  controller: qtdeProdDialog,
+                  keyboardType: TextInputType.number,
+                  autofocus: true,
+                  decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: primaryColor),
+                      ),
+                      labelText: 'Qtde'),
+                ),
+                actions: [
+                  TextButton(
+                    child: const Text('Cancelar'),
+                    onPressed: () async {
+                      Navigator.pop(context);
+                    },
+                  ),
+                  TextButton(
+                    child: Text("Salvar"),
+                    onPressed: () async {
+                      qtdOk = validaQtd(prodRead, qtdeProdDialog.text);
+                      Navigator.pop(context);
+                    },
+                  ),
+                ],
+                elevation: 24.0,
+              ),
+            );
+          } else {
+            qtdOk = validaQtd(
+                prodRead,
+                prodRead.qtd != null &&
+                        prodRead.qtd != "" &&
+                        prodRead.qtd != "0"
+                    ? prodRead.qtd!
+                    : "1");
+          }
 
-          FlutterBeep.beep(false);
-          Dialogs.showToast(context,
-              "Produto não foi localizado favor ir até as configurações e atualizá-los.",
-              duration: Duration(seconds: 5), bgColor: Colors.red.shade200);
+          if (qtdOk) {
+            addEmbalagem(
+                prodRead,
+                int.parse(prodRead.qtd != null &&
+                        prodRead.qtd != "" &&
+                        prodRead.qtd != "0"
+                    ? prodRead.qtd!
+                    : "1"));
+          }
         }
         Timer(Duration(seconds: 2), () {
           reading = false;
@@ -260,8 +332,8 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
 
   @override
   void dispose() {
-    if (sub3 != null) {
-      sub3.cancel();
+    if (sub5 != null) {
+      sub5.cancel();
       // device.disconnect();
     }
     controller.dispose();
@@ -271,16 +343,11 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
   @override
   void initState() {
     listProd = [];
-    var count = listProd.where((element) => element.situacao == "3").length;
     getIdUser();
     getContexto();
     _loadPreferences();
-
-    // if (count == listProd.length) {
-    //   Dialogs.showToast(context, "Leitura já realizada");
-    //   this.prodReadSuccess = true;
-    // }
-
+    _getItens();
+    
     titleBtn = "Iniciar Montagem";
 
     super.initState();
@@ -359,12 +426,14 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
                       onVisibilityChanged: (VisibilityInfo info) {
                         visible = info.visibleFraction > 0;
                       },
-                      key: Key('visible-detector-key'),
+                      key: Key(
+                        'visible-detector-key-M',
+                      ),
                       child: BarcodeKeyboardListener(
                         bufferDuration: Duration(milliseconds: 50),
                         onBarcodeScanned: (barcode) async {
                           print(barcode);
-                          _readCodes(barcode);
+                          _readCodesM(barcode);
                         },
                         child: Text(""),
                       ),
@@ -377,7 +446,7 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
                           child: TextField(
                             autofocus: true,
                             onSubmitted: (value) async {
-                              _readCodes(value);
+                              _readCodesM(value);
                               setState(() {
                                 isManual = false;
                               });
@@ -488,12 +557,7 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
                   'Itens da Nota Fiscal',
                   style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
                 ),
-                Container(
-                  width: width *
-                      0.95, // Define a largura para 90% da largura da tela
-                  child: _buildCustomTable(
-                      width, widget.dadosCreateEmbalagem.data),
-                ),
+                tableItensNotafiscal(),
                 SizedBox(
                   height: 20,
                 ),
@@ -501,15 +565,224 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
                   'Itens da Embalagem',
                   style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
                 ),
-                Container(
-                  width: width *
-                      0.95, // Define a largura para 90% da largura da tela
-                  child: _buildItensEmbalagem(width),
-                ),
+                tableItensEmbalagem(),
               ],
             ),
           ),
           bottomNavigationBar: BottomBar()),
+    );
+  }
+
+  Widget tableItensEmbalagem() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.vertical,
+        child: DataTable(
+          headingRowColor: MaterialStateColor.resolveWith(
+            (states) => Colors.grey,
+          ),
+          border: TableBorder.all(
+            color: Colors.black,
+          ),
+          headingRowHeight: 20,
+          dataRowHeight: 25,
+          columnSpacing: 10,
+          horizontalMargin: 10,
+          columns: [
+            DataColumn(
+              numeric: true,
+              label: Text(
+                "Qtd",
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            DataColumn(
+              label: Text(
+                "Produto",
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            DataColumn(
+              label: Text(
+                "",
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+          rows: List.generate(
+            list.length,
+            (index) {
+              return DataRow(
+                color: MaterialStateColor.resolveWith(
+                  (states) => index % 2 == 0 ? Colors.white : Colors.grey[200]!,
+                ),
+                cells: [
+                  DataCell(
+                    Text(
+                      list[index].qtd!.toString(),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  DataCell(
+                    Text(
+                      list[index].descProd == null &&
+                              list[index].descProd == null
+                          ? ""
+                          : list[index].descProd == null &&
+                                  list[index].descProd != null
+                              ? list[index].descProd!
+                              : list[index].descProd != null &&
+                                      list[index].descProd == null
+                                  ? list[index].descProd!
+                                  : list[index].descProd!.trim(),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  DataCell(
+                    Text(
+                      "",
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget tableItensNotafiscal() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.vertical,
+        child: DataTable(
+          headingRowColor: MaterialStateColor.resolveWith(
+            (states) => Colors.grey,
+          ),
+          border: TableBorder.all(
+            color: Colors.black,
+          ),
+          headingRowHeight: 20,
+          dataRowHeight: 25,
+          columnSpacing: 10,
+          horizontalMargin: 10,
+          columns: [
+            DataColumn(
+              label: Text(
+                "",
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            DataColumn(
+              numeric: true,
+              label: Text(
+                "Qtd Total",
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            DataColumn(
+              label: Text(
+                "Qtd Emb.",
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            DataColumn(
+              label: Text(
+                "Produto",
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+          rows: List.generate(
+            widget.dadosCreateEmbalagem.data.length,
+            (index) {
+              return DataRow(
+                color: MaterialStateColor.resolveWith(
+                  (states) => index % 2 == 0 ? Colors.white : Colors.grey[200]!,
+                ),
+                cells: [
+                  DataCell(
+                    Icon(
+                      Icons.check_box,
+                      color:
+                          widget.dadosCreateEmbalagem.data[index].quantNota ==
+                                  widget.dadosCreateEmbalagem.data[index]
+                                      .quantEmbalado
+                              ? Colors.green
+                              : Colors.grey,
+                      size: 20,
+                    ),
+                  ),
+                  DataCell(
+                    Text(
+                      widget.dadosCreateEmbalagem.data[index].quantNota
+                          .toString(),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  DataCell(
+                    Text(
+                      widget.dadosCreateEmbalagem.data[index].quantEmbalado
+                          .toString(),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  DataCell(
+                    Text(
+                      widget.dadosCreateEmbalagem.data[index].descProduto
+                          .trim(),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      ),
     );
   }
 
@@ -518,10 +791,7 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
       this.controller = controller;
     });
     controller.scannedDataStream.listen((scanData) async {
-      // if (widget.tipo == 1) {
-      // _readCodes(scanData.code!);
-
-      // }
+      _readCodesM(scanData.code!);
     });
   }
 
@@ -555,7 +825,9 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
               ),
             ),
             GestureDetector(
-              onTap: () {},
+              onTap: () async => {
+                await finalizarEmbalagem(),
+              },
               child: Container(
                 width: width * 0.43,
                 height: 60,
@@ -659,76 +931,122 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
     );
   }
 
-  Widget _buildItensEmbalagem(double width) {
-    // Estilos de texto para os cabeçalhos e células
-    TextStyle headerStyle = TextStyle(fontWeight: FontWeight.bold);
-    TextStyle cellStyle = TextStyle();
-
-    double cellHeight = 48.0;
-
-    // Cria uma linha de cabeçalho com fundo cinza e texto em negrito
-    TableRow _buildHeader() {
-      return TableRow(
-        decoration: BoxDecoration(color: Colors.grey.shade400),
-        children: [
-          TableCell(
-              child: Center(
-                  child: SizedBox(
-                      height: cellHeight,
-                      child: Center(
-                          child: Text('Qtde Emb.', style: headerStyle))))),
-          TableCell(
-              child: Center(
-                  child: SizedBox(
-                      height: cellHeight,
-                      child:
-                          Center(child: Text('Produto', style: headerStyle))))),
-          TableCell(
-              child: Center(
-                  child: SizedBox(
-                      height: cellHeight,
-                      child: Center(child: Text('Ação', style: headerStyle))))),
-        ],
-      );
+  bool validaQtd(ProdutoModel prod, String qtd) {
+    bool qtdIsValid = int.tryParse(qtd) != null ? true : false;
+    if (!qtdIsValid) {
+      Dialogs.showToast(
+          context, "A quantidade informada não é valida \n tente novamente",
+          duration: Duration(seconds: 5), bgColor: Colors.red.shade200);
     }
 
-    // Cria uma única linha de dados
-    TableRow _buildRow(int index) {
-      return TableRow(
-        children: [
-          TableCell(
-              child: Center(child: Text('${index + 1}', style: cellStyle))),
-          TableCell(child: Center(child: Text('Em Aberto', style: cellStyle))),
-          TableCell(
-            child: Center(
-              child: IconButton(
-                icon: Icon(Icons.delete),
-                onPressed: () {
-                  // Ação quando o ícone é pressionado
-                },
-              ),
-            ),
-          ),
-        ],
-      );
+    List<DadosEmbalagem> listDados = widget.dadosCreateEmbalagem.data;
+    DadosEmbalagem? dados = getDadosEmbalagembyId(
+        (prod.idproduto != null ? prod.idproduto! : prod.id!));
+
+    if (dados != null) {
+      if (dados.quantNota >= (dados.quantEmbalado + int.parse(qtd))) {
+        return true;
+      } else {
+        Dialogs.showToast(context,
+            "A quantidade não pode ser maior que a informada na nota fiscal.",
+            duration: Duration(seconds: 5), bgColor: Colors.red.shade200);
+        return false;
+      }
+    } else {
+      Dialogs.showToast(context, "Não foi encontrado o produto na nota fiscal.",
+          duration: Duration(seconds: 5), bgColor: Colors.red.shade200);
+      return false;
+    }
+  }
+
+  DadosEmbalagem? getDadosEmbalagembyId(String id) {
+    List<DadosEmbalagem> listDados = widget.dadosCreateEmbalagem.data;
+    DadosEmbalagem? dados = listDados
+        .where((e) => e.idProduto.toUpperCase() == id.toUpperCase())
+        .firstOrNull;
+
+    return dados;
+  }
+
+  ItensEmbalagem? getItemEmbalagem(String id) {
+    return list
+        .where((e) => e.idProduto!.toUpperCase() == id.toUpperCase())
+        .firstOrNull;
+  }
+
+  addEmbalagem(ProdutoModel prodRead, int qtd) {
+    String idProd =
+        (prodRead.idproduto != null ? prodRead.idproduto! : prodRead.id!);
+
+    DadosEmbalagem? dados = getDadosEmbalagembyId(idProd);
+
+    if (dados != null) {
+      dados.quantEmbalado = dados.quantEmbalado + 1;
+    } else {
+      Dialogs.showToast(
+          context, "Não foi encontrado este produto para esta Nota fiscal",
+          duration: Duration(seconds: 5), bgColor: Colors.red.shade200);
+      return;
     }
 
-    // Cria a tabela completa com todas as linhas
-    return Table(
-      border: TableBorder.symmetric(
-        inside: BorderSide(width: 1, color: Colors.black),
-        outside: BorderSide(width: 1, color: Colors.black),
-      ),
-      columnWidths: {
-        0: FlexColumnWidth(1),
-        1: FlexColumnWidth(2),
-        2: FlexColumnWidth(1),
-      },
-      defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-      children: [
-        _buildHeader(),
-        ...List.generate(2, (index) => _buildRow(index)).toList(),
-      ],
-    );
+    ItensEmbalagem? item = getItemEmbalagem(idProd);
+
+    if (item != null) {
+      if (item.qtd != null && item.qtd! >= 1) {
+        list.remove(item);
+        item.qtd = item.qtd! + qtd;
+        item.descProd =
+            (prodRead.cod ?? " - ") + " - " + (prodRead.nome ?? " - ");
+        list.add(item);
+      } else {
+        list.add(ItensEmbalagem(prodRead.idprodutoPedido, idProd, qtd,
+            ((prodRead.nome ?? " - ") + " - " + (prodRead.nome ?? " - "))));
+      }
+    } else {
+      list.add(ItensEmbalagem(prodRead.idprodutoPedido, idProd, qtd,
+          ((prodRead.nome ?? " - ") + " - " + (prodRead.nome ?? " - "))));
+    }
+    setState(() {});
+  }
+
+  removeEmbalagem(String idProduto) {
+    ItensEmbalagem? item =
+        list.where((e) => e.idProduto == idProduto).firstOrNull;
+
+    if (item != null) {
+      if (item.qtd != null && item.qtd! > 1) {
+        list.remove(item);
+        item.qtd = item.qtd! - 1;
+        list.add(item);
+      } else {}
+    }
+  }
+
+  finalizarEmbalagem() async {
+    EmbalagemModel emb =
+        EmbalagemModel(idOperador, widget.idEmbalagem, widget.idPedido, list);
+
+    NotasFiscaisService nfservice = NotasFiscaisService(context);
+
+    RetornoBaseModel? rtn = await nfservice.finalizarEmbalagem(emb);
+
+    if (rtn != null) {
+      if (!rtn.error!) {
+        Dialogs.showToast(context, "Embalagem finalizada com sucesso.",
+            duration: Duration(seconds: 5), bgColor: Colors.green.shade200);
+        Navigator.pop(context);
+      } else {
+        Dialogs.showToast(
+            context,
+            rtn.message ??
+                "Ocorreu um erro inesperado. Gentileza tentar novamente mais tarde.",
+            duration: Duration(seconds: 5),
+            bgColor: Colors.red.shade200);
+      }
+    } else {
+      Dialogs.showToast(context,
+          "Ocorreu um erro inesperado. Gentileza tentar novamente mais tarde.",
+          duration: Duration(seconds: 5), bgColor: Colors.red.shade200);
+    }
   }
 }

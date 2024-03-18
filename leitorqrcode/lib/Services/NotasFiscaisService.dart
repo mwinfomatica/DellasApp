@@ -3,6 +3,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import 'package:leitorqrcode/Infrastructure/Http/WebClient.dart';
+import 'package:leitorqrcode/Models/APIModels/EmbalagemModel.dart';
+import 'package:leitorqrcode/Models/APIModels/RetornoBase.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoGetCreateEmbalagemModel.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoGetEmbalagemListModel.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoNotasFiscaisModel.dart';
@@ -95,6 +97,62 @@ class NotasFiscaisService {
 
       final respostaCarga =
           RetornoGetCreateEmbalagemModel.fromJson(jsonDecode(response.body));
+
+      if (respostaCarga.error) {
+        Dialogs.showToast(context, respostaCarga.message, bgColor: Colors.red);
+        return null;
+      } else {
+        return respostaCarga;
+      }
+    } catch (ex) {
+      Dialogs.showToast(context,
+          "Ocorreu um erro em nossos servidores, tente novamente mais tarde.");
+      print(ex);
+      return null;
+    }
+  }
+
+  Future<RetornoBaseModel?> finalizarEmbalagem(
+      EmbalagemModel embalagemModel) async {
+    String wS = json.encode(embalagemModel);
+    try {
+      final Response response = await getClient(context: context).post(
+        Uri.parse(baseUrl + "/ApiCliente/FinalizarEmbalagem"),
+        headers: {
+          'Content-type': 'application/json',
+        },
+        body: wS,
+      );
+
+      RetornoBaseModel? rtn =
+          RetornoBaseModel.fromJson(jsonDecode(response.body));
+
+      if (rtn != null) {
+        return rtn;
+      } else
+        return Future.value(null);
+    } catch (ex) {
+      print(ex);
+      return RetornoBaseModel(
+          error: true,
+          message: "Um erro inesperado ocorreu ao Finalizar a embalagem.");
+    }
+  }
+
+  Future<RetornoGetEditEmbalagemModel?> getItensEmbalagem(
+      String idEmbalagem) async {
+    try {
+      String idUser = await _getIdUser();
+      final Response response = await getClient(context: context).get(
+        Uri.parse(baseUrl +
+            "/ApiCliente/GetEditEmbalagem?IdEmbalagem=$idEmbalagem&IdUsuario=$idUser"),
+        headers: {
+          'Content-type': 'application/json',
+        },
+      );
+
+      RetornoGetEditEmbalagemModel respostaCarga =
+          RetornoGetEditEmbalagemModel.fromJson(jsonDecode(response.body));
 
       if (respostaCarga.error) {
         Dialogs.showToast(context, respostaCarga.message, bgColor: Colors.red);

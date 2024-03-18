@@ -2,19 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:leitorqrcode/Components/Constants.dart';
 
 class ButtonConference extends StatelessWidget {
-  final String label;
-  final void Function()? onTap;
+  final String titulo;
+  final void Function()? onPressed;
   const ButtonConference({
     Key? key,
-    this.onTap,
-    required this.label,
+    this.onPressed,
+    required this.titulo,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
     return GestureDetector(
-      onTap: onTap,
+      onTap: onPressed,
       child: Container(
         width: width * 0.9,
         height: 60,
@@ -32,7 +32,7 @@ class ButtonConference extends StatelessWidget {
         ),
         child: Center(
           child: Text(
-            label,
+            titulo,
             style: TextStyle(
               color: Colors.white,
               fontSize: 18,

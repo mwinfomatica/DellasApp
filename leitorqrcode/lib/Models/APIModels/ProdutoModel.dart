@@ -232,6 +232,18 @@ class ProdutoModel {
     return result.isNotEmpty ? ProdutoModel.fromJson(result.first) : null;
   }
 
+
+  Future<ProdutoModel?> getByIdLoteIdPedidoEmb(
+      String id, String idOperacao) async {
+    Database db = await DatabaseHelper.instance.database;
+    var result = await db.query("produtos",
+        where:
+            "idloteunico = ? and idOperacao = ? and (isVirtual = '0' OR isVirtual is null)",
+        whereArgs: [id, idOperacao]);
+    return result.isNotEmpty ? ProdutoModel.fromJson(result.first) : null;
+  }
+
+
   Future<ProdutoModel?> getByIdLoteIdPedidoEnd(
       String id, String idOperacao, String end) async {
     Database db = await DatabaseHelper.instance.database;

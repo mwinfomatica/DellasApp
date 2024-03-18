@@ -1227,11 +1227,40 @@ class _ApuracaoState extends State<Apuracao> {
                       await syncOp(context, false);
 
                       if (widget.operacaoModel.tipo == "72") {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (BuildContext context) =>
-                                SelecionarNotaFiscal(idPedido: widget.operacaoModel.id!),
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (_) => AlertDialog(
+                            title: Text(
+                              "Atenção",
+                              style: TextStyle(fontWeight: FontWeight.w500),
+                            ),
+                            content: Text("Deseja criar embalagem?"),
+                            actions: [
+                              TextButton(
+                                child: const Text('Não'),
+                                onPressed: () async {
+                                  Navigator.pop(context);
+                                },
+                              ),
+                              TextButton(
+                                child: Text("Sim"),
+                                onPressed: () async {
+                                  Navigator.pop(context);
+                                  Navigator.pushAndRemoveUntil(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (BuildContext context) =>
+                                          SelecionarNotaFiscal(
+                                              idPedido:
+                                                  widget.operacaoModel.id!),
+                                    ),
+                                    (route) => false,
+                                  );
+                                },
+                              ),
+                            ],
+                            elevation: 24.0,
                           ),
                         );
                       } else

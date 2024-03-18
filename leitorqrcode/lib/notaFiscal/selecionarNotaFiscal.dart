@@ -5,6 +5,7 @@ import 'package:leitorqrcode/Models/APIModels/RetornoGetEmbalagemListModel.dart'
 import 'package:leitorqrcode/Models/APIModels/RetornoNotasFiscaisModel.dart';
 import 'package:leitorqrcode/Services/ContextoServices.dart';
 import 'package:leitorqrcode/Services/NotasFiscaisService.dart';
+import 'package:leitorqrcode/Shared/Dialog.dart';
 import 'package:leitorqrcode/notaFiscal/components/select_card_fiscal.dart';
 import 'package:leitorqrcode/notaFiscal/selecionarEmbalagem.dart';
 
@@ -91,6 +92,11 @@ class _SelecionarNotaFiscalState extends State<SelecionarNotaFiscal> {
                     ),
                   ),
                 );
+              } else {
+                Dialogs.showToast(context,
+                    "Gentileza selecionar uma nota fiscal.",
+                    duration: Duration(seconds: 5),
+                    bgColor: Colors.orange.shade200);
               }
             },
             child: Container(
@@ -121,11 +127,11 @@ class _SelecionarNotaFiscalState extends State<SelecionarNotaFiscal> {
     NotasFiscaisService notasFiscaisService = NotasFiscaisService(context);
 
     try {
-      RetornoGetEmbalagemListModel? dadosNotaFiscal =
+      RetornoGetEmbalagemListModel? rtndadosNotaFiscal =
           await notasFiscaisService.getEmbalagemList(idPedido);
-      if (dadosNotaFiscal != null) {
+      if (rtndadosNotaFiscal != null) {
         setState(() {
-          dadosNotaFiscal = dadosNotaFiscal;
+          dadosNotaFiscal = rtndadosNotaFiscal;
         });
       }
     } catch (e) {

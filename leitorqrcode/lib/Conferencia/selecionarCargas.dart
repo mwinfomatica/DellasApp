@@ -140,8 +140,8 @@ class _SelecionarCargasState extends State<SelecionarCargas> {
               ),
             ),
             ButtonConference(
-              label: 'Iniciar a Conferência',
-              onTap: () async => await enviarCargasSelecionadas(),
+              titulo: 'Iniciar a Conferência',
+              onPressed: () async => await enviarCargasSelecionadas(),
             ),
           ],
         ),
