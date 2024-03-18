@@ -8,6 +8,7 @@ import 'package:flutter_blue/flutter_blue.dart';
 import 'package:leitorqrcode/Components/Bottom.dart';
 import 'package:leitorqrcode/Components/Constants.dart';
 import 'package:leitorqrcode/Components/DashedRect.dart';
+import 'package:leitorqrcode/Conferencia/components/ModalForcaFinalizacaoConferencia.dart';
 import 'package:leitorqrcode/Conferencia/components/button_conferencia.dart';
 import 'package:leitorqrcode/Models/APIModels/BaixaConfModel.dart';
 import 'package:leitorqrcode/Models/APIModels/ProdutoModel.dart';
@@ -40,7 +41,6 @@ class _ConferenciaExpedicaoScreenState
   late QRViewController controller;
 
   bool reading = false;
-  bool prodReadSuccess = false;
   bool isManual = false;
   bool leituraExterna = false;
 
@@ -58,6 +58,8 @@ class _ConferenciaExpedicaoScreenState
   bool isExternalDeviceEnabled = false;
   bool isCollectModeEnabled = false;
   bool isCameraEnabled = false;
+
+  bool conferenciaOk = false;
 
   List<ItemConferenciaNfs> listItens = [];
 
@@ -424,7 +426,7 @@ class _ConferenciaExpedicaoScreenState
                       ),
                     ),
                   ),
-                if (!prodReadSuccess)
+                if (!conferenciaOk)
                   isManual
                       ? Padding(
                           padding: const EdgeInsets.all(8.0),
@@ -532,7 +534,54 @@ class _ConferenciaExpedicaoScreenState
                                   ],
                                 ),
                 SizedBox(
-                  height: 5,
+                  height: 1,
+                ),
+                conferenciaOk
+                    ? Container(
+                        width: MediaQuery.of(context).size.width,
+                        color: Colors.yellow[300],
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            "Leitura concluída",
+                            style: TextStyle(
+                                fontSize: 25, fontWeight: FontWeight.bold),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      )
+                    : Container(
+                        padding: EdgeInsets.fromLTRB(2, 10, 2, 10),
+                        color: Colors.yellow[300],
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 100,
+                              child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                      primary: primaryColor,
+                                      textStyle: const TextStyle(fontSize: 12)),
+                                  onPressed: () {
+                                    showDialog(
+                                      context: context,
+                                      barrierDismissible: false,
+                                      builder: (_) =>
+                                          modalForcaFinalizacaoConferencia(
+                                        idPedido: "1234-1234-1234",
+                                        psw: "1234-1234-1234-1234".split('-')[1],
+                                      ),
+                                    );
+                                  },
+                                  child: Text(
+                                    'Finalizar',
+                                    style: TextStyle(color: Colors.white),
+                                  )),
+                            ),
+                          ],
+                        ),
+                      ),
+                SizedBox(
+                  height: 3,
                 ),
                 _buildHeaderNF(height),
                 SizedBox(
@@ -542,10 +591,12 @@ class _ConferenciaExpedicaoScreenState
                 SizedBox(
                   height: 40,
                 ),
-                ButtonConference(
-                  titulo: 'Finalizar',
-                  onPressed: () async {},
-                ),
+                conferenciaOk
+                    ? ButtonConference(
+                        titulo: 'Finalizar',
+                        onPressed: () async {},
+                      )
+                    : Container(),
               ],
             ),
           ),
@@ -684,12 +735,13 @@ class _ConferenciaExpedicaoScreenState
                       alignment: Alignment.center,
                       child: Icon(
                         Icons.check_box,
-                        color: listItens[index].qtde == listItens[index].qtdeConf
-                            ? Colors.green
-                            : listItens[index].qtde <
-                                    (listItens[index].qtdeConf ?? 0)
-                                ? Colors.orange[200]
-                                : Colors.grey,
+                        color:
+                            listItens[index].qtde == listItens[index].qtdeConf
+                                ? Colors.green
+                                : listItens[index].qtde <
+                                        (listItens[index].qtdeConf ?? 0)
+                                    ? Colors.orange[200]
+                                    : Colors.grey,
                         size: 20,
                       ),
                     ),
@@ -702,7 +754,6 @@ class _ConferenciaExpedicaoScreenState
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
-                          
                         ),
                       ),
                     ),
@@ -744,7 +795,7 @@ class _ConferenciaExpedicaoScreenState
                           size: 40,
                         ),
                         onTap: () async => {
-                          showDialogConfir(context, listItens[index].idProduto),
+                          showDialogConfir(context, listItens[index].idItem),
                         },
                       ),
                     ),
@@ -787,6 +838,8 @@ class _ConferenciaExpedicaoScreenState
                   dados.qtdeConf = 0;
                 }
                 setState(() {});
+
+                validaConferencia();
                 Navigator.of(dialogContext).pop();
               },
             ),
@@ -821,28 +874,36 @@ class _ConferenciaExpedicaoScreenState
           duration: Duration(seconds: 5), bgColor: Colors.red.shade200);
     }
 
-    return true;
+    ItemConferenciaNfs? dados =
+        getProdutoIguais((prod.idproduto != null ? prod.idproduto! : prod.id!));
 
-    // ItemConferenciaNfs? dados =
-    //     getItembyId((prod.idproduto != null ? prod.idproduto! : prod.id!));
+    if (dados != null) {
+      return true;
+      // if (dados.qtde >= ((dados.qtdeConf ?? 0) + int.parse(qtd))) {
+      //   return true;
+      // } else {
+      //   dados = getProdutoIguais(
+      //       (prod.idproduto != null ? prod.idproduto! : prod.id!));
 
-    // if (dados != null) {
-    //   if (dados.qtde >= ((dados.qtdeConf ?? 0) + int.parse(qtd))) {
-    //     return true;
-    //   } else {
-    //     Dialogs.showToast(context,
-    //         "A quantidade não pode ser maior que a informada na nota fiscal.",
-    //         duration: Duration(seconds: 5), bgColor: Colors.red.shade200);
-    //     return false;
-    //   }
-    // } else {
-    //   Dialogs.showToast(context, "Não foi encontrado o produto na nota fiscal.",
-    //       duration: Duration(seconds: 5), bgColor: Colors.red.shade200);
-    //   return false;
-    // }
+      //   if (dados != null) {
+
+      // }
+      // }
+
+      // else {
+      //   Dialogs.showToast(context,
+      //       "A quantidade não pode ser maior que a informada na nota fiscal.",
+      //       duration: Duration(seconds: 5), bgColor: Colors.red.shade200);
+      //   return false;
+      // }
+    } else {
+      Dialogs.showToast(context, "Não foi encontrado o produto na nota fiscal.",
+          duration: Duration(seconds: 5), bgColor: Colors.red.shade200);
+      return false;
+    }
   }
 
-  ItemConferenciaNfs? getItembyId(String id) {
+  ItemConferenciaNfs? getItembyIdproduto(String id) {
     ItemConferenciaNfs? dados = listItens
         .where((e) => e.idProduto.toUpperCase() == id.toUpperCase())
         .firstOrNull;
@@ -850,11 +911,41 @@ class _ConferenciaExpedicaoScreenState
     return dados;
   }
 
+  ItemConferenciaNfs? getItembyId(String id) {
+    ItemConferenciaNfs? dados = listItens
+        .where((e) => e.idItem.toUpperCase() == id.toUpperCase())
+        .firstOrNull;
+
+    return dados;
+  }
+
+  ItemConferenciaNfs? getProdutoIguais(String id) {
+    List<ItemConferenciaNfs>? ProdsIguais = listItens
+        .where((e) => e.idProduto.toUpperCase() == id.toUpperCase())
+        .toList();
+    int? qtdProd = ProdsIguais != null ? ProdsIguais.length : 0;
+    if (qtdProd > 1) {
+      for (var i = 0; i < qtdProd; i++) {
+        if ((ProdsIguais[i].qtdeConf ?? 0) < ProdsIguais[i].qtde) {
+          return ProdsIguais[i];
+        } else {
+          if (qtdProd == (i + 1)) {
+            return ProdsIguais[i];
+          }
+        }
+      }
+    } else if (qtdProd == 1) {
+      return ProdsIguais[0];
+    } else {
+      return null;
+    }
+  }
+
   addConferencia(ProdutoModel prodRead, int qtd) {
     String idProd =
         (prodRead.idproduto != null ? prodRead.idproduto! : prodRead.id!);
 
-    ItemConferenciaNfs? dados = getItembyId(idProd);
+    ItemConferenciaNfs? dados = getProdutoIguais(idProd);
 
     if (dados != null) {
       if (dados.qtdeConf == null) {
@@ -870,5 +961,17 @@ class _ConferenciaExpedicaoScreenState
     }
 
     setState(() {});
+
+    validaConferencia();
+  }
+
+  validaConferencia() {
+    int? qdtItensConf = listItens.where((e) => e.qtde == e.qtdeConf).length;
+
+    if (qdtItensConf == listItens.length) {
+      conferenciaOk = true;
+    } else {
+      conferenciaOk = false;
+    }
   }
 }
