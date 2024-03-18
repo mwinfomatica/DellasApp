@@ -9,7 +9,9 @@ import 'package:leitorqrcode/Components/Bottom.dart';
 import 'package:leitorqrcode/Components/Constants.dart';
 import 'package:leitorqrcode/Components/DashedRect.dart';
 import 'package:leitorqrcode/Conferencia/components/button_conferencia.dart';
+import 'package:leitorqrcode/Models/APIModels/BaixaConfModel.dart';
 import 'package:leitorqrcode/Models/APIModels/ProdutoModel.dart';
+import 'package:leitorqrcode/Models/APIModels/RetornoConfBaixaModel.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoConfItensPedidoModel.dart';
 import 'package:leitorqrcode/Models/ContextoModel.dart';
 import 'package:leitorqrcode/Services/CargasService.dart';
@@ -36,7 +38,6 @@ class _ConferenciaExpedicaoScreenState
     extends State<ConferenciaExpedicaoScreen> {
   int? selectedCardIndex;
   late QRViewController controller;
-  final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
 
   bool reading = false;
   bool prodReadSuccess = false;
@@ -47,7 +48,7 @@ class _ConferenciaExpedicaoScreenState
   bool showLeituraExterna = false;
   String idOperador = "";
   String titleBtn = '';
-  final GlobalKey qrKeyM = GlobalKey(debugLabel: 'QR');
+  final GlobalKey qrKeyConf = GlobalKey(debugLabel: 'QR');
   final animateListKey = GlobalKey<AnimatedListState>();
   String textExterno = "";
   final FlutterBlue flutterBlue = FlutterBlue.instance;
@@ -57,6 +58,8 @@ class _ConferenciaExpedicaoScreenState
   bool isExternalDeviceEnabled = false;
   bool isCollectModeEnabled = false;
   bool isCameraEnabled = false;
+
+  List<ItemConferenciaNfs> listItens = [];
 
   final qtdeProdDialog = TextEditingController();
 
@@ -75,7 +78,7 @@ class _ConferenciaExpedicaoScreenState
 
   Widget _buildQrView(BuildContext context) {
     return QRView(
-      key: qrKeyM,
+      key: qrKeyConf,
       onQRViewCreated: _onQRViewCreated,
     );
   }
@@ -281,7 +284,7 @@ class _ConferenciaExpedicaoScreenState
                   TextButton(
                     child: Text("Salvar"),
                     onPressed: () async {
-                      // qtdOk = validaQtd(prodRead, qtdeProdDialog.text);
+                      qtdOk = validaQtd(prodRead, qtdeProdDialog.text);
                       Navigator.pop(context);
                     },
                   ),
@@ -290,23 +293,23 @@ class _ConferenciaExpedicaoScreenState
               ),
             );
           } else {
-            // qtdOk = validaQtd(
-            //     prodRead,
-            //     prodRead.qtd != null &&
-            //             prodRead.qtd != "" &&
-            //             prodRead.qtd != "0"
-            //         ? prodRead.qtd!
-            //         : "1");
+            qtdOk = validaQtd(
+                prodRead,
+                prodRead.qtd != null &&
+                        prodRead.qtd != "" &&
+                        prodRead.qtd != "0"
+                    ? prodRead.qtd!
+                    : "1");
           }
 
           if (qtdOk) {
-            // addEmbalagem(
-            //     prodRead,
-            //     int.parse(prodRead.qtd != null &&
-            //             prodRead.qtd != "" &&
-            //             prodRead.qtd != "0"
-            //         ? prodRead.qtd!
-            //         : "1"));
+            addConferencia(
+                prodRead,
+                int.parse(prodRead.qtd != null &&
+                        prodRead.qtd != "" &&
+                        prodRead.qtd != "0"
+                    ? prodRead.qtd!
+                    : "1"));
           }
         }
         Timer(Duration(seconds: 2), () {
@@ -342,7 +345,7 @@ class _ConferenciaExpedicaoScreenState
     _loadPreferences();
 
     titleBtn = "Iniciar Conferência";
-
+    listItens = widget.retorno.data.itensConferenciaNfs;
     super.initState();
   }
 
@@ -409,7 +412,7 @@ class _ConferenciaExpedicaoScreenState
                         visible = info.visibleFraction > 0;
                       },
                       key: Key(
-                        'visible-detector-key-M',
+                        'visible-detector-key-Conf',
                       ),
                       child: BarcodeKeyboardListener(
                         bufferDuration: Duration(milliseconds: 50),
@@ -473,7 +476,7 @@ class _ConferenciaExpedicaoScreenState
                                 )
                           : showCamera == false
                               ? ButtonConference(
-                                  titulo: titleBtn == null ? "" : titleBtn,
+                                  titulo: titleBtn,
                                   onPressed: () {
                                     setState(() {
                                       showCamera = true;
@@ -535,10 +538,7 @@ class _ConferenciaExpedicaoScreenState
                 SizedBox(
                   height: 10,
                 ),
-                Container(
-                  width: width * 0.9,
-                  child: _buildCustomTable(width),
-                ),
+                tableNotafiscal(),
                 SizedBox(
                   height: 40,
                 ),
@@ -602,106 +602,273 @@ class _ConferenciaExpedicaoScreenState
     );
   }
 
-  Widget _buildCustomTable(double width) {
-    TextStyle headerStyle = TextStyle(fontWeight: FontWeight.bold);
-    TextStyle cellStyle = TextStyle();
-
-    double cellHeight = 48.0;
-
-    TableRow _buildHeader() {
-      return TableRow(
-        decoration: BoxDecoration(color: Colors.grey.shade400),
-        children: [
-          TableCell(
-              child: Center(
-                  child: SizedBox(
-                      height: cellHeight,
-                      child: Center(child: Text('', style: headerStyle))))),
-          TableCell(
-              child: Center(
-                  child: SizedBox(
-                      height: cellHeight,
-                      child: Center(child: Text('', style: headerStyle))))),
-          TableCell(
-              child: Center(
-                  child: SizedBox(
-                      height: cellHeight,
-                      child:
-                          Center(child: Text('Qtde NF', style: headerStyle))))),
-          TableCell(
-              child: Center(
-                  child: SizedBox(
-                      height: cellHeight,
-                      child: Center(
-                          child: Text('Qtd Conf', style: headerStyle))))),
-          TableCell(
-              child: Center(
-                  child: SizedBox(
-                      height: cellHeight,
-                      child:
-                          Center(child: Text('Produto', style: headerStyle))))),
-        ],
-      );
-    }
-
-    // Cria uma única linha de dados
-    TableRow _buildRow(ItemConferenciaNfs item) {
-      return TableRow(
-        children: [
-          TableCell(child: Center(child: Text('', style: cellStyle))),
-          TableCell(
-            child: Center(
-              child: IconButton(
-                icon: Icon(Icons.delete),
-                onPressed: () {},
+  Widget tableNotafiscal() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.vertical,
+        child: DataTable(
+          headingRowColor: MaterialStateColor.resolveWith(
+            (states) => Colors.grey,
+          ),
+          border: TableBorder.all(
+            color: Colors.black,
+          ),
+          headingRowHeight: 20,
+          dataRowHeight: 50,
+          columnSpacing: 10,
+          horizontalMargin: 10,
+          columns: [
+            DataColumn(
+              label: Text(
+                "",
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
+            DataColumn(
+              numeric: true,
+              label: Text(
+                "Qtd",
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            DataColumn(
+              label: Text(
+                "Qtd Conf.",
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            DataColumn(
+              label: Text(
+                "Produto",
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            DataColumn(
+              label: Text(
+                "",
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+          rows: List.generate(
+            listItens.length,
+            (index) {
+              return DataRow(
+                color: MaterialStateColor.resolveWith(
+                  (states) =>
+                      listItens[index].qtde < (listItens[index].qtdeConf ?? 0)
+                          ? Colors.red
+                          : index % 2 == 0
+                              ? Colors.white
+                              : Colors.grey[200]!,
+                ),
+                cells: [
+                  DataCell(
+                    Align(
+                      alignment: Alignment.center,
+                      child: Icon(
+                        Icons.check_box,
+                        color: listItens[index].qtde == listItens[index].qtdeConf
+                            ? Colors.green
+                            : listItens[index].qtde <
+                                    (listItens[index].qtdeConf ?? 0)
+                                ? Colors.orange[200]
+                                : Colors.grey,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                  DataCell(
+                    Align(
+                      alignment: Alignment.center,
+                      child: Text(
+                        listItens[index].qtde.toString(),
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          
+                        ),
+                      ),
+                    ),
+                  ),
+                  DataCell(
+                    Align(
+                      alignment: Alignment.center,
+                      child: Text(
+                        listItens[index].qtdeConf == null
+                            ? "0"
+                            : listItens[index].qtdeConf.toString(),
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                  DataCell(
+                    Text(
+                      (listItens[index].codigo.trim() +
+                          " - " +
+                          listItens[index].descricao.trim()),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  DataCell(
+                    Ink(
+                      child: InkWell(
+                        child: Icon(
+                          Icons.delete_outline,
+                          color: listItens[index].qtde <
+                                  (listItens[index].qtdeConf ?? 0)
+                              ? Colors.black
+                              : Colors.red,
+                          size: 40,
+                        ),
+                        onTap: () async => {
+                          showDialogConfir(context, listItens[index].idProduto),
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
-          TableCell(
-              child: Center(child: Text('${item.qtde}', style: cellStyle))),
-          TableCell(child: Center(child: Text('0', style: cellStyle))),
-          TableCell(
-              child:
-                  Center(child: Text('${item.descricao}', style: cellStyle))),
-        ],
-      );
-    }
-
-    // Cria a tabela completa com todas as linhas
-    return Table(
-      border: TableBorder.symmetric(
-        inside: BorderSide(width: 1, color: Colors.black),
-        outside: BorderSide(width: 1, color: Colors.black),
+        ),
       ),
-      columnWidths: {
-        0: FlexColumnWidth(0.4),
-        1: FlexColumnWidth(0.5),
-        2: FlexColumnWidth(0.4),
-        3: FlexColumnWidth(0.4),
-        4: FlexColumnWidth(2),
-      },
-      defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-      children: [
-        _buildHeader(),
-        ...widget.retorno.data.itensConferenciaNfs
-            .map((item) => _buildRow(item))
-            .toList(),
-      ],
     );
   }
 
-  Future<void> forcarConferencia() async {
-    print('entrou aqui');
+  Future<void> showDialogConfir(BuildContext context, String id) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Text(
+            "Atenção",
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          content: Text(
+            'Ao confirmar será necessário realizar a conferência do item novamente.\nDeseja prosseguir?',
+            style: TextStyle(fontSize: 16.0),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancelar'),
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Confirmar'),
+              onPressed: () {
+                ItemConferenciaNfs? dados = getItembyId(id);
+                if (dados != null) {
+                  dados.qtdeConf = 0;
+                }
+                setState(() {});
+                Navigator.of(dialogContext).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> finalizaConferencia(String tipoBaixa) async {
     CargasServices cargasServices = CargasServices(context);
+    BaixaConfModel model = BaixaConfModel(
+      idEmbalagem: widget.retorno.data.idsEmbalagens,
+      idPedidos: [],
+      tipoBaixa: tipoBaixa,
+    );
+    RetornoConfBaixaModel? respostaForcarCarga =
+        await cargasServices.baixaPedido(model);
 
-    // RetornoConfBaixaModel? respostaForcarCarga =
-    //     await cargasServices.baixaPedido(
-    //         widget.retorno.data.idsEmbalagens, cargasSelecionadas, true);
+    if (respostaForcarCarga != null && !respostaForcarCarga.error) {
+    } else {
+      Dialogs.showToast(context, "Erro forçar Conferência",
+          duration: Duration(seconds: 5), bgColor: Colors.red.shade200);
+    }
+  }
 
-    // if (respostaForcarCarga != null && !respostaForcarCarga.error) {
+  bool validaQtd(ProdutoModel prod, String qtd) {
+    bool qtdIsValid = int.tryParse(qtd) != null ? true : false;
+    if (!qtdIsValid) {
+      Dialogs.showToast(
+          context, "A quantidade informada não é valida \n tente novamente",
+          duration: Duration(seconds: 5), bgColor: Colors.red.shade200);
+    }
+
+    return true;
+
+    // ItemConferenciaNfs? dados =
+    //     getItembyId((prod.idproduto != null ? prod.idproduto! : prod.id!));
+
+    // if (dados != null) {
+    //   if (dados.qtde >= ((dados.qtdeConf ?? 0) + int.parse(qtd))) {
+    //     return true;
+    //   } else {
+    //     Dialogs.showToast(context,
+    //         "A quantidade não pode ser maior que a informada na nota fiscal.",
+    //         duration: Duration(seconds: 5), bgColor: Colors.red.shade200);
+    //     return false;
+    //   }
     // } else {
-    //   Dialogs.showToast(context, "Erro forçar Conferência",
+    //   Dialogs.showToast(context, "Não foi encontrado o produto na nota fiscal.",
     //       duration: Duration(seconds: 5), bgColor: Colors.red.shade200);
+    //   return false;
     // }
+  }
+
+  ItemConferenciaNfs? getItembyId(String id) {
+    ItemConferenciaNfs? dados = listItens
+        .where((e) => e.idProduto.toUpperCase() == id.toUpperCase())
+        .firstOrNull;
+
+    return dados;
+  }
+
+  addConferencia(ProdutoModel prodRead, int qtd) {
+    String idProd =
+        (prodRead.idproduto != null ? prodRead.idproduto! : prodRead.id!);
+
+    ItemConferenciaNfs? dados = getItembyId(idProd);
+
+    if (dados != null) {
+      if (dados.qtdeConf == null) {
+        dados.qtdeConf = 0;
+      }
+
+      dados.qtdeConf = dados.qtdeConf! + 1;
+    } else {
+      Dialogs.showToast(
+          context, "Não foi encontrado este produto para esta Nota fiscal",
+          duration: Duration(seconds: 5), bgColor: Colors.red.shade200);
+      return;
+    }
+
+    setState(() {});
   }
 }

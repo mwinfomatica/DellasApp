@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart';
 import 'package:leitorqrcode/Infrastructure/Http/WebClient.dart';
+import 'package:leitorqrcode/Models/APIModels/BaixaConfModel.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoCargaModel.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoConfBaixaModel.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoConfItensEmbalagemModel.dart';
@@ -139,22 +140,19 @@ class CargasServices {
     }
   }
 
-  Future<RetornoConfBaixaModel?> baixaPedido(
-      List<String> embalagens, List<String> idPedidos, bool isForce) async {
+  Future<RetornoConfBaixaModel?> baixaPedido(BaixaConfModel model) async {
     try {
-      String tipoBaixa = isForce ? "F" : "N";
-
       String url = '$baseUrl/ApiCliente/ConfBaixaPedido';
 
-      var response = await getClient(context: context).post(Uri.parse(url),
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: jsonEncode({
-            "TipoBaixa": tipoBaixa,
-            "IdEmbalagens": embalagens,
-            "IdPedidos": idPedidos
-          }));
+      String ws = json.encode(model);
+
+      var response = await getClient(context: context).post(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: ws,
+      );
 
       print(response.body);
       print(response.statusCode);

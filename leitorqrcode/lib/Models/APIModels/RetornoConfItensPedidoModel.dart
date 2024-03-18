@@ -24,7 +24,7 @@ class PedidoCargaData {
   final dynamic cliente;
   final String chaveNfe;
   final List<ItemConferenciaNfs> itensConferenciaNfs;
-  final List<String> idsEmbalagens;
+  List<String>? idsEmbalagens = [];
 
   PedidoCargaData({
     required this.nroNFE,
@@ -32,7 +32,7 @@ class PedidoCargaData {
     this.cliente,
     required this.chaveNfe,
     required this.itensConferenciaNfs,
-    required this.idsEmbalagens,
+    this.idsEmbalagens,
   });
 
   factory PedidoCargaData.fromJson(Map<String, dynamic> json) {
@@ -54,12 +54,16 @@ class ItemConferenciaNfs {
   final int qtde;
   final String codigo;
   final String descricao;
+  final String idProduto;
+  int? qtdeConf;
 
   ItemConferenciaNfs({
     required this.idItem,
     required this.qtde,
     required this.codigo,
     required this.descricao,
+    required this.idProduto,
+    this.qtdeConf,
   });
 
   factory ItemConferenciaNfs.fromJson(Map<String, dynamic> json) {
@@ -68,6 +72,8 @@ class ItemConferenciaNfs {
       qtde: json['qtde'],
       codigo: json['codigo'],
       descricao: json['descricao'],
+      idProduto: json['idProduto'],
+      qtdeConf: json['qtdeConf'],
     );
   }
 }
