@@ -5,8 +5,9 @@ import 'package:leitorqrcode/Shared/Dialog.dart';
 class modalForcaFinalizacaoConferencia extends StatelessWidget {
   final String? psw;
   final String? idPedido;
-
-  modalForcaFinalizacaoConferencia({Key? key, @required this.psw, @required this.idPedido})
+  final Function? ontap;
+  modalForcaFinalizacaoConferencia(
+      {Key? key, @required this.psw, @required this.idPedido, this.ontap})
       : super(key: key);
 
   @override
@@ -47,7 +48,7 @@ class modalForcaFinalizacaoConferencia extends StatelessWidget {
                     senhaDialog.text.length == 4 &&
                     senhaDialog.text.toUpperCase() == psw!.toUpperCase())
                   {
-                    
+                    await ontap!.call,
                     Navigator.pop(context),
                     Navigator.pop(context),
                     Dialogs.showToast(context, "Finalizado!")

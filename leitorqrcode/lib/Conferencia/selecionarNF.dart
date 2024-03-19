@@ -87,7 +87,7 @@ class _SelecionarNotaFiscalExpedicaoState
                   context,
                   MaterialPageRoute(
                     builder: (context) => ConferenciaExpedicaoScreen(
-                        retorno: respostaConfItensPedido),
+                        retorno: respostaConfItensPedido, idPeiddo:  widget.retorno.data![selectedCardIndex!].idPedido),
                   ),
                 );
               } else {

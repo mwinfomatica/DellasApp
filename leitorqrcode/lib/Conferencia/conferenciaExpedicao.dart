@@ -25,9 +25,11 @@ import 'package:visibility_detector/visibility_detector.dart';
 
 class ConferenciaExpedicaoScreen extends StatefulWidget {
   final RetornoConfItensPedidoModel retorno;
+  final String idPeiddo;
   const ConferenciaExpedicaoScreen({
     Key? key,
     required this.retorno,
+    required this.idPeiddo,
   }) : super(key: key);
 
   @override
@@ -62,6 +64,7 @@ class _ConferenciaExpedicaoScreenState
   bool conferenciaOk = false;
 
   List<ItemConferenciaNfs> listItens = [];
+  List<String> listEmb = [];
 
   final qtdeProdDialog = TextEditingController();
 
@@ -296,12 +299,11 @@ class _ConferenciaExpedicaoScreenState
             );
           } else {
             qtdOk = validaQtd(
-                prodRead,
-                prodRead.qtd != null &&
-                        prodRead.qtd != "" &&
-                        prodRead.qtd != "0"
-                    ? prodRead.qtd!
-                    : "1");
+              prodRead,
+              prodRead.qtd != null && prodRead.qtd != "" && prodRead.qtd != "0"
+                  ? prodRead.qtd!
+                  : "1",
+            );
           }
 
           if (qtdOk) {
@@ -311,7 +313,9 @@ class _ConferenciaExpedicaoScreenState
                         prodRead.qtd != "" &&
                         prodRead.qtd != "0"
                     ? prodRead.qtd!
-                    : "1"));
+                    : "1"),
+                false,
+                null);
           }
         }
         Timer(Duration(seconds: 2), () {
@@ -556,7 +560,7 @@ class _ConferenciaExpedicaoScreenState
                         child: Row(
                           children: [
                             Container(
-                              width: 100,
+                              width: width * 0.5,
                               child: ElevatedButton(
                                   style: ElevatedButton.styleFrom(
                                       primary: primaryColor,
@@ -567,13 +571,16 @@ class _ConferenciaExpedicaoScreenState
                                       barrierDismissible: false,
                                       builder: (_) =>
                                           modalForcaFinalizacaoConferencia(
-                                        idPedido: "1234-1234-1234",
-                                        psw: "1234-1234-1234-1234".split('-')[1],
+                                        idPedido: widget.idPeiddo,
+                                        psw: widget.idPeiddo.split('-')[1],
+                                        ontap: () => {
+                                          finalizaConferencia('F'),
+                                        },
                                       ),
                                     );
                                   },
                                   child: Text(
-                                    'Finalizar',
+                                    'Forçar Finalização',
                                     style: TextStyle(color: Colors.white),
                                   )),
                             ),
@@ -591,14 +598,43 @@ class _ConferenciaExpedicaoScreenState
                 SizedBox(
                   height: 40,
                 ),
-                conferenciaOk
-                    ? ButtonConference(
-                        titulo: 'Finalizar',
-                        onPressed: () async {},
-                      )
-                    : Container(),
               ],
             ),
+          ),
+          bottomSheet: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              if (conferenciaOk)
+                Container(
+                  width: MediaQuery.of(context).size.width * 0.5,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                        primary: primaryColor,
+                        textStyle: const TextStyle(fontSize: 15)),
+                    onPressed: () async {
+                      RetornoConfBaixaModel? retorno =
+                          await finalizaConferencia('N');
+                      if (retorno != null && !retorno.error) {
+                        Dialogs.showToast(context, retorno.message,
+                            duration: Duration(seconds: 5),
+                            bgColor: Colors.green.shade200);
+                        Navigator.pop(context);
+                      } else {
+                        Dialogs.showToast(context, retorno!.message,
+                            duration: Duration(seconds: 5),
+                            bgColor: Colors.red.shade200);
+                        return;
+                      }
+                    },
+                    child: Text(
+                      'Finalizar',
+                      style: TextStyle(
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           ),
           bottomNavigationBar: BottomBar()),
     );
@@ -849,21 +885,18 @@ class _ConferenciaExpedicaoScreenState
     );
   }
 
-  Future<void> finalizaConferencia(String tipoBaixa) async {
+  Future<RetornoConfBaixaModel?> finalizaConferencia(String tipoBaixa) async {
     CargasServices cargasServices = CargasServices(context);
     BaixaConfModel model = BaixaConfModel(
-      idEmbalagem: widget.retorno.data.idsEmbalagens,
-      idPedidos: [],
+      idEmbalagem: listEmb,
+      idPedidos: [widget.idPeiddo],
       tipoBaixa: tipoBaixa,
+      idUsuario: idOperador,
     );
     RetornoConfBaixaModel? respostaForcarCarga =
         await cargasServices.baixaPedido(model);
 
-    if (respostaForcarCarga != null && !respostaForcarCarga.error) {
-    } else {
-      Dialogs.showToast(context, "Erro forçar Conferência",
-          duration: Duration(seconds: 5), bgColor: Colors.red.shade200);
-    }
+    return respostaForcarCarga;
   }
 
   bool validaQtd(ProdutoModel prod, String qtd) {
@@ -941,7 +974,8 @@ class _ConferenciaExpedicaoScreenState
     }
   }
 
-  addConferencia(ProdutoModel prodRead, int qtd) {
+  addConferencia(
+      ProdutoModel prodRead, int qtd, bool isEmbalagem, String? idEmbalagem) {
     String idProd =
         (prodRead.idproduto != null ? prodRead.idproduto! : prodRead.id!);
 
@@ -953,6 +987,8 @@ class _ConferenciaExpedicaoScreenState
       }
 
       dados.qtdeConf = dados.qtdeConf! + 1;
+
+      if (isEmbalagem && idEmbalagem != null) listEmb.add(idEmbalagem);
     } else {
       Dialogs.showToast(
           context, "Não foi encontrado este produto para esta Nota fiscal",

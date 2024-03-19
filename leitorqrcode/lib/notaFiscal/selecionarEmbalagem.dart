@@ -165,11 +165,7 @@ class _SelecionarEmbalagemState extends State<SelecionarEmbalagem> {
           children: [
             GestureDetector(
               onTap: () async => {
-                PrinterController().printQrCodeEmbalagem(
-                  emb: EmbalagemModel("", "", "", []),
-                  bluetooth: bluetooth,
-                  context: context,
-                )
+                await printEmbalagem(),
               },
               child: Container(
                 width: width * 0.43,
@@ -214,6 +210,38 @@ class _SelecionarEmbalagemState extends State<SelecionarEmbalagem> {
           ],
         ),
       ),
+    );
+  }
+
+  Future<void> printEmbalagem() async {
+    List<EmbalagemPrinter>? listembprint = [];
+
+    NotasFiscaisService notasFiscaisService = NotasFiscaisService(context);
+
+    try {
+      List<String> idEmbalagens = [];
+
+      for (var i = 0; i < widget.dadosEmbalagem.length; i++) {
+        idEmbalagens.add(widget.dadosEmbalagem[i].idEmbalagem);
+      }
+
+      RetornoGetDadosEmbalagemListModel? rtndadosEmbalagem =
+          await notasFiscaisService.getDadosPrinterEmbalagem(idEmbalagens);
+
+      if (rtndadosEmbalagem != null) {
+        if (!rtndadosEmbalagem.error) {
+          listembprint = rtndadosEmbalagem.data;
+        }
+      }
+    } catch (e) {
+      print('Erro ao processar carga: $e');
+    }
+
+    await _initValidationPrinter();
+    await PrinterController().printQrCodeEmbalagem(
+      listemb: listembprint ?? [],
+      bluetooth: bluetooth,
+      context: context,
     );
   }
 
@@ -323,7 +351,7 @@ class _SelecionarEmbalagemState extends State<SelecionarEmbalagem> {
                           color: Colors.orange.shade400,
                         ),
                         onTap: () async => {
-                         await editEmb(widget.dadosEmbalagem[index]),
+                          await editEmb(widget.dadosEmbalagem[index]),
                         },
                       ),
                     )),

@@ -167,4 +167,41 @@ class NotasFiscaisService {
       return null;
     }
   }
+
+  Future<RetornoGetDadosEmbalagemListModel?> getDadosPrinterEmbalagem(
+      List<String> idEmbalagem) async {
+    try {
+
+      Uri uri = Uri(
+        scheme: 'http',
+        host: '3.224.148.218',
+        path: '/Dellas/ApiCliente/GetDadosPrinterEmbalagem/',
+        queryParameters: {
+          'model': idEmbalagem.join(","),
+        },
+      );
+
+      final Response response = await getClient(context: context).get(
+        uri,
+        headers: {
+          'Content-type': 'application/json',
+        },
+      );
+
+      RetornoGetDadosEmbalagemListModel respostaCarga =
+          RetornoGetDadosEmbalagemListModel.fromJson(jsonDecode(response.body));
+
+      if (respostaCarga.error) {
+        Dialogs.showToast(context, respostaCarga.message, bgColor: Colors.red);
+        return null;
+      } else {
+        return respostaCarga;
+      }
+    } catch (ex) {
+      Dialogs.showToast(context,
+          "Ocorreu um erro em nossos servidores, tente novamente mais tarde.");
+      print(ex);
+      return null;
+    }
+  }
 }
