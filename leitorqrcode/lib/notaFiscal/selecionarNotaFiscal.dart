@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:leitorqrcode/Components/Bottom.dart';
 import 'package:leitorqrcode/Components/Constants.dart';
+import 'package:leitorqrcode/Home/Home.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoGetEmbalagemListModel.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoNotasFiscaisModel.dart';
 import 'package:leitorqrcode/Services/ContextoServices.dart';
@@ -39,87 +40,149 @@ class _SelecionarNotaFiscalState extends State<SelecionarNotaFiscal> {
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
 
-    return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        automaticallyImplyLeading: false,
-        backgroundColor: primaryColor,
-        title: Text(
-          'Selecionar Nota Fiscal',
-          style: TextStyle(color: Colors.white),
-        ),
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              itemCount: dadosNotasFiscais?.data.length ?? 0,
-              itemBuilder: (context, index) {
-                var notaFiscal = dadosNotasFiscais!.data[index];
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: SelectCardFiscal(
-                    isSelected: selectedCardIndex == index,
-                    onTap: () {
-                      setState(() {
-                        selectedCardIndex = index;
-                      });
-                    },
-                    numeroNota: notaFiscal.nrNfe,
-                    serieNota: notaFiscal.serieNfe.isEmpty
-                        ? 'Sem Série'
-                        : notaFiscal.serieNfe,
-                    nomeNota: notaFiscal.nomeCliente.isEmpty
-                        ? 'Sem nome'
-                        : notaFiscal.nomeCliente,
-                  ),
-                );
-              },
+    return SafeArea(
+      child: PopScope(
+        canPop: false,
+        onPopInvoked: (isPop) => {
+          if (!isPop)
+            {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(
+                  builder: (BuildContext context) => HomeScreen(),
+                ),
+                (route) => false,
+              )
+            }
+        },
+        child: Scaffold(
+          appBar: AppBar(
+            centerTitle: true,
+            automaticallyImplyLeading: false,
+            backgroundColor: primaryColor,
+            title: Text(
+              'Selecionar Nota Fiscal',
+              style: TextStyle(color: Colors.white),
             ),
           ),
-          GestureDetector(
-            onTap: () async {
-              if (selectedCardIndex != null && dadosNotasFiscais != null) {
-                var selectedData = dadosNotasFiscais!.data[selectedCardIndex!];
-                await _getEmbalagemList(selectedData.idPedido);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (BuildContext context) => SelecionarEmbalagem(
-                      nfeDados: selectedData,
-                      dadosEmbalagem:
-                          dadosNotaFiscal != null ? dadosNotaFiscal!.data : [],
-                    ),
-                  ),
-                );
-              } else {
-                Dialogs.showToast(context,
-                    "Gentileza selecionar uma nota fiscal.",
-                    duration: Duration(seconds: 5),
-                    bgColor: Colors.orange.shade200);
-              }
-            },
-            child: Container(
-              width: width * 0.9,
-              height: 60,
-              decoration: BoxDecoration(
-                  border: Border.all(),
-                  borderRadius: BorderRadius.circular(10),
-                  color: Colors.green),
-              child: Center(
-                child: Text(
-                  'Liberar para Expedição',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold),
+          body: Column(
+            children: [
+              Expanded(
+                child: ListView.builder(
+                  itemCount: dadosNotasFiscais?.data.length ?? 0,
+                  itemBuilder: (context, index) {
+                    var notaFiscal = dadosNotasFiscais!.data[index];
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: SelectCardFiscal(
+                        isSelected: selectedCardIndex == index,
+                        onTap: () {
+                          setState(() {
+                            selectedCardIndex = index;
+                          });
+                        },
+                        numeroNota: notaFiscal.nrNfe,
+                        serieNota: notaFiscal.serieNfe.isEmpty
+                            ? 'Sem Série'
+                            : notaFiscal.serieNfe,
+                        nomeNota: notaFiscal.nomeCliente.isEmpty
+                            ? 'Sem nome'
+                            : notaFiscal.nomeCliente,
+                      ),
+                    );
+                  },
                 ),
               ),
-            ),
-          )
-        ],
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Align(
+                    alignment: Alignment.bottomLeft,
+                    child: GestureDetector(
+                      onTap: () async {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (BuildContext context) => HomeScreen(),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        width: width * 0.3,
+                        height: 50,
+                        decoration: BoxDecoration(
+                            border: Border.all(),
+                            borderRadius: BorderRadius.circular(10),
+                            color: primaryColor),
+                        child: Center(
+                          child: Text(
+                            'Menu',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 10,
+                  ),
+                  Align(
+                    alignment: Alignment.bottomRight,
+                    child: GestureDetector(
+                      onTap: () async {
+                        if (selectedCardIndex != null &&
+                            dadosNotasFiscais != null) {
+                          var selectedData =
+                              dadosNotasFiscais!.data[selectedCardIndex!];
+                          await _getEmbalagemList(selectedData.idPedido);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (BuildContext context) =>
+                                  SelecionarEmbalagem(
+                                nfeDados: selectedData,
+                                dadosEmbalagem: dadosNotaFiscal != null
+                                    ? dadosNotaFiscal!.data
+                                    : [],
+                              ),
+                            ),
+                          );
+                        } else {
+                          Dialogs.showToast(
+                              context, "Gentileza selecionar uma nota fiscal.",
+                              duration: Duration(seconds: 5),
+                              bgColor: Colors.orange.shade200);
+                        }
+                      },
+                      child: Container(
+                        width: width * 0.5,
+                        height: 50,
+                        decoration: BoxDecoration(
+                            border: Border.all(),
+                            borderRadius: BorderRadius.circular(10),
+                            color: Colors.green),
+                        child: Center(
+                          child: Text(
+                            'Embalagens',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              )
+            ],
+          ),
+          bottomNavigationBar: BottomBar(),
+        ),
       ),
-      bottomNavigationBar: BottomBar(),
     );
   }
 

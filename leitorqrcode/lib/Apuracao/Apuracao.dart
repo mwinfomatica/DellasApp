@@ -1248,15 +1248,14 @@ class _ApuracaoState extends State<Apuracao> {
                                 onPressed: () async {
                                   Navigator.pop(context);
                                   Navigator.pushAndRemoveUntil(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (BuildContext context) =>
-                                          SelecionarNotaFiscal(
-                                              idPedido:
-                                                  widget.operacaoModel.id!),
-                                    ),
-                                    (route) => false,
-                                  );
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (BuildContext context) =>
+                                            SelecionarNotaFiscal(
+                                                idPedido:
+                                                    widget.operacaoModel.id!),
+                                      ),
+                                      ModalRoute.withName('/HomeScreen'));
                                 },
                               ),
                             ],
@@ -1287,7 +1286,12 @@ class _ApuracaoState extends State<Apuracao> {
                         hasAdress = false;
                       });
                     },
-                    child: Text('Alterar endereço'),
+                    child: Text(
+                      'Alterar endereço',
+                      style: TextStyle(
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
                 ),
             ],

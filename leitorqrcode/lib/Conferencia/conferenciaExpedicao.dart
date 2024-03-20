@@ -11,12 +11,17 @@ import 'package:leitorqrcode/Components/DashedRect.dart';
 import 'package:leitorqrcode/Conferencia/components/ModalForcaFinalizacaoConferencia.dart';
 import 'package:leitorqrcode/Conferencia/components/button_conferencia.dart';
 import 'package:leitorqrcode/Models/APIModels/BaixaConfModel.dart';
+import 'package:leitorqrcode/Models/APIModels/ConfItensEmbalagem.dart';
+import 'package:leitorqrcode/Models/APIModels/EmbalagemModel.dart';
 import 'package:leitorqrcode/Models/APIModels/ProdutoModel.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoConfBaixaModel.dart';
+import 'package:leitorqrcode/Models/APIModels/RetornoConfItensEmbalagemModel.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoConfItensPedidoModel.dart';
+import 'package:leitorqrcode/Models/APIModels/RetornoGetEmbalagemListModel.dart';
 import 'package:leitorqrcode/Models/ContextoModel.dart';
 import 'package:leitorqrcode/Services/CargasService.dart';
 import 'package:leitorqrcode/Services/ContextoServices.dart';
+import 'package:leitorqrcode/Services/NotasFiscaisService.dart';
 import 'package:leitorqrcode/Services/ProdutosDBService.dart';
 import 'package:leitorqrcode/Shared/Dialog.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
@@ -232,13 +237,75 @@ class _ConferenciaExpedicaoScreenState
       temp!.cancel();
       temp = null;
     }
-
+    reading = false;
     try {
       if (!reading) {
         reading = true;
         bool showDialogQtd = false;
         //Atualizar produto & Criar movimentação
         bool isOK = true;
+        bool qtdOk = false;
+        List<ConfItensEmbalagem> list = [];
+
+        if (code.indexOf("Embalagem") > 0) {
+          EmbalagemPrinter? emb = EmbalagemPrinter.fromJson(jsonDecode(code));
+
+          if (emb == null) {
+            return;
+          }
+
+          NotasFiscaisService notasFiscaisService =
+              NotasFiscaisService(context);
+          RetornoGetConfItensEmbalagemModel? rtn =
+              await notasFiscaisService.getConfItensEmbalagem(emb.id);
+
+          if (rtn != null) {
+            if (!rtn.error) {
+              list = rtn.data;
+
+              for (int i = 0; i < list.length; i++) {
+                int qtd = list[i].qtde ?? 1;
+
+                for (var q = 0; q < qtd; q++) {
+                  ProdutoModel prod = ProdutoModel(
+                    id: list[i].idProduto,
+                    barcode: "",
+                    cod: "",
+                    codEndGrupo: "",
+                    coddum: "",
+                    cx: "",
+                    desc: "",
+                    end: "",
+                    idOperacao: widget.idPeiddo,
+                    idloteunico: "",
+                    idproduto: list[i].idProduto,
+                    idprodutoPedido: list[i].idPedidoProduto,
+                    infVali: "n",
+                    infq: "n",
+                    isVirtual: '0',
+                    lote: "",
+                    nome: "",
+                    qtd: "1",
+                    situacao: "1",
+                    sl: "",
+                    vali: "",
+                  );
+
+                  qtdOk = validaQtd(prod, prod.qtd != null ? prod.qtd! : "0");
+                  addConferencia(
+                      prod,
+                      int.parse(prod.qtd != null ? prod.qtd! : "0"),
+                      true,
+                      emb.id);
+                }
+                Dialogs.showToast(context, "Leitura da Embalegm concluida.",
+                    duration: Duration(seconds: 5),
+                    bgColor: Colors.green.shade200);
+                return;
+              }
+            }
+          }
+        }
 
         ProdutosDBService produtosDBService = ProdutosDBService();
         bool leituraQR = await produtosDBService.isLeituraQRCodeProduto(code);
@@ -255,7 +322,6 @@ class _ConferenciaExpedicaoScreenState
 
         if (prodRead != null && prodRead.cod!.isNotEmpty) {
           FlutterBeep.beep();
-          bool qtdOk = false;
 
           if (prodRead.infq == "s") {
             qtdeProdDialog.text = "";
@@ -318,9 +384,7 @@ class _ConferenciaExpedicaoScreenState
                 null);
           }
         }
-        Timer(Duration(seconds: 2), () {
-          reading = false;
-        });
+        reading = false;
       }
     } catch (ex) {
       Timer(Duration(milliseconds: 500), () {
@@ -986,7 +1050,7 @@ class _ConferenciaExpedicaoScreenState
         dados.qtdeConf = 0;
       }
 
-      dados.qtdeConf = dados.qtdeConf! + 1;
+      dados.qtdeConf = dados.qtdeConf! + qtd;
 
       if (isEmbalagem && idEmbalagem != null) listEmb.add(idEmbalagem);
     } else {

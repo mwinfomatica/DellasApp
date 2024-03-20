@@ -59,8 +59,6 @@ class EmbalagemData {
   }
 }
 
-
-
 class RetornoGetDadosEmbalagemListModel {
   final bool error;
   final String message;
@@ -72,7 +70,8 @@ class RetornoGetDadosEmbalagemListModel {
     required this.data,
   });
 
-  factory RetornoGetDadosEmbalagemListModel.fromJson(Map<String, dynamic> json) {
+  factory RetornoGetDadosEmbalagemListModel.fromJson(
+      Map<String, dynamic> json) {
     return RetornoGetDadosEmbalagemListModel(
       error: json['error'],
       message: json['message'],
@@ -89,8 +88,6 @@ class RetornoGetDadosEmbalagemListModel {
     };
   }
 }
-
-
 
 class EmbalagemPrinter {
   late String id;
@@ -116,12 +113,16 @@ class EmbalagemPrinter {
 
   EmbalagemPrinter.fromJson(Map<String, dynamic> json) {
     id = json['id'];
-    Embalagem = json['embalagem'];
+    Embalagem = json['embalagem'] != null
+        ? json['embalagem']
+        : json['Embalagem'] != null
+            ? json['Embalagem']
+            : "-";
     carga = json['carga'] ?? " - ";
     nomeCliente = json['nomeCliente'] ?? " - ";
     nroNota = json['nroNota'] ?? " - ";
     seqEmbalagem = json['seqEmbalagem'] ?? " - ";
-    end = json['end']  ?? " - ";
+    end = json['end'] ?? " - ";
     serie = json['serie'] ?? " - ";
 
     if (json['listItens'] != null) {
@@ -137,7 +138,7 @@ class EmbalagemPrinter {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['id'] = id;
     data['Embalagem'] = Embalagem;
-    
+
     return data;
   }
 }

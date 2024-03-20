@@ -9,16 +9,24 @@ import 'package:leitorqrcode/Models/APIModels/RetornoConfItensEmbalagemModel.dar
 import 'package:leitorqrcode/Models/APIModels/RetornoConfItensPedidoModel.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoPedidoCargaModel.dart';
 import 'package:leitorqrcode/Shared/Dialog.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CargasServices {
   final BuildContext context;
 
   CargasServices(this.context);
 
+  Future<String> _getIdUser() async {
+    SharedPreferences userlogged = await SharedPreferences.getInstance();
+    return userlogged.getString('IdUser')!;
+  }
+
+
   Future<RetornoCargaModel?> getCargas() async {
     try {
+      String idUser = await _getIdUser();
       final Response response = await getClient(context: context).get(
-        Uri.parse(baseUrl + "/ApiCliente/ConfListaCarga"),
+        Uri.parse(baseUrl + "/ApiCliente/ConfListaCarga?IdUsuario=" + idUser),
         headers: {
           'Content-type': 'application/json',
         },

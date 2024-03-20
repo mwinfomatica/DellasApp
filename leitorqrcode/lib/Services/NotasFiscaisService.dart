@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import 'package:leitorqrcode/Infrastructure/Http/WebClient.dart';
+import 'package:leitorqrcode/Models/APIModels/ConfItensEmbalagem.dart';
 import 'package:leitorqrcode/Models/APIModels/EmbalagemModel.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoBase.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoGetCreateEmbalagemModel.dart';
@@ -204,4 +205,34 @@ class NotasFiscaisService {
       return null;
     }
   }
+
+  Future<RetornoGetConfItensEmbalagemModel?> getConfItensEmbalagem(
+      String idEmbalagem) async {
+    try {
+      String idUser = await _getIdUser();
+      final Response response = await getClient(context: context).get(
+        Uri.parse(baseUrl +
+            "/ApiCliente/ConfItensEmbalagem?IdEmbalagem=$idEmbalagem"),
+        headers: {
+          'Content-type': 'application/json',
+        },
+      );
+
+      RetornoGetConfItensEmbalagemModel respostaCarga =
+          RetornoGetConfItensEmbalagemModel.fromJson(jsonDecode(response.body));
+
+      if (respostaCarga.error) {
+        Dialogs.showToast(context, respostaCarga.message, bgColor: Colors.red);
+        return null;
+      } else {
+        return respostaCarga;
+      }
+    } catch (ex) {
+      Dialogs.showToast(context,
+          "Ocorreu um erro em nossos servidores, tente novamente mais tarde.");
+      print(ex);
+      return null;
+    }
+  }
+
 }

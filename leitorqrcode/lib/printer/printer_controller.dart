@@ -20,7 +20,7 @@ class PrinterController {
         String qrdata = json.encode(emb);
 
         //NÃO USAR WIDTH E HEIGTH ACIMA DE 250
-        bluetooth.printQRcode(qrdata, 250, 250, PrinterHelper.escAlignLeft);
+        bluetooth.printQRcode(qrdata, 250, 250, PrinterHelper.escAlignCenter);
         
         _printHeaderInfo(bluetooth: bluetooth, embalagem: emb);
 

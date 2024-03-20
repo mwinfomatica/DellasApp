@@ -940,7 +940,7 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
     }
 
     List<DadosEmbalagem> listDados = widget.dadosCreateEmbalagem.data;
-    DadosEmbalagem? dados = getDadosEmbalagembyId(
+    DadosEmbalagem? dados = getProdutoIguais(
         (prod.idproduto != null ? prod.idproduto! : prod.id!));
 
     if (dados != null) {
@@ -968,6 +968,29 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
     return dados;
   }
 
+  DadosEmbalagem? getProdutoIguais(String id) {
+    List<DadosEmbalagem> ProdsIguais = widget.dadosCreateEmbalagem.data
+        .where((e) => e.idProduto.toUpperCase() == id.toUpperCase())
+        .toList();
+    int? qtdProd = ProdsIguais != null ? ProdsIguais.length : 0;
+    if (qtdProd > 1) {
+      for (var i = 0; i < qtdProd; i++) {
+        if (ProdsIguais[i].quantEmbalado < ProdsIguais[i].quantNota) {
+          return ProdsIguais[i];
+        } else {
+          if (qtdProd == (i + 1)) {
+            return ProdsIguais[i];
+          }
+        }
+      }
+    } else if (qtdProd == 1) {
+      return ProdsIguais[0];
+    } else {
+      return null;
+    }
+  }
+
+
   ItensEmbalagem? getItemEmbalagem(String id) {
     return list
         .where((e) => e.idProduto!.toUpperCase() == id.toUpperCase())
@@ -978,7 +1001,7 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
     String idProd =
         (prodRead.idproduto != null ? prodRead.idproduto! : prodRead.id!);
 
-    DadosEmbalagem? dados = getDadosEmbalagembyId(idProd);
+    DadosEmbalagem? dados = getProdutoIguais(idProd);
 
     if (dados != null) {
       dados.quantEmbalado = dados.quantEmbalado + 1;

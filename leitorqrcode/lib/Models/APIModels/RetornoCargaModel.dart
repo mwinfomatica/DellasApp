@@ -19,14 +19,12 @@ class RetornoCargaModel {
 }
 
 class Pedido {
-  final String idPedido;
   final String carga;
 
-  Pedido({required this.idPedido, required this.carga});
+  Pedido({ required this.carga});
 
   factory Pedido.fromJson(Map<String, dynamic> json) {
     return Pedido(
-      idPedido: json['idPedido'],
       carga: json['carga'],
     );
   }

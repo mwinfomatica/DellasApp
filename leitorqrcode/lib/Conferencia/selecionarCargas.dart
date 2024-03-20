@@ -123,15 +123,15 @@ class _SelecionarCargasState extends State<SelecionarCargas> {
                   return SelectCardCarga(
                     carga: carga,
                     isSelected: selecionados
-                        .any((selected) => selected.idPedido == carga.idPedido),
+                        .any((selected) => selected.carga == carga.carga),
                     onCheckboxChanged: (bool? value) {
                       setState(() {
                         if (value == true) {
                           selecionados.add(retornoCargaModel!.data![index]);
                         } else {
                           selecionados.removeWhere((item) =>
-                              item.idPedido ==
-                              retornoCargaModel!.data![index].idPedido);
+                              item.carga ==
+                              retornoCargaModel!.data![index].carga);
                         }
                       });
                     },
