@@ -1,3 +1,4 @@
+import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:flutter/material.dart';
 import 'package:leitorqrcode/Conferencia/selecionarCargas.dart';
 import 'package:leitorqrcode/Home/components/Button.dart';
@@ -5,12 +6,14 @@ import 'package:leitorqrcode/Infrastructure/AtualizarDados/atualizaOp.dart';
 import 'package:leitorqrcode/Inventario/Inventario.dart';
 import 'package:leitorqrcode/QrCoderFirst.dart';
 import 'package:leitorqrcode/Transferencia/Transferencias.dart';
-import 'package:leitorqrcode/notaFiscal/selecionarNotaFiscal.dart';
+import 'package:leitorqrcode/printer/printer_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MenuHome extends StatelessWidget {
   final double? topPadding;
-  MenuHome({Key? key, this.topPadding}) : super(key: key);
+  final BlueThermalPrinter bluetooth;
+  MenuHome({Key? key, this.topPadding, required this.bluetooth})
+      : super(key: key);
 
   Future<String> getIdUser() async {
     SharedPreferences userlogged = await SharedPreferences.getInstance();
@@ -38,20 +41,11 @@ class MenuHome extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (BuildContext context) => SelecionarNotaFiscal(
-                        idPedido: '8d80912e-e844-485f-808c-0001f0143b8f',
+                      builder: (BuildContext context) => QrCoderFirst(
+                        tipo: 1,
                       ),
                     ),
                   );
-
-                  // Navigator.push(
-                  //   context,
-                  //   MaterialPageRoute(
-                  //     builder: (BuildContext context) => QrCoderFirst(
-                  //       tipo: 1,
-                  //     ),
-                  //   ),
-                  // );
                 },
               ),
               ButtonHome(
@@ -72,42 +66,6 @@ class MenuHome extends StatelessWidget {
           SizedBox(
             height: 25,
           ),
-          // Row(
-          //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          //   children: [
-          //     ButtonHome(
-          //       titulo: "Ordem Produção",
-          //       descricao: "Retire produtos \n para montagem",
-          //       icone: ArmazenamentoApp.op,
-          //       onTap: () {
-          //         Navigator.push(
-          //           context,
-          //           MaterialPageRoute(
-          //             builder: (BuildContext context) => OrdemProducaoScreen(),
-          //           ),
-          //         );
-          //       },
-          //     ),
-          //     ButtonHome(
-          //       titulo: "Vendas",
-          //       descricao: "Informe aqui vendas \n de produtos",
-          //       icone: ArmazenamentoApp.vendas,
-          //       onTap: () {
-          //         Navigator.push(
-          //           context,
-          //           MaterialPageRoute(
-          //             builder: (BuildContext context) => QrCoderFirst(
-          //               tipo: 1,
-          //             ),
-          //           ),
-          //         );
-          //       },
-          //     ),
-          //   ],
-          // ),
-          // SizedBox(
-          //   height: 25,
-          // ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -160,20 +118,6 @@ class MenuHome extends StatelessWidget {
                   );
                 },
               ),
-              // ButtonHome(
-              //   titulo: "Embalagem",
-              //   descricao: "Montar embalagem",
-              //   icone: Icons.outbox_outlined,
-              //   onTap: () {
-              //     Navigator.push(
-              //       context,
-              //       MaterialPageRoute(
-              //         builder: (BuildContext context) => MontarEmbalagem(),
-              //       ),
-              //     );
-              //   },
-              // ),
-
               ButtonHome(
                 titulo: "Sincronizar",
                 descricao: "Clique aqui para enviar os dados para o servidor",
@@ -187,10 +131,22 @@ class MenuHome extends StatelessWidget {
           SizedBox(
             height: 25,
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [],
-          ),
+          // Row(
+          //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          //   children: [
+          //     ButtonHome(
+          //       titulo: "Teste Impressão",
+          //       descricao: "teste impressão",
+          //       icone: Icons.sync_sharp,
+          //       onTap: () async {
+          //         await PrinterController().PrintHeaderItensTeste(
+          //           bluetooth: bluetooth,
+          //         );
+          //       },
+          //     ),
+          //   ],
+          // ),
+        
         ],
       ),
     );

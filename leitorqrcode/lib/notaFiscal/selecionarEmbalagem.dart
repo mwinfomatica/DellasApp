@@ -268,16 +268,22 @@ class _SelecionarEmbalagemState extends State<SelecionarEmbalagem> {
           listembprint = rtndadosEmbalagem.data;
         }
       }
+      else {
+        return;
+      }
     } catch (e) {
       print('Erro ao processar carga: $e');
     }
 
     await _initValidationPrinter();
+
     await PrinterController().printQrCodeEmbalagem(
       listemb: listembprint ?? [],
       bluetooth: bluetooth,
       context: context,
     );
+
+    await _getEmbalagemList(widget.IdPedidoRetiradaCarga);
   }
 
   Future<void> _createEmbalagem(String idPedido) async {

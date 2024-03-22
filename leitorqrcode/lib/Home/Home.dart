@@ -1,3 +1,4 @@
+import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:leitorqrcode/Components/Bottom.dart';
@@ -19,6 +20,9 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   List<OperacaoModel> listOperacao = [];
 
+  BlueThermalPrinter bluetooth = BlueThermalPrinter.instance;
+  bool bluetoothConnected = false;
+
   void getListOP() async {
     listOperacao = await new OperacaoModel().getListByStituacaoSeparadoC();
 
@@ -27,9 +31,58 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+   Future<void> _initValidationPrinter() async {
+    List<BluetoothDevice> devices = [];
+
+    try {
+      devices = await bluetooth.getBondedDevices();
+      // ignore: empty_catches
+    } on PlatformException {}
+
+    bluetooth.onStateChanged().listen((state) {
+      switch (state) {
+        case BlueThermalPrinter.CONNECTED:
+          bluetoothConnected = true;
+          setState(() {});
+          break;
+        case BlueThermalPrinter.DISCONNECTED:
+          bluetoothConnected = false;
+          setState(() {});
+          break;
+        default:
+          break;
+      }
+    });
+
+    for (var i = 0; i < devices.length; i++) {
+      if (devices[i].name!.trim().toUpperCase().contains("4B-2044PA-43C8")) {
+        _connect(devices[i]);
+        break;
+      }
+    }
+
+    if (!mounted) return;
+    setState(() {});
+  }
+
+  void _connect(BluetoothDevice device) {
+    if (device == null) {
+      bluetoothConnected = false;
+    } else {
+      bluetooth.isConnected.then((isConnected) {
+        bluetoothConnected = isConnected == true;
+        if (!isConnected!) {
+          bluetooth.connect(device).catchError((error) {});
+        }
+      });
+    }
+  }
+
+
   @override
   void initState() {
     getListOP();
+    _initValidationPrinter();
     super.initState();
   }
 
@@ -120,6 +173,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 MenuHome(
                   topPadding: (MediaQuery.of(context).size.height * 0.2) - 50,
+                  bluetooth: bluetooth,
                 ),
                 // DraggableScrollableSheet(
                 //   initialChildSize: 0.1,

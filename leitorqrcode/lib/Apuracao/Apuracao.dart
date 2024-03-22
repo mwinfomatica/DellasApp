@@ -1216,7 +1216,7 @@ class _ApuracaoState extends State<Apuracao> {
           bottomSheet: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              if (true)
+              if (prodReadSuccess)
                 Container(
                   width: MediaQuery.of(context).size.width * 0.5,
                   child: ElevatedButton(

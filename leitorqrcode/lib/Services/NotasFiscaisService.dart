@@ -51,15 +51,12 @@ class NotasFiscaisService {
   Future<RetornoGetEmbalagemListModel?> getEmbalagemList(
       String idPedido) async {
     try {
-      print('chegou getEmbalagemList');
       final Response response = await getClient(context: context).get(
         Uri.parse(baseUrl + "/ApiCliente/GetEmbalagemList?idPedido=$idPedido"),
         headers: {
           'Content-type': 'application/json',
         },
       );
-
-      print(response.body);
 
       final respostaCarga =
           RetornoGetEmbalagemListModel.fromJson(jsonDecode(response.body));
@@ -82,7 +79,6 @@ class NotasFiscaisService {
       String idPedido) async {
     try {
       String idUser = await _getIdUser();
-      print('chegou getEmbalagemList');
       final Response response = await getClient(context: context).get(
         Uri.parse(baseUrl +
             "/ApiCliente/GetCreateEmbalagem?idPedido=$idPedido&idUsuario=$idUser"),
@@ -90,8 +86,6 @@ class NotasFiscaisService {
           'Content-type': 'application/json',
         },
       );
-
-      print(response.body);
 
       final respostaCarga =
           RetornoGetCreateEmbalagemModel.fromJson(jsonDecode(response.body));
@@ -130,7 +124,6 @@ class NotasFiscaisService {
       } else
         return Future.value(null);
     } catch (ex) {
-      print(ex);
       return RetornoBaseModel(
           error: true,
           message: "Um erro inesperado ocorreu ao Finalizar a embalagem.");
@@ -249,6 +242,12 @@ class NotasFiscaisService {
         Dialogs.showToast(context, respostaCarga.message, bgColor: Colors.red);
         return null;
       } else {
+        if (respostaCarga.data == null || respostaCarga.data.length == 0) {
+          Dialogs.showToast(context, "Não há Etiquetas para ser impressa.",
+              bgColor: Colors.orange[400], duration: Duration(seconds: 2));
+
+          return null;
+        }
         return respostaCarga;
       }
     } catch (ex) {
