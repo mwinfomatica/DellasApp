@@ -147,6 +147,7 @@ class _SelecionarNotaFiscalState extends State<SelecionarNotaFiscal> {
                                 dadosEmbalagem: dadosNotaFiscal != null
                                     ? dadosNotaFiscal!.data
                                     : [],
+                                IdPedidoRetiradaCarga: widget.idPedido,
                               ),
                             ),
                           );

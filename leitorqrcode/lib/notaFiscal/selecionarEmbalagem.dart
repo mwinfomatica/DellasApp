@@ -9,17 +9,22 @@ import 'package:leitorqrcode/Models/APIModels/RetornoGetEmbalagemListModel.dart'
 import 'package:leitorqrcode/Models/APIModels/RetornoNotasFiscaisModel.dart';
 import 'package:leitorqrcode/Services/ContextoServices.dart';
 import 'package:leitorqrcode/Services/NotasFiscaisService.dart';
+import 'package:leitorqrcode/Shared/Dialog.dart';
+import 'package:leitorqrcode/notaFiscal/detailsEmbalagem.dart';
 import 'package:leitorqrcode/notaFiscal/montarEmbalagem.dart';
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
+import 'package:leitorqrcode/notaFiscal/selecionarNotaFiscal.dart';
 import 'package:leitorqrcode/printer/printer_controller.dart';
 
 class SelecionarEmbalagem extends StatefulWidget {
   final List<EmbalagemData> dadosEmbalagem;
   final Pedido nfeDados;
+  final String IdPedidoRetiradaCarga;
   const SelecionarEmbalagem({
     Key? key,
     required this.nfeDados,
     required this.dadosEmbalagem,
+    required this.IdPedidoRetiradaCarga,
   }) : super(key: key);
 
   @override
@@ -104,56 +109,86 @@ class _SelecionarEmbalagemState extends State<SelecionarEmbalagem> {
     // chamada de API para buscar os dados da embalagem
   }
 
-  // final List<EmbalagemDados> dadosEmbalagemSimulados = [
-  //   EmbalagemDados(
-  //     idPedido: "a9fb2fd1-eab8-4aec-bd15-0a403759d9d5",
-  //     sequencial: "1",
-  //     idEmbalagem: "e64f1c8a-7919-4383-b19b-47c199041f83",
-  //     status: "Finalizada",
-  //   ),
-  //   EmbalagemDados(
-  //     idPedido: "a9fb2fd1-eab8-4aec-bd15-0a403759d9d5",
-  //     sequencial: "2",
-  //     idEmbalagem: "59b58468-23d8-40ed-96cb-9eb543d625f6",
-  //     status: "Em Aberto",
-  //   ),
-  //   // Adicione mais objetos EmbalagemDados conforme necessário para simulação
-  // ];
-
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
 
-    return Scaffold(
-        appBar: AppBar(
-          centerTitle: true,
-          automaticallyImplyLeading: false,
-          backgroundColor: primaryColor,
-          title: Text(
-            'Selecionar Embalagem',
-            style: TextStyle(color: Colors.white),
-          ),
-        ),
-        body: Column(
-          children: [
-            SizedBox(
-              height: height * 0.02,
+    return SafeArea(
+      child: PopScope(
+        canPop: false,
+        onPopInvoked: (canPop) => {
+          if (!canPop)
+            {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(
+                  builder: (BuildContext context) => SelecionarNotaFiscal(
+                    idPedido: widget.IdPedidoRetiradaCarga,
+                  ),
+                ),
+                (route) => false,
+              )
+            }
+        },
+        child: Scaffold(
+            appBar: AppBar(
+              centerTitle: true,
+              automaticallyImplyLeading: false,
+              backgroundColor: primaryColor,
+              title: Text(
+                'Selecionar Embalagem',
+                style: TextStyle(color: Colors.white),
+              ),
             ),
-            _buildButtons(width),
-            SizedBox(
-              height: 20,
+            body: Column(
+              children: [
+                Stack(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(10),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Nota: " +
+                                widget.nfeDados.nrNfe +
+                                " / " +
+                                (widget.nfeDados.serieNfe.isEmpty
+                                    ? "-"
+                                    : widget.nfeDados.serieNfe),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 16),
+                          ),
+                          Text(
+                            "Cliente: " +
+                                (widget.nfeDados.nomeCliente.isEmpty
+                                    ? "-"
+                                    : widget.nfeDados.nomeCliente),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 14),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                _buildButtons(width),
+                SizedBox(
+                  height: 10,
+                ),
+                widget.dadosEmbalagem.isNotEmpty
+                    ? tableItensNotafiscal()
+                    : Center(
+                        child: Text(
+                        'Sem embalagens',
+                        style: TextStyle(fontSize: 18.0),
+                      ))
+              ],
             ),
-            widget.dadosEmbalagem.isNotEmpty
-                ? tableItensNotafiscal()
-                : Center(
-                    child: Text(
-                    'Sem embalagens',
-                    style: TextStyle(fontSize: 18.0),
-                  ))
-          ],
-        ),
-        bottomNavigationBar: BottomBar());
+            bottomNavigationBar: BottomBar()),
+      ),
+    );
   }
 
   Widget _buildButtons(double width) {
@@ -186,8 +221,8 @@ class _SelecionarEmbalagemState extends State<SelecionarEmbalagem> {
               ),
             ),
             GestureDetector(
-              onTap: () {
-                _createEmbalagem(widget.nfeDados.idPedido);
+              onTap: () async {
+                await _createEmbalagem(widget.nfeDados.idPedido);
               },
               child: Container(
                 width: width * 0.43,
@@ -255,14 +290,28 @@ class _SelecionarEmbalagemState extends State<SelecionarEmbalagem> {
         setState(() {
           dadosRetornoCreateEmbalagem = dadosNotaFiscal;
         });
-        Navigator.push(
-          context,
-          MaterialPageRoute(
+
+        if (dadosNotaFiscal.data
+                .where((e) => e.quantNota > e.quantEmbalado)
+                .length >
+            0) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(
               builder: (BuildContext context) => MontarEmbalagem(
-                    idPedido: idPedido,
-                    dadosCreateEmbalagem: dadosRetornoCreateEmbalagem!,
-                  )),
-        );
+                  idPedido: idPedido,
+                  dadosCreateEmbalagem: dadosRetornoCreateEmbalagem!,
+                  pedido: widget.nfeDados,
+                  IdPedidoRetiradaCarga: widget.IdPedidoRetiradaCarga),
+            ),
+            (route) => false,
+          );
+        } else {
+          Dialogs.showToast(context,
+              "Não há mais Quantidade disponivel para criar uma embalagem",
+              duration: Duration(seconds: 5), bgColor: Colors.red.shade200);
+          return;
+        }
       }
     } catch (e) {
       print('Erro ao processar carga: $e');
@@ -343,18 +392,20 @@ class _SelecionarEmbalagemState extends State<SelecionarEmbalagem> {
                         ),
                       ),
                     ),
-                    DataCell(Ink(
-                      child: InkWell(
-                        child: Icon(
-                          Icons.edit_document,
-                          size: 20,
-                          color: Colors.orange.shade400,
+                    DataCell(
+                      Ink(
+                        child: InkWell(
+                          child: Icon(
+                            Icons.remove_red_eye_sharp,
+                            size: 30,
+                            color: Colors.orange.shade400,
+                          ),
+                          onTap: () async => {
+                            await DetailsEmb(widget.dadosEmbalagem[index]),
+                          },
                         ),
-                        onTap: () async => {
-                          await editEmb(widget.dadosEmbalagem[index]),
-                        },
                       ),
-                    )),
+                    ),
                   ],
                 );
               },
@@ -450,23 +501,27 @@ class _SelecionarEmbalagemState extends State<SelecionarEmbalagem> {
     );
   }
 
-  editEmb(EmbalagemData dadosemb) async {
+  DetailsEmb(EmbalagemData dadosemb) async {
     NotasFiscaisService notaservice = NotasFiscaisService(context);
-    RetornoGetCreateEmbalagemModel? dadosNotaFiscal =
-        await notaservice.getCreateEmbalagem(dadosemb.idPedido);
+    RetornoGetDetailsEmbalagemModel? dadosNotaFiscal =
+        await notaservice.getDetailsItensEmbalagem(dadosemb.idEmbalagem);
     if (dadosNotaFiscal != null) {
-      setState(() {
-        dadosRetornoCreateEmbalagem = dadosNotaFiscal;
-      });
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (BuildContext context) => MontarEmbalagem(
-                  idPedido: dadosemb.idPedido,
-                  dadosCreateEmbalagem: dadosRetornoCreateEmbalagem!,
-                  idEmbalagem: dadosemb.idEmbalagem,
-                )),
-      );
+      if (dadosNotaFiscal.data != null && dadosNotaFiscal.data.length > 0) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (BuildContext context) => DetailsEmbalagem(
+                idPedido: dadosemb.idPedido,
+                dadosCreateEmbalagem: dadosNotaFiscal,
+                idEmbalagem: dadosemb.idEmbalagem,
+                sequencial: dadosemb.sequencial,
+                status: dadosemb.status,
+                pedido: widget.nfeDados,
+                IdPedidoRetiradaCarga: widget.IdPedidoRetiradaCarga),
+          ),
+          (route) => false,
+        );
+      }
     }
   }
 }

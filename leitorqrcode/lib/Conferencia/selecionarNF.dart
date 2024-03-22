@@ -87,7 +87,9 @@ class _SelecionarNotaFiscalExpedicaoState
                   context,
                   MaterialPageRoute(
                     builder: (context) => ConferenciaExpedicaoScreen(
-                        retorno: respostaConfItensPedido, idPeiddo:  widget.retorno.data![selectedCardIndex!].idPedido),
+                        retorno: respostaConfItensPedido,
+                        idPeiddo:
+                            widget.retorno.data![selectedCardIndex!].idPedido),
                   ),
                 );
               } else {
@@ -97,6 +99,9 @@ class _SelecionarNotaFiscalExpedicaoState
                     bgColor: Colors.red.shade200);
               }
             },
+            backcolors: selectedCardIndex == null
+                ? [Colors.grey, const Color.fromARGB(255, 66, 66, 66)]
+                : null,
           ),
         ],
       ),

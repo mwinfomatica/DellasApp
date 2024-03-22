@@ -31,7 +31,7 @@ class _SelectCardFiscalState extends State<SelectCardFiscal> {
           width: width * 0.9,
           height: 80,
           decoration: BoxDecoration(
-            color: widget.isSelected ? Colors.grey.shade300 : Colors.white,
+            color: widget.isSelected ? primaryColor : Colors.white,
             borderRadius: BorderRadius.circular(15),
             border: Border.all(color: primaryColor),
           ),
@@ -58,14 +58,14 @@ class _SelectCardFiscalState extends State<SelectCardFiscal> {
                       Text(
                         '${widget.numeroNota}/ ${widget.serieNota}',
                         style: TextStyle(
-                          color: primaryColor,
+                          color: !widget.isSelected ? primaryColor : Colors.white,
                           fontSize: 15.0,
                         ),
                       ),
                       Text(
                         widget.nomeNota,
                         style: TextStyle(
-                          color: primaryColor,
+                          color: !widget.isSelected ? primaryColor : Colors.white,
                           fontSize: 15.0,
                         ),
                       ),

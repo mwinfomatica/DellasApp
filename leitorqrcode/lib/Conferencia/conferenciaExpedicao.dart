@@ -12,10 +12,8 @@ import 'package:leitorqrcode/Conferencia/components/ModalForcaFinalizacaoConfere
 import 'package:leitorqrcode/Conferencia/components/button_conferencia.dart';
 import 'package:leitorqrcode/Models/APIModels/BaixaConfModel.dart';
 import 'package:leitorqrcode/Models/APIModels/ConfItensEmbalagem.dart';
-import 'package:leitorqrcode/Models/APIModels/EmbalagemModel.dart';
 import 'package:leitorqrcode/Models/APIModels/ProdutoModel.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoConfBaixaModel.dart';
-import 'package:leitorqrcode/Models/APIModels/RetornoConfItensEmbalagemModel.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoConfItensPedidoModel.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoGetEmbalagemListModel.dart';
 import 'package:leitorqrcode/Models/ContextoModel.dart';
@@ -618,39 +616,7 @@ class _ConferenciaExpedicaoScreenState
                           ),
                         ),
                       )
-                    : Container(
-                        padding: EdgeInsets.fromLTRB(2, 10, 2, 10),
-                        color: Colors.yellow[300],
-                        child: Row(
-                          children: [
-                            Container(
-                              width: width * 0.5,
-                              child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                      primary: primaryColor,
-                                      textStyle: const TextStyle(fontSize: 12)),
-                                  onPressed: () {
-                                    showDialog(
-                                      context: context,
-                                      barrierDismissible: false,
-                                      builder: (_) =>
-                                          modalForcaFinalizacaoConferencia(
-                                        idPedido: widget.idPeiddo,
-                                        psw: widget.idPeiddo.split('-')[1],
-                                        ontap: () => {
-                                          finalizaConferencia('F'),
-                                        },
-                                      ),
-                                    );
-                                  },
-                                  child: Text(
-                                    'Forçar Finalização',
-                                    style: TextStyle(color: Colors.white),
-                                  )),
-                            ),
-                          ],
-                        ),
-                      ),
+                    : Container(),
                 SizedBox(
                   height: 3,
                 ),
@@ -668,7 +634,7 @@ class _ConferenciaExpedicaoScreenState
           bottomSheet: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              if (conferenciaOk)
+              if (!conferenciaOk)
                 Container(
                   width: MediaQuery.of(context).size.width * 0.5,
                   child: ElevatedButton(
@@ -708,45 +674,70 @@ class _ConferenciaExpedicaoScreenState
     return Stack(
       children: [
         Container(
-          height: height * 0.09,
+          height: height * 0.17,
           color: Colors.yellow.shade300,
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 6.0),
             child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        'Nota: ${widget.retorno.data.nroNFE}/${widget.retorno.data.serieNfe.isEmpty ? 'SN' : widget.retorno.data.serieNfe}',
-                        style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold),
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: MediaQuery.of(context).size.width * 0.32,
+                      height: height * 0.1,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                            primary: primaryColor,
+                            textStyle: const TextStyle(fontSize: 12)),
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (_) => modalForcaFinalizacaoConferencia(
+                              idPedido: widget.idPeiddo,
+                              psw: widget.idPeiddo.split('-')[1],
+                              ontap: () => {
+                                finalizaConferencia('F'),
+                              },
+                            ),
+                          );
+                        },
+                        child: Text(
+                          'Forçar Finalização',
+                          style: TextStyle(color: Colors.white),
+                        ),
                       ),
-                      const SizedBox(
-                        width: 8.0,
-                      ),
-                      Text(
-                        '- <${widget.retorno.data.cliente ?? 'Cliente não identificado'}>',
-                        style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'ChaveNFe: ${widget.retorno.data.chaveNfe.isEmpty ? 'Sem número' : widget.retorno.data.chaveNfe.isEmpty}',
+                    ),
+                    SizedBox(
+                      width: 10,
+                    ),
+                    Text(
+                      'Nota: ${widget.retorno.data.nroNFE}/${widget.retorno.data.serieNfe.isEmpty ? 'SN' : widget.retorno.data.serieNfe}',
                       style: TextStyle(
                           color: Colors.black,
                           fontSize: 15,
                           fontWeight: FontWeight.bold),
                     ),
-                  ),
-                ]),
+                  ],
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      '<${widget.retorno.data.cliente ?? 'Cliente não identificado'}>',
+                      style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                )
+              ],
+            ),
           ),
         ),
       ],

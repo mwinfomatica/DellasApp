@@ -4,10 +4,12 @@ import 'package:leitorqrcode/Components/Constants.dart';
 class ButtonConference extends StatelessWidget {
   final String titulo;
   final void Function()? onPressed;
+  final List<Color>? backcolors;
   const ButtonConference({
     Key? key,
     this.onPressed,
     required this.titulo,
+    this.backcolors,
   }) : super(key: key);
 
   @override
@@ -24,10 +26,11 @@ class ButtonConference extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              primaryColor,
-              Color.fromARGB(255, 11, 27, 59),
-            ],
+            colors: backcolors ??
+                [
+                  primaryColor,
+                  Color.fromARGB(255, 11, 27, 59),
+                ],
           ),
         ),
         child: Center(

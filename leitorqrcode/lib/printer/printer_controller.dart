@@ -22,9 +22,12 @@ class PrinterController {
         //NÃO USAR WIDTH E HEIGTH ACIMA DE 250
         bluetooth.printQRcode(qrdata, 250, 250, PrinterHelper.escAlignCenter);
         
+        //Informações da Nota
         _printHeaderInfo(bluetooth: bluetooth, embalagem: emb);
 
         bluetooth.printNewLine();
+
+        //Cabeçalho dos Itens
         _printHeaderItens(bluetooth: bluetooth);
 
         bluetooth.printNewLine();

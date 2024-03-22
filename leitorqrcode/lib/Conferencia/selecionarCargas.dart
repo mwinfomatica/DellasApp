@@ -140,8 +140,16 @@ class _SelecionarCargasState extends State<SelecionarCargas> {
               ),
             ),
             ButtonConference(
-              titulo: 'Iniciar a Conferência',
-              onPressed: () async => await enviarCargasSelecionadas(),
+              titulo: 'Listar NFs da Carga',
+              onPressed: () async => {
+                if (selecionados.length > 0)
+                  {
+                    await enviarCargasSelecionadas(),
+                  }
+              },
+              backcolors: selecionados.length == 0
+                  ? [Colors.grey, const Color.fromARGB(255, 66, 66, 66)]
+                  : null,
             ),
           ],
         ),

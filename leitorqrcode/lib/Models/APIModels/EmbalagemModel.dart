@@ -84,3 +84,55 @@ class RetornoGetEditEmbalagemModel {
         "data": List<dynamic>.from(data.map((x) => x.toJson())),
       };
 }
+
+class DetailsItensEmbalagem {
+  String? id;
+  String? idProduto;
+  String? idPedidoProduto;
+  int? qtd;
+  String? descProd;
+
+  DetailsItensEmbalagem(this.idPedidoProduto, this.idProduto, this.qtd, this.descProd);
+
+  DetailsItensEmbalagem.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    descProd = json['descProd'];
+    idProduto = json['idProduto'];
+    idPedidoProduto = json['idPedidoProduto'];
+    qtd = json['qtd'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['idProduto'] = this.idProduto;
+    data['idPedidoProduto'] = this.idPedidoProduto;
+    data['qtd'] = this.qtd;
+    return data;
+  }
+}
+
+class RetornoGetDetailsEmbalagemModel {
+  bool error;
+  String message;
+  List<DetailsItensEmbalagem> data;
+
+  RetornoGetDetailsEmbalagemModel({
+    required this.error,
+    required this.message,
+    required this.data,
+  });
+
+  factory RetornoGetDetailsEmbalagemModel.fromJson(Map<String, dynamic> json) =>
+      RetornoGetDetailsEmbalagemModel(
+        error: json["error"],
+        message: json["message"],
+        data: List<DetailsItensEmbalagem>.from(
+            json["data"].map((x) => DetailsItensEmbalagem.fromJson(x))),
+      );
+
+  Map<String, dynamic> toJson() => {
+        "error": error,
+        "message": message,
+        "data": List<dynamic>.from(data.map((x) => x.toJson())),
+      };
+}

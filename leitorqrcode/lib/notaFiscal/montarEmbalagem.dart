@@ -13,12 +13,15 @@ import 'package:leitorqrcode/Models/APIModels/EmbalagemModel.dart';
 import 'package:leitorqrcode/Models/APIModels/ProdutoModel.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoBase.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoGetCreateEmbalagemModel.dart';
+import 'package:leitorqrcode/Models/APIModels/RetornoGetEmbalagemListModel.dart';
+import 'package:leitorqrcode/Models/APIModels/RetornoNotasFiscaisModel.dart';
 import 'package:leitorqrcode/Models/ContextoModel.dart';
 import 'package:leitorqrcode/Services/ContextoServices.dart';
 import 'package:leitorqrcode/Services/NotasFiscaisService.dart';
 import 'package:leitorqrcode/Services/ProdutosDBService.dart';
 import 'package:leitorqrcode/Shared/Dialog.dart';
 import 'package:leitorqrcode/notaFiscal/components/IniciarMontagem.dart';
+import 'package:leitorqrcode/notaFiscal/selecionarEmbalagem.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:visibility_detector/visibility_detector.dart';
@@ -27,11 +30,15 @@ class MontarEmbalagem extends StatefulWidget {
   final RetornoGetCreateEmbalagemModel dadosCreateEmbalagem;
   final String idPedido;
   final String? idEmbalagem;
+  final Pedido pedido;
+  final String IdPedidoRetiradaCarga;
   const MontarEmbalagem({
     Key? key,
     required this.dadosCreateEmbalagem,
     required this.idPedido,
     this.idEmbalagem,
+    required this.pedido,
+    required this.IdPedidoRetiradaCarga,
   }) : super(key: key);
 
   @override
@@ -63,6 +70,7 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
 
   final qtdeProdDialog = TextEditingController();
 
+  RetornoGetEmbalagemListModel? dadosNotaFiscal;
   List<ProdutoModel> listProd = [];
   bool bluetoothDisconect = true;
   Timer? temp;
@@ -347,7 +355,7 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
     getContexto();
     _loadPreferences();
     _getItens();
-    
+
     titleBtn = "Iniciar Montagem";
 
     super.initState();
@@ -628,11 +636,14 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
                 ),
                 cells: [
                   DataCell(
-                    Text(
-                      list[index].qtd!.toString(),
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
+                    Align(
+                      alignment: Alignment.center,
+                      child: Text(
+                        list[index].qtd!.toString(),
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
@@ -736,34 +747,43 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
                 ),
                 cells: [
                   DataCell(
-                    Icon(
-                      Icons.check_box,
-                      color:
-                          widget.dadosCreateEmbalagem.data[index].quantNota ==
-                                  widget.dadosCreateEmbalagem.data[index]
-                                      .quantEmbalado
-                              ? Colors.green
-                              : Colors.grey,
-                      size: 20,
-                    ),
-                  ),
-                  DataCell(
-                    Text(
-                      widget.dadosCreateEmbalagem.data[index].quantNota
-                          .toString(),
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
+                    Align(
+                      alignment: Alignment.center,
+                      child: Icon(
+                        Icons.check_box,
+                        color:
+                            widget.dadosCreateEmbalagem.data[index].quantNota ==
+                                    widget.dadosCreateEmbalagem.data[index]
+                                        .quantEmbalado
+                                ? Colors.green
+                                : Colors.grey,
+                        size: 20,
                       ),
                     ),
                   ),
                   DataCell(
-                    Text(
-                      widget.dadosCreateEmbalagem.data[index].quantEmbalado
-                          .toString(),
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
+                    Align(
+                      alignment: Alignment.center,
+                      child: Text(
+                        widget.dadosCreateEmbalagem.data[index].quantNota
+                            .toString(),
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                  DataCell(
+                    Align(
+                      alignment: Alignment.center,
+                      child: Text(
+                        widget.dadosCreateEmbalagem.data[index].quantEmbalado
+                            .toString(),
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
@@ -804,7 +824,48 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
           children: [
             GestureDetector(
               onTap: () {
-                Navigator.pop(context);
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (_) => AlertDialog(
+                    title: Text(
+                      "Atenção",
+                      style: TextStyle(fontWeight: FontWeight.w500),
+                    ),
+                    content: Text(
+                        "A criação da embalagem será cancelada. Confirma?"),
+                    actions: [
+                      TextButton(
+                        child: const Text('Não'),
+                        onPressed: () async {
+                          Navigator.pop(context);
+                        },
+                      ),
+                      TextButton(
+                        child: Text("Sim"),
+                        onPressed: () async {
+                          Navigator.pop(context);
+
+                          await _getEmbalagemList(widget.idPedido);
+
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(
+                              builder: (BuildContext context) =>
+                                  SelecionarEmbalagem(
+                                nfeDados: widget.pedido,
+                                dadosEmbalagem: dadosNotaFiscal!.data,
+                                IdPedidoRetiradaCarga: widget.IdPedidoRetiradaCarga
+                              ),
+                            ),
+                            (route) => false,
+                          );
+                        },
+                      ),
+                    ],
+                    elevation: 24.0,
+                  ),
+                );
               },
               child: Container(
                 width: width * 0.43,
@@ -812,7 +873,7 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
                 decoration: BoxDecoration(
                     border: Border.all(),
                     borderRadius: BorderRadius.circular(10),
-                    color: Colors.green),
+                    color: Colors.grey),
                 child: Center(
                   child: Text(
                     'Cancelar',
@@ -940,8 +1001,8 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
     }
 
     List<DadosEmbalagem> listDados = widget.dadosCreateEmbalagem.data;
-    DadosEmbalagem? dados = getProdutoIguais(
-        (prod.idproduto != null ? prod.idproduto! : prod.id!));
+    DadosEmbalagem? dados =
+        getProdutoIguais((prod.idproduto != null ? prod.idproduto! : prod.id!));
 
     if (dados != null) {
       if (dados.quantNota >= (dados.quantEmbalado + int.parse(qtd))) {
@@ -990,7 +1051,6 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
     }
   }
 
-
   ItensEmbalagem? getItemEmbalagem(String id) {
     return list
         .where((e) => e.idProduto!.toUpperCase() == id.toUpperCase())
@@ -1023,11 +1083,11 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
         list.add(item);
       } else {
         list.add(ItensEmbalagem(prodRead.idprodutoPedido, idProd, qtd,
-            ((prodRead.nome ?? " - ") + " - " + (prodRead.nome ?? " - "))));
+            ((prodRead.cod ?? " - ") + " - " + (prodRead.nome ?? " - "))));
       }
     } else {
       list.add(ItensEmbalagem(prodRead.idprodutoPedido, idProd, qtd,
-          ((prodRead.nome ?? " - ") + " - " + (prodRead.nome ?? " - "))));
+          ((prodRead.cod ?? " - ") + " - " + (prodRead.nome ?? " - "))));
     }
     setState(() {});
   }
@@ -1057,7 +1117,19 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
       if (!rtn.error!) {
         Dialogs.showToast(context, "Embalagem finalizada com sucesso.",
             duration: Duration(seconds: 5), bgColor: Colors.green.shade200);
-        Navigator.pop(context);
+
+        await _getEmbalagemList(widget.idPedido);
+
+        Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(
+              builder: (BuildContext context) => SelecionarEmbalagem(
+                nfeDados: widget.pedido,
+                dadosEmbalagem: dadosNotaFiscal!.data,
+                IdPedidoRetiradaCarga: widget.IdPedidoRetiradaCarga
+              ),
+            ),
+            (route) => false);
       } else {
         Dialogs.showToast(
             context,
@@ -1070,6 +1142,22 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
       Dialogs.showToast(context,
           "Ocorreu um erro inesperado. Gentileza tentar novamente mais tarde.",
           duration: Duration(seconds: 5), bgColor: Colors.red.shade200);
+    }
+  }
+
+  Future<void> _getEmbalagemList(String idPedido) async {
+    NotasFiscaisService notasFiscaisService = NotasFiscaisService(context);
+
+    try {
+      RetornoGetEmbalagemListModel? rtndadosNotaFiscal =
+          await notasFiscaisService.getEmbalagemList(idPedido);
+      if (rtndadosNotaFiscal != null) {
+        setState(() {
+          dadosNotaFiscal = rtndadosNotaFiscal;
+        });
+      }
+    } catch (e) {
+      print('Erro ao processar carga: $e');
     }
   }
 }

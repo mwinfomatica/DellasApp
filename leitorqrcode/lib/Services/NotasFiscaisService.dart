@@ -24,15 +24,12 @@ class NotasFiscaisService {
 
   Future<RetornoNotasFiscaisModel?> getNotasFiscais(String idPedido) async {
     try {
-      print('chegou');
       final Response response = await getClient(context: context).get(
         Uri.parse(baseUrl + "/ApiCliente/GetNfeEmbalagens?idPedido=$idPedido"),
         headers: {
           'Content-type': 'application/json',
         },
       );
-      print(baseUrl + "/ApiCliente/GetNfeEmbalagens?idPedido=$idPedido");
-      print(response.body);
 
       final respostaCarga =
           RetornoNotasFiscaisModel.fromJson(jsonDecode(response.body));
@@ -169,10 +166,66 @@ class NotasFiscaisService {
     }
   }
 
+  Future<RetornoGetDetailsEmbalagemModel?> getDetailsItensEmbalagem(
+      String idEmbalagem) async {
+    try {
+      String idUser = await _getIdUser();
+      final Response response = await getClient(context: context).get(
+        Uri.parse(baseUrl +
+            "/ApiCliente/GetDetailsEmbalagem?IdEmbalagem=$idEmbalagem&IdUsuario=$idUser"),
+        headers: {
+          'Content-type': 'application/json',
+        },
+      );
+
+      RetornoGetDetailsEmbalagemModel rtnEmbalagem =
+          RetornoGetDetailsEmbalagemModel.fromJson(jsonDecode(response.body));
+
+      if (rtnEmbalagem.error) {
+        Dialogs.showToast(context, rtnEmbalagem.message, bgColor: Colors.red);
+        return null;
+      } else {
+        return rtnEmbalagem;
+      }
+    } catch (ex) {
+      Dialogs.showToast(context,
+          "Ocorreu um erro em nossos servidores, tente novamente mais tarde.");
+      print(ex);
+      return null;
+    }
+  }
+
+  Future<RetornoBaseModel?> DeleteEmbalagem(String IdEmbalagem) async {
+    try {
+      String idUser = await _getIdUser();
+      final Response response = await getClient(context: context)
+          .post(Uri.parse(baseUrl + "/ApiCliente/DeleteEmbalagem"),
+              headers: {
+                'Content-type': 'application/json',
+              },
+              body: jsonEncode({
+                "IdEmbalagem": IdEmbalagem,
+                "IdUsuario": idUser,
+              }));
+
+      RetornoBaseModel? rtn =
+          RetornoBaseModel.fromJson(jsonDecode(response.body));
+
+      if (rtn != null) {
+        return rtn;
+      } else
+        return Future.value(null);
+    } catch (ex) {
+      print(ex);
+      return RetornoBaseModel(
+          error: true,
+          message: "Um erro inesperado ocorreu ao Finalizar a embalagem.");
+    }
+  }
+
   Future<RetornoGetDadosEmbalagemListModel?> getDadosPrinterEmbalagem(
       List<String> idEmbalagem) async {
     try {
-
       Uri uri = Uri(
         scheme: 'http',
         host: '3.224.148.218',
@@ -234,5 +287,4 @@ class NotasFiscaisService {
       return null;
     }
   }
-
 }
