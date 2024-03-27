@@ -1241,6 +1241,7 @@ class _ApuracaoState extends State<Apuracao> {
                                 child: const Text('Não'),
                                 onPressed: () async {
                                   Navigator.pop(context);
+                                  Navigator.pop(context);
                                 },
                               ),
                               TextButton(

@@ -63,7 +63,7 @@ class _SelecionarEmbalagemState extends State<SelecionarEmbalagem> {
     });
 
     for (var i = 0; i < devices.length; i++) {
-      if (devices[i].name!.trim().toUpperCase().contains("4B-2044PA-43C8")) {
+      if (devices[i].name!.trim().toUpperCase().contains("4B-2044PA")) {
         _connect(devices[i]);
         break;
       }

@@ -7,6 +7,8 @@ import 'package:leitorqrcode/Shared/Dialog.dart';
 import 'package:leitorqrcode/printer/printer_helper.dart';
 
 class PrinterController {
+  int nLinhaAtual = 0;
+  int nMaxLinhas = 28;
   Future<void> printQrCodeEmbalagem(
       {required List<EmbalagemPrinter> listemb,
       required BlueThermalPrinter bluetooth,
@@ -25,33 +27,35 @@ class PrinterController {
 
         await bluetooth.printImageBytes(imageBytes);
 
-        bluetooth.printCustom(
-            "--------------------------------------------------",
-            3,
-            PrinterHelper.escAlignCenter);
-
         //NÃO USAR WIDTH E HEIGTH ACIMA DE 250
-        bluetooth.printQRcode(qrdata, 250, 250, PrinterHelper.escAlignCenter);
+        bluetooth.printQRcode(qrdata, 248, 248, PrinterHelper.escAlignCenter);
+
+        //Quantidade de Linhas consumidas pelo QR e logo
+        nLinhaAtual = 14;
 
         //Informações da Nota
         _printHeaderInfo(bluetooth: bluetooth, embalagem: emb);
 
-        // bluetooth.printNewLine();
+        // if (emb.listItens == null) {
+        //   emb.listItens = [];
+        // }
+        // _printHeaderItens(bluetooth);
 
-        bluetooth.printNewLine();
+        // //Itens da Embalagem
+        // _printItemProd(
+        //     bluetooth: bluetooth, ListitemPedido: emb.listItens ?? []);
 
-        if (emb.listItens == null) {
-          emb.listItens = [];
+        int restante = nMaxLinhas - nLinhaAtual;
+      
+        if (i > 0) {
+          if (i % 2 > 0) {
+            nMaxLinhas--;
+          } else {
+            nMaxLinhas++;
+          }
         }
-        bluetooth.printCustom(
-            "--------------------------------------------------",
-            3,
-            PrinterHelper.escAlignCenter);
-        _printItemProd(
-            bluetooth: bluetooth, ListitemPedido: emb.listItens ?? []);
 
-        bluetooth.printNewLine();
-        bluetooth.printNewLine();
+        _saltaEtiqueta(bluetooth, restante);
       }
     } else {
       Dialogs.showToast(
@@ -63,82 +67,95 @@ class PrinterController {
     }
   }
 
+  _printLine(BlueThermalPrinter bluetooth) {
+    bluetooth.printCustom("--------------------------------------------------",
+        3, PrinterHelper.escAlignCenter);
+    nLinhaAtual++;
+  }
+
   Future<void> PrintHeaderItensTeste(
       {required BlueThermalPrinter bluetooth}) async {
     bool isConnected = await bluetooth.isConnected ?? false;
 
     if (isConnected) {
-      bluetooth.printCustom(
-          "--------------------------------------------------",
-          3,
-          PrinterHelper.escAlignCenter);
-
-      String cod = "WA9-MULTI 11/16";
-      String desc = "PNEU-BRIG 235/55R19 101V  DUELER H/P SPORT EXT MOE";
-      String qtd = "9999".padRight(4, '+');
-      List<String> listDesc = [];
-      List<String> listCod = [];
-
-      desc = cod + " - " + desc;
-
-      if (desc.length > 50) {
-        int len = desc.length;
-        for (var i = 0; i < len; i += 50) {
-          listDesc.add(
-              desc.substring(i, i + 50 < desc.length ? i + 50 : desc.length));
-        }
-      }
-
-      for (var i = 0; i < 3; i++) {
-        for (var i = 0; i < listDesc.length; i++) {
-          bluetooth.printCustom(listDesc[i], 1, PrinterHelper.escAlignLeft);
-        }
-
-        bluetooth.printCustom(("Qtd: " + qtd), 1, PrinterHelper.escAlignRight);
-        bluetooth.printCustom(
-            "--------------------------------------------------",
-            3,
-            PrinterHelper.escAlignCenter);
-      }
-      bluetooth.printNewLine();
-      bluetooth.printNewLine();
+      EmbalagemPrinter emb = EmbalagemPrinter(
+          id: 'DF785F1A-B2C8-439B-96E4-236ACEB16624', Embalagem: 'S');
+      String qrdata = json.encode(emb);
+      //NÃO USAR WIDTH E HEIGTH ACIMA DE 250
+      // for (var i = 235; i < 250; i++) {
+      // _printLine(bluetooth);
+      bluetooth.printCustom("249", 1, PrinterHelper.escAlignLeft);
+      bluetooth.printQRcode(qrdata, 249, 249, PrinterHelper.escAlignCenter);
+      _printLine(bluetooth);
+      _printLine(bluetooth);
+      bluetooth.printCustom("248", 1, PrinterHelper.escAlignLeft);
+      bluetooth.printQRcode(qrdata, 248, 248, PrinterHelper.escAlignCenter);
+      _printLine(bluetooth);
+      _printLine(bluetooth);
+      // }
     }
   }
 
   void _printHeaderInfo(
       {required BlueThermalPrinter bluetooth,
       required EmbalagemPrinter embalagem}) {
-    bluetooth.printCustom("--------------------------------------------------",
-        3, PrinterHelper.escAlignCenter);
-    bluetooth.printCustom(
-        ("Carga: " + (embalagem.carga ?? "-")), 1, PrinterHelper.escAlignLeft);
-    bluetooth.printCustom(
-        ("Nota Fiscal: " +
-            (embalagem.nroNota ?? "-") +
-            " / " +
-            (embalagem.serie ?? "-")),
-        1,
-        PrinterHelper.escAlignLeft);
-    bluetooth.printCustom(("Cliente: " + (embalagem.nomeCliente ?? "-")), 1,
-        PrinterHelper.escAlignLeft);
-    bluetooth.printCustom(("Embalagem: " + (embalagem.seqEmbalagem ?? "-")), 1,
-        PrinterHelper.escAlignLeft);
-    bluetooth.printCustom(
-        ("End: " + (embalagem.end ?? "-")), 1, PrinterHelper.escAlignLeft);
+    List<String> desc1 = [];
+
+    String info1 = ("Carga: " + (embalagem.carga ?? "-")) +
+        " / " +
+        "Nota Fiscal: " +
+        (embalagem.nroNota ?? "-") +
+        " / " +
+        (embalagem.serie ?? "S/ Serie") +
+        " / " +
+        ("Embalagem: " + (embalagem.seqEmbalagem ?? "-"));
+
+    String info2 = ("Cliente: " +
+        (embalagem.nomeCliente ?? "-") +
+        " End: " +
+        (embalagem.end ?? "-"));
+
+    int len1 = info1.length + info2.length;
+
+    int qtdlinhas = (len1 / 50).toInt();
+    int modlinha = (len1 % 50).toInt();
+
+    qtdlinhas += modlinha > 0 && modlinha < 50 ? 1 : 0;
+
+    for (var e = 0; e < info1.length; e += 50) {
+      desc1.add(
+          info1.substring(e, e + 50 < info1.length ? e + 50 : info1.length));
+    }
+
+    for (var e = 0; e < info2.length; e += 50) {
+      desc1.add(
+          info2.substring(e, e + 50 < info2.length ? e + 50 : info2.length));
+    }
+
+    for (var a = 0; a < desc1.length; a++) {
+      if (qtdlinhas > nMaxLinhas) {
+        _saltaEtiqueta(bluetooth, 3);
+        nLinhaAtual = 1;
+      } else {
+        bluetooth.printCustom(desc1[a], 1, PrinterHelper.escAlignLeft);
+        nLinhaAtual++;
+      }
+    }
   }
 
-  void _printHeaderItens({required BlueThermalPrinter bluetooth}) {
-    bluetooth.printCustom("--------------------------------------------------",
-        3, PrinterHelper.escAlignCenter);
-    bluetooth.print3Column("Cod.", "Desc. Prod.", "Qtd", 10);
+  void _printHeaderItens(BlueThermalPrinter bluetooth) {
+    _printLine(bluetooth);
+    bluetooth.printCustom("ITENS DA EMBALAGEM", 1, PrinterHelper.escAlignLeft);
+    nLinhaAtual++;
   }
 
   Future<void> _printItemProd(
       {required BlueThermalPrinter bluetooth,
       required List<ItensEmbalagemPrinter> ListitemPedido}) async {
+    List<String> listDesc = [];
+
     for (var i = 0; i < ListitemPedido.length; i++) {
-      List<String> listDesc = [];
-      String nameProd = ListitemPedido[i].nomeProd ?? "-";
+      String nameProd = ListitemPedido[i].nomeProd;
       String name = nameProd
           .replaceAll("ç", "c")
           .replaceAll("ã", "a")
@@ -149,7 +166,7 @@ class PrinterController {
           .replaceAll("ó", "o")
           .replaceAll("à", "a");
 
-      String codProd = ListitemPedido[i].codProd ?? "-";
+      String codProd = ListitemPedido[i].codProd;
       String cod = codProd
           .replaceAll("ç", "c")
           .replaceAll("ã", "a")
@@ -163,30 +180,33 @@ class PrinterController {
       name = cod + " - " + name;
 
       int len = name.length;
-      for (var i = 0; i < len; i += 50) {
+      listDesc.add("--------------------------------------------------");
+      for (var e = 0; e < len; e += 50) {
         listDesc.add(
-            name.substring(i, i + 50 < name.length ? i + 50 : name.length));
+            name.substring(e, e + 50 < name.length ? e + 50 : name.length));
       }
-
-      for (var i = 0; i < ListitemPedido.length; i++) {
-        for (var i = 0; i < listDesc.length; i++) {
-          bluetooth.printCustom(listDesc[i], 1, PrinterHelper.escAlignLeft);
-        }
-
-        bluetooth.printCustom(
-            ("Qtd: " +
-                (ListitemPedido[i].qtd! != null
-                    ? ListitemPedido[i].qtd!.toString()
-                    : "0")),
-            1,
-            PrinterHelper.escAlignRight);
-        bluetooth.printCustom(
-            "--------------------------------------------------",
-            3,
-            PrinterHelper.escAlignCenter);
-      }
-      bluetooth.printNewLine();
-      bluetooth.printNewLine();
+      listDesc.add("Qtd: " + ListitemPedido[i].qtd!.toString());
+      listDesc.add("--------------------------------------------------");
     }
+
+    //Imprime os Itens da Embalagem
+    for (var a = 0; a < listDesc.length; a++) {
+      if (nMaxLinhas < nLinhaAtual) {
+        _saltaEtiqueta(bluetooth, 3);
+        _printHeaderItens(bluetooth);
+        nLinhaAtual = 1;
+      } else {
+        nLinhaAtual++;
+      }
+      bluetooth.printCustom(listDesc[a], 1, PrinterHelper.escAlignLeft);
+    }
+    _saltaEtiqueta(bluetooth,
+        (nMaxLinhas - nLinhaAtual).isNegative ? 0 : (nMaxLinhas - nLinhaAtual));
+  }
+}
+
+_saltaEtiqueta(BlueThermalPrinter bluetooth, int Restante) {
+  for (var i = 0; i <= Restante; i++) {
+    bluetooth.printNewLine();
   }
 }

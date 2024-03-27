@@ -108,7 +108,7 @@ class _SelecionarNotaFiscalState extends State<SelecionarNotaFiscal> {
                         );
                       },
                       child: Container(
-                        width: width * 0.3,
+                        width: width * 0.4,
                         height: 50,
                         decoration: BoxDecoration(
                             border: Border.all(),
@@ -116,7 +116,7 @@ class _SelecionarNotaFiscalState extends State<SelecionarNotaFiscal> {
                             color: primaryColor),
                         child: Center(
                           child: Text(
-                            'Menu',
+                            'Voltar ao Menu',
                             style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 18,

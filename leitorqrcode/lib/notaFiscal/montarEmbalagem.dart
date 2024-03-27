@@ -378,206 +378,227 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
     double height = MediaQuery.of(context).size.height;
     late bool visible;
     return SafeArea(
-      child: Scaffold(
-          appBar: AppBar(
-            backgroundColor: primaryColor,
-            automaticallyImplyLeading: false,
-            title: ListTile(
-              title: RichText(
-                maxLines: 2,
-                text: TextSpan(
-                  text: "Montagem de Embalagem",
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold),
-                ),
+      child: PopScope(
+        canPop: false,
+        onPopInvoked: (ispop) {
+          if (!ispop) {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                builder: (BuildContext context) => SelecionarEmbalagem(
+                    nfeDados: widget.pedido,
+                    dadosEmbalagem: dadosNotaFiscal!.data,
+                    IdPedidoRetiradaCarga: widget.IdPedidoRetiradaCarga),
               ),
-              trailing: !leituraExterna
-                  ? Container(
-                      height: 1,
-                      width: 1,
-                    )
-                  : Container(
-                      height: 35,
-                      width: 35,
-                      child: bluetoothDisconect
-                          ? isCollectModeEnabled
-                              ? Icon(
-                                  Icons.qr_code_scanner,
-                                  color: Colors.blue,
-                                )
-                              : Icon(
-                                  Icons.bluetooth_disabled,
-                                  color: Colors.red,
-                                )
-                          : Icon(
-                              Icons.bluetooth_connected,
-                              color: Colors.blue,
-                            ),
-                      decoration: BoxDecoration(
+              (route) => false,
+            );
+          }
+        },
+        child: Scaffold(
+            appBar: AppBar(
+              backgroundColor: primaryColor,
+              automaticallyImplyLeading: false,
+              title: ListTile(
+                title: RichText(
+                  maxLines: 2,
+                  text: TextSpan(
+                    text: "Montagem de Embalagem",
+                    style: TextStyle(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                    ),
-            ),
-          ),
-          body: SingleChildScrollView(
-            scrollDirection: Axis.vertical,
-            child: Column(
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                if (isCollectModeEnabled)
-                  Offstage(
-                    offstage: true,
-                    child: VisibilityDetector(
-                      onVisibilityChanged: (VisibilityInfo info) {
-                        visible = info.visibleFraction > 0;
-                      },
-                      key: Key(
-                        'visible-detector-key-M',
-                      ),
-                      child: BarcodeKeyboardListener(
-                        bufferDuration: Duration(milliseconds: 50),
-                        onBarcodeScanned: (barcode) async {
-                          print(barcode);
-                          _readCodesM(barcode);
-                        },
-                        child: Text(""),
-                      ),
-                    ),
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold),
                   ),
-                if (!prodReadSuccess)
-                  isManual
-                      ? Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: TextField(
-                            autofocus: true,
-                            onSubmitted: (value) async {
-                              _readCodesM(value);
-                              setState(() {
-                                isManual = false;
-                              });
-                            },
-                            decoration: InputDecoration(
-                              border: OutlineInputBorder(),
-                              labelText: 'Digite o código',
+                ),
+                trailing: !leituraExterna
+                    ? Container(
+                        height: 1,
+                        width: 1,
+                      )
+                    : Container(
+                        height: 35,
+                        width: 35,
+                        child: bluetoothDisconect
+                            ? isCollectModeEnabled
+                                ? Icon(
+                                    Icons.qr_code_scanner,
+                                    color: Colors.blue,
+                                  )
+                                : Icon(
+                                    Icons.bluetooth_disabled,
+                                    color: Colors.red,
+                                  )
+                            : Icon(
+                                Icons.bluetooth_connected,
+                                color: Colors.blue,
+                              ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                      ),
+              ),
+            ),
+            body: SingleChildScrollView(
+              scrollDirection: Axis.vertical,
+              child: Column(
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  if (isCollectModeEnabled)
+                    Offstage(
+                      offstage: true,
+                      child: VisibilityDetector(
+                        onVisibilityChanged: (VisibilityInfo info) {
+                          visible = info.visibleFraction > 0;
+                        },
+                        key: Key(
+                          'visible-detector-key-M',
+                        ),
+                        child: BarcodeKeyboardListener(
+                          bufferDuration: Duration(milliseconds: 50),
+                          onBarcodeScanned: (barcode) async {
+                            print(barcode);
+                            _readCodesM(barcode);
+                          },
+                          child: Text(""),
+                        ),
+                      ),
+                    ),
+                  if (!prodReadSuccess)
+                    isManual
+                        ? Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: TextField(
+                              autofocus: true,
+                              onSubmitted: (value) async {
+                                _readCodesM(value);
+                                setState(() {
+                                  isManual = false;
+                                });
+                              },
+                              decoration: InputDecoration(
+                                border: OutlineInputBorder(),
+                                labelText: 'Digite o código',
+                              ),
                             ),
-                          ),
-                        )
-                      : isCollectModeEnabled
-                          ? showLeituraExterna == false
-                              ? Stack(
-                                  children: [
-                                    Container(
-                                      padding: EdgeInsets.all(10),
-                                      color: Colors.yellow[400],
-                                      child: Center(
-                                        child: Text(
-                                          "Aguardando leitura",
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(fontSize: 18),
+                          )
+                        : isCollectModeEnabled
+                            ? showLeituraExterna == false
+                                ? Stack(
+                                    children: [
+                                      Container(
+                                        padding: EdgeInsets.all(10),
+                                        color: Colors.yellow[400],
+                                        child: Center(
+                                          child: Text(
+                                            "Aguardando leitura",
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(fontSize: 18),
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                  ],
-                                )
-                              : Stack(
-                                  children: [
-                                    Container(
-                                      padding: EdgeInsets.all(10),
-                                      color: Colors.yellow[400],
-                                      child: Center(
-                                        child: Text(
-                                          "Aguardando leitura",
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(fontSize: 18),
+                                    ],
+                                  )
+                                : Stack(
+                                    children: [
+                                      Container(
+                                        padding: EdgeInsets.all(10),
+                                        color: Colors.yellow[400],
+                                        child: Center(
+                                          child: Text(
+                                            "Aguardando leitura",
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(fontSize: 18),
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                  ],
-                                )
-                          : showCamera == false
-                              ? BotaoIniciarMontagem(
-                                  titulo: titleBtn == null ? "" : titleBtn,
-                                  onPressed: () {
-                                    setState(() {
-                                      showCamera = true;
-                                    });
-                                  },
-                                )
-                              : Stack(
-                                  children: [
-                                    Container(
-                                      height:
-                                          (MediaQuery.of(context).size.height *
-                                              0.20),
-                                      child: _buildQrView(context),
-                                      // child: Container(),
-                                    ),
-                                    Center(
-                                      child: Container(
-                                        margin: EdgeInsets.symmetric(
-                                          vertical: (MediaQuery.of(context)
-                                                  .size
-                                                  .height *
-                                              0.01),
-                                          horizontal: (MediaQuery.of(context)
-                                                  .size
-                                                  .width *
-                                              0.3),
-                                        ),
+                                    ],
+                                  )
+                            : showCamera == false
+                                ? BotaoIniciarMontagem(
+                                    titulo: titleBtn == null ? "" : titleBtn,
+                                    onPressed: () {
+                                      setState(() {
+                                        showCamera = true;
+                                      });
+                                    },
+                                  )
+                                : Stack(
+                                    children: [
+                                      Container(
                                         height: (MediaQuery.of(context)
                                                 .size
                                                 .height *
-                                            0.17),
-                                        child: DashedRect(
-                                          color: primaryColor,
-                                          gap: 25,
-                                          strokeWidth: 5,
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                              vertical: 10,
-                                            ),
-                                            child: Center(
-                                              child: Text(
-                                                "Leia o QRCode \n do produto",
-                                                textAlign: TextAlign.center,
-                                                style: TextStyle(
-                                                    fontSize: 25,
-                                                    color: Colors.white),
+                                            0.20),
+                                        child: _buildQrView(context),
+                                        // child: Container(),
+                                      ),
+                                      Center(
+                                        child: Container(
+                                          margin: EdgeInsets.symmetric(
+                                            vertical: (MediaQuery.of(context)
+                                                    .size
+                                                    .height *
+                                                0.01),
+                                            horizontal: (MediaQuery.of(context)
+                                                    .size
+                                                    .width *
+                                                0.3),
+                                          ),
+                                          height: (MediaQuery.of(context)
+                                                  .size
+                                                  .height *
+                                              0.17),
+                                          child: DashedRect(
+                                            color: primaryColor,
+                                            gap: 25,
+                                            strokeWidth: 5,
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                vertical: 10,
+                                              ),
+                                              child: Center(
+                                                child: Text(
+                                                  "Leia o QRCode \n do produto",
+                                                  textAlign: TextAlign.center,
+                                                  style: TextStyle(
+                                                      fontSize: 25,
+                                                      color: Colors.white),
+                                                ),
                                               ),
                                             ),
                                           ),
                                         ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                SizedBox(
-                  height: 10,
-                ),
-                _buildButtons(width),
-                SizedBox(
-                  height: 10,
-                ),
-                Text(
-                  'Itens da Nota Fiscal',
-                  style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
-                ),
-                tableItensNotafiscal(),
-                SizedBox(
-                  height: 20,
-                ),
-                Text(
-                  'Itens da Embalagem',
-                  style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
-                ),
-                tableItensEmbalagem(),
-              ],
+                                    ],
+                                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  _buildButtons(width),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Text(
+                    'Itens da Nota Fiscal',
+                    style:
+                        TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                  ),
+                  tableItensNotafiscal(),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  Text(
+                    'Itens da Embalagem',
+                    style:
+                        TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                  ),
+                  tableItensEmbalagem(),
+                ],
+              ),
             ),
-          ),
-          bottomNavigationBar: BottomBar()),
+            bottomNavigationBar: BottomBar()),
+      ),
     );
   }
 
@@ -853,10 +874,10 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
                             MaterialPageRoute(
                               builder: (BuildContext context) =>
                                   SelecionarEmbalagem(
-                                nfeDados: widget.pedido,
-                                dadosEmbalagem: dadosNotaFiscal!.data,
-                                IdPedidoRetiradaCarga: widget.IdPedidoRetiradaCarga
-                              ),
+                                      nfeDados: widget.pedido,
+                                      dadosEmbalagem: dadosNotaFiscal!.data,
+                                      IdPedidoRetiradaCarga:
+                                          widget.IdPedidoRetiradaCarga),
                             ),
                             (route) => false,
                           );
@@ -1124,10 +1145,9 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
             context,
             MaterialPageRoute(
               builder: (BuildContext context) => SelecionarEmbalagem(
-                nfeDados: widget.pedido,
-                dadosEmbalagem: dadosNotaFiscal!.data,
-                IdPedidoRetiradaCarga: widget.IdPedidoRetiradaCarga
-              ),
+                  nfeDados: widget.pedido,
+                  dadosEmbalagem: dadosNotaFiscal!.data,
+                  IdPedidoRetiradaCarga: widget.IdPedidoRetiradaCarga),
             ),
             (route) => false);
       } else {

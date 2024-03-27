@@ -68,73 +68,90 @@ class _MontarEmbalagemState extends State<DetailsEmbalagem> {
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
     return SafeArea(
-      child: Scaffold(
-          appBar: AppBar(
-            backgroundColor: primaryColor,
-            automaticallyImplyLeading: false,
-            title: ListTile(
-              title: RichText(
-                maxLines: 2,
-                text: TextSpan(
-                  text: "Detalhes da Embalagem",
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold),
+      child: PopScope(
+        canPop: false,
+        onPopInvoked: (isPop) {
+          if(!isPop){
+             Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                builder: (BuildContext context) => SelecionarEmbalagem(
+                    nfeDados: widget.pedido,
+                    dadosEmbalagem: dadosNotaFiscal!.data,
+                    IdPedidoRetiradaCarga: widget.IdPedidoRetiradaCarga),
+              ),
+              (route) => false,
+            );
+          }
+        },
+        child: Scaffold(
+            appBar: AppBar(
+              backgroundColor: primaryColor,
+              automaticallyImplyLeading: false,
+              title: ListTile(
+                title: RichText(
+                  maxLines: 2,
+                  text: TextSpan(
+                    text: "Detalhes da Embalagem",
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold),
+                  ),
+                ),
+                trailing: Container(
+                  height: 1,
+                  width: 1,
                 ),
               ),
-              trailing: Container(
-                height: 1,
-                width: 1,
-              ),
             ),
-          ),
-          body: SingleChildScrollView(
-            scrollDirection: Axis.vertical,
-            child: Column(
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                Stack(
-                  children: [
-                    Container(
-                      padding: EdgeInsets.all(10),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "Embalagem: " + widget.sequencial,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 16),
-                          ),
-                          Text(
-                            "Status: " + widget.status,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 14),
-                          ),
-                        ],
+            body: SingleChildScrollView(
+              scrollDirection: Axis.vertical,
+              child: Column(
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  Stack(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(10),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Embalagem: " + widget.sequencial,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontSize: 16),
+                            ),
+                            Text(
+                              "Status: " + widget.status,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontSize: 14),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                SizedBox(
-                  height: 10,
-                ),
-                _buildButtons(width),
-                SizedBox(
-                  height: 10,
-                ),
-                SizedBox(
-                  height: 20,
-                ),
-                Text(
-                  'Itens da Embalagem',
-                  style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
-                ),
-                tableItensEmbalagem(),
-              ],
+                    ],
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  _buildButtons(width),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  Text(
+                    'Itens da Embalagem',
+                    style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                  ),
+                  tableItensEmbalagem(),
+                ],
+              ),
             ),
-          ),
-          bottomNavigationBar: BottomBar()),
+            bottomNavigationBar: BottomBar()),
+      ),
     );
   }
 

@@ -634,7 +634,7 @@ class _ConferenciaExpedicaoScreenState
           bottomSheet: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              if (!conferenciaOk)
+              if (conferenciaOk)
                 Container(
                   width: MediaQuery.of(context).size.width * 0.5,
                   child: ElevatedButton(
@@ -967,23 +967,6 @@ class _ConferenciaExpedicaoScreenState
 
     if (dados != null) {
       return true;
-      // if (dados.qtde >= ((dados.qtdeConf ?? 0) + int.parse(qtd))) {
-      //   return true;
-      // } else {
-      //   dados = getProdutoIguais(
-      //       (prod.idproduto != null ? prod.idproduto! : prod.id!));
-
-      //   if (dados != null) {
-
-      // }
-      // }
-
-      // else {
-      //   Dialogs.showToast(context,
-      //       "A quantidade não pode ser maior que a informada na nota fiscal.",
-      //       duration: Duration(seconds: 5), bgColor: Colors.red.shade200);
-      //   return false;
-      // }
     } else {
       Dialogs.showToast(context, "Não foi encontrado o produto na nota fiscal.",
           duration: Duration(seconds: 5), bgColor: Colors.red.shade200);
