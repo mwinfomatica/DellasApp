@@ -12,8 +12,8 @@ Client getClient({BuildContext? context}) {
 }
 
 //const String baseUrl = 'http://3.224.148.218/DellasHomolog';
- const String baseUrl = 'http://3.224.148.218/Dellas';
-//const String baseUrl = 'http://192.168.1.11/Dellas';
+const String baseUrl = 'http://3.224.148.218/Dellas';
+//const String baseUrl = 'http://192.168.1.16/Dellas';
 
 String getMessage(int statusCode) {
   if (_statusCodeResponses.containsKey(statusCode)) {

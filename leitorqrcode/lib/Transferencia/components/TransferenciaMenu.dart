@@ -113,23 +113,23 @@ class MenuTransferencia extends StatelessWidget {
               )
             ],
           ),
-          // SizedBox(
-          //   height: 25,
-          // ),
-          // Row(
-          //   mainAxisAlignment: MainAxisAlignment.spaceAround,
-          //   children: [
-          //     ButtonMenuTransferencia(
-          //       titulo: "Delete",
-          //       descricao: "Descritivo da função armazenar",
-          //       icone: ArmazenamentoApp.armazenamento,
-          //       onTap: () async {
-          //         await delete();
-          //         Navigator.pop(context);
-          //       },
-          //     )
-          //   ],
-          // ),
+          SizedBox(
+            height: 25,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              ButtonMenuTransferencia(
+                titulo: "Delete",
+                descricao: "Descritivo da função armazenar",
+                icone: ArmazenamentoApp.armazenamento,
+                onTap: () async {
+                  await delete();
+                  Navigator.pop(context);
+                },
+              )
+            ],
+          ),
         ],
       ),
     );

@@ -296,11 +296,11 @@ class _ConferenciaExpedicaoScreenState
                       true,
                       emb.id);
                 }
-                Dialogs.showToast(context, "Leitura da Embalegm concluida.",
-                    duration: Duration(seconds: 5),
-                    bgColor: Colors.green.shade200);
-                return;
               }
+              Dialogs.showToast(context, "Leitura da Embalegm concluida.",
+                  duration: Duration(seconds: 5),
+                  bgColor: Colors.green.shade200);
+              return;
             }
           }
         }
@@ -435,7 +435,7 @@ class _ConferenciaExpedicaoScreenState
                   text: "Conferência",
                   style: TextStyle(
                       color: Colors.white,
-                      fontSize: 18,
+                      fontSize: 22,
                       fontWeight: FontWeight.bold),
                 ),
               ),
@@ -682,32 +682,35 @@ class _ConferenciaExpedicaoScreenState
               children: [
                 Row(
                   children: [
-                    Container(
-                      width: MediaQuery.of(context).size.width * 0.32,
-                      height: height * 0.1,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                            primary: primaryColor,
-                            textStyle: const TextStyle(fontSize: 12)),
-                        onPressed: () {
-                          showDialog(
-                            context: context,
-                            barrierDismissible: false,
-                            builder: (_) => modalForcaFinalizacaoConferencia(
-                              idPedido: widget.idPeiddo,
-                              psw: widget.idPeiddo.split('-')[1],
-                              ontap: () => {
-                                finalizaConferencia('F'),
+                    conferenciaOk
+                        ? Container()
+                        : Container(
+                            width: MediaQuery.of(context).size.width * 0.32,
+                            height: height * 0.1,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                  primary: primaryColor,
+                                  textStyle: const TextStyle(fontSize: 12)),
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  barrierDismissible: false,
+                                  builder: (_) =>
+                                      modalForcaFinalizacaoConferencia(
+                                    idPedido: widget.idPeiddo,
+                                    psw: widget.idPeiddo.split('-')[1],
+                                    ontap: () => {
+                                      finalizaConferencia('F'),
+                                    },
+                                  ),
+                                );
                               },
+                              child: Text(
+                                'Forçar Finalização',
+                                style: TextStyle(color: Colors.white),
+                              ),
                             ),
-                          );
-                        },
-                        child: Text(
-                          'Forçar Finalização',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
-                    ),
+                          ),
                     SizedBox(
                       width: 10,
                     ),

@@ -215,4 +215,11 @@ class OperacaoModel {
     var result = await db.query("operacao", where: "tipo = '40'");
     return result.isNotEmpty ? OperacaoModel.fromJson(result.first) : null;
   }
+
+  Future<OperacaoModel?> getOpCarga() async {
+    Database db = await DatabaseHelper.instance.database;
+    var result = await db.query("operacao", where: "situacao != ? AND tipo = '72'", whereArgs: ['3']);
+    return result.isNotEmpty ? OperacaoModel.fromJson(result.first) : null;
+  }
+
 }

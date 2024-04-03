@@ -6,11 +6,11 @@ import 'package:flutter_blue/flutter_blue.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_beep/flutter_beep.dart';
-import 'package:leitorqrcode/Apuracao/components/IniciarApuracao.dart';
 import 'package:leitorqrcode/Components/Bottom.dart';
 import 'package:leitorqrcode/Components/Constants.dart';
 import 'package:leitorqrcode/Components/DashedRect.dart';
 import 'package:leitorqrcode/Infrastructure/AtualizarDados/atualizaOp.dart';
+import 'package:leitorqrcode/Inventario/components/button_inventario.dart';
 import 'package:leitorqrcode/Models/APIModels/Endereco.dart';
 import 'package:leitorqrcode/Models/APIModels/MovimentacaoMOdel.dart';
 import 'package:leitorqrcode/Models/APIModels/OperacaoModel.dart';
@@ -26,6 +26,8 @@ import 'package:uuid/uuid.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
 class Inventario extends StatefulWidget {
+  const Inventario({Key? key}) : super(key: key);
+
   @override
   _InventarioState createState() => _InventarioState();
 }
@@ -35,8 +37,8 @@ class _InventarioState extends State<Inventario> {
   bool reading = false;
   bool showCamera = false;
   bool hasAdress = false;
-  QRViewController? controller;
-  final GlobalKey qrAKey = GlobalKey(debugLabel: 'QR');
+  late QRViewController controller;
+  final GlobalKey qrIKey = GlobalKey(debugLabel: 'QR');
   final animateListKey = GlobalKey<AnimatedListState>();
   final qtdeProdDialog = TextEditingController();
   String qtdModal = "1";
@@ -92,32 +94,33 @@ class _InventarioState extends State<Inventario> {
       contextoModel.descLeituraExterna = "Leitor Externo Desabilitado";
     } else {
       setState(() {
+        contextoModel.enderecoGrupo = true;
         leituraExterna =
             (contextoModel != null && contextoModel.leituraExterna == true);
       });
 
-      List<BluetoothDevice> conectados = await flutterBlue.connectedDevices;
-      if (conectados != null && conectados.length > 0) {
-        device = conectados.firstWhere(
-          (BluetoothDevice dev) => dev.id.id == contextoModel.uuidDevice,
-          orElse: () => null as BluetoothDevice,
-        );
-      }
-      if (device != null) {
-        scanner();
-      } else {
-        flutterBlue.scanResults.listen((List<ScanResult> results) {
-          for (ScanResult result in results) {
-            if (contextoModel.uuidDevice!.isNotEmpty &&
-                result.device.id.id == contextoModel.uuidDevice) {
-              device = result.device;
-              scanner();
-            }
+      flutterBlue.connectedDevices
+          .asStream()
+          .listen((List<BluetoothDevice> devices) {
+        for (BluetoothDevice dev in devices) {
+          if (contextoModel.uuidDevice!.isNotEmpty &&
+              dev.id.id == contextoModel.uuidDevice) {
+            device = dev;
+            scanner();
           }
-        });
+        }
+      });
+      flutterBlue.scanResults.listen((List<ScanResult> results) {
+        for (ScanResult result in results) {
+          if (contextoModel.uuidDevice != null && contextoModel.uuidDevice!.isNotEmpty &&
+              result.device.id.id == contextoModel.uuidDevice) {
+            device = result.device;
+            scanner();
+          }
+        }
+      });
 
-        flutterBlue.startScan();
-      }
+      flutterBlue.startScan();
     }
   }
 
@@ -180,16 +183,16 @@ class _InventarioState extends State<Inventario> {
     }
   }
 
-  setTimer(String texto) async {
-    // if (temp != null) {
-    //   temp.cancel();
-    //   temp = null;
-    // }
+  setTimer(String texto) {
+    if (temp != null) {
+      temp!.cancel();
+      temp = null;
+    }
 
-    // temp = Timer.periodic(Duration(seconds: 1), (timer) {
-    await _readCodes(texto);
-    // timer.cancel();
-    // });
+    temp = Timer.periodic(Duration(milliseconds: 500), (timer) {
+      _readCodesinv(texto);
+      timer.cancel();
+    });
   }
 
   void initState() {
@@ -207,7 +210,7 @@ class _InventarioState extends State<Inventario> {
     if (op == null) {
       op = new OperacaoModel(
         id: new Uuid().v4().toUpperCase(),
-        cnpj: '11.377.757/0001-15',
+        cnpj: '03316661000119',
         nrdoc: new Uuid().v4().toUpperCase(),
         situacao: "1",
         tipo: "90",
@@ -239,7 +242,7 @@ class _InventarioState extends State<Inventario> {
       // device.disconnect();
     }
 
-    controller?.dispose();
+    controller.dispose();
     super.dispose();
   }
 
@@ -248,9 +251,9 @@ class _InventarioState extends State<Inventario> {
     super.reassemble();
     if (controller != null) {
       if (Platform.isAndroid) {
-        controller!.pauseCamera();
+        controller.pauseCamera();
       }
-      controller!.resumeCamera();
+      controller.resumeCamera();
     }
   }
 
@@ -270,29 +273,33 @@ class _InventarioState extends State<Inventario> {
                     fontSize: 22,
                     fontWeight: FontWeight.bold),
               ),
-              trailing: Container(
-                height: 35,
-                width: 35,
-                child: !leituraExterna
-                    ? Container()
-                    : bluetoothDisconect
-                        ? Icon(
-                            Icons.bluetooth_disabled,
-                            color: Colors.red,
-                          )
-                        : Row(
-                            children: [
-                              Icon(
-                                Icons.bluetooth_connected,
-                                color: Colors.blue,
-                              ),
-                            ],
-                          ),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(5),
-                ),
-              ),
+              trailing: !leituraExterna
+                  ? Container(
+                      height: 1,
+                      width: 1,
+                    )
+                  : Container(
+                      height: 35,
+                      width: 35,
+                      child: bluetoothDisconect
+                          ? isCollectModeEnabled
+                              ? Icon(
+                                  Icons.qr_code_scanner,
+                                  color: Colors.blue,
+                                )
+                              : Icon(
+                                  Icons.bluetooth_disabled,
+                                  color: Colors.red,
+                                )
+                          : Icon(
+                              Icons.bluetooth_connected,
+                              color: Colors.blue,
+                            ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                    ),
             ),
           ),
           body: Column(
@@ -356,12 +363,32 @@ class _InventarioState extends State<Inventario> {
                     onVisibilityChanged: (VisibilityInfo info) {
                       visible = info.visibleFraction > 0;
                     },
-                    key: Key('visible-detector-key'),
+                    key: Key('visible-detector-key-inv'),
                     child: BarcodeKeyboardListener(
                       bufferDuration: Duration(milliseconds: 200),
                       onBarcodeScanned: (barcode) async {
                         print(barcode);
-                        await _readCodes(barcode);
+                        await _readCodesinv(barcode);
+                      },
+                      child: Text(""),
+                    ),
+                  ),
+                ),
+              if (isCollectModeEnabled)
+                Offstage(
+                  offstage: true,
+                  child: VisibilityDetector(
+                    onVisibilityChanged: (VisibilityInfo info) {
+                      visible = info.visibleFraction > 0;
+                    },
+                    key: Key(
+                      'visible-detector-key-inv',
+                    ),
+                    child: BarcodeKeyboardListener(
+                      bufferDuration: Duration(milliseconds: 50),
+                      onBarcodeScanned: (barcode) async {
+                        print(barcode);
+                        _readCodesinv(barcode);
                       },
                       child: Text(""),
                     ),
@@ -374,7 +401,7 @@ class _InventarioState extends State<Inventario> {
                         child: TextField(
                           autofocus: true,
                           onSubmitted: (value) async {
-                            await _readCodes(value);
+                            _readCodesinv(value);
                             setState(() {
                               isManual = false;
                             });
@@ -391,14 +418,10 @@ class _InventarioState extends State<Inventario> {
                                 children: [
                                   Container(
                                     padding: EdgeInsets.all(10),
-                                    color: !hasAdress
-                                        ? Colors.grey[400]
-                                        : Colors.yellow[400],
+                                    color: Colors.yellow[400],
                                     child: Center(
                                       child: Text(
-                                        !hasAdress
-                                            ? "Aguardando leitura do Endereço"
-                                            : "Aguardando leitura dos Produtos",
+                                        "Aguardando leitura",
                                         textAlign: TextAlign.center,
                                         style: TextStyle(fontSize: 18),
                                       ),
@@ -410,14 +433,10 @@ class _InventarioState extends State<Inventario> {
                                 children: [
                                   Container(
                                     padding: EdgeInsets.all(10),
-                                    color: !hasAdress
-                                        ? Colors.grey[400]
-                                        : Colors.yellow[400],
+                                    color: Colors.yellow[400],
                                     child: Center(
                                       child: Text(
-                                        !hasAdress
-                                            ? "Aguardando leitura do Endereço"
-                                            : "Aguardando leitura dos Produtos",
+                                        "Aguardando leitura",
                                         textAlign: TextAlign.center,
                                         style: TextStyle(fontSize: 18),
                                       ),
@@ -426,8 +445,8 @@ class _InventarioState extends State<Inventario> {
                                 ],
                               )
                         : showCamera == false
-                            ? BotaoIniciarApuracao(
-                                titulo: titleBtn == null ? "" : titleBtn!,
+                            ? ButtonInventario(
+                                titulo: titleBtn ?? "Iniciar",
                                 onPressed: () {
                                   setState(() {
                                     showCamera = true;
@@ -446,44 +465,28 @@ class _InventarioState extends State<Inventario> {
                                   Center(
                                     child: Container(
                                       margin: EdgeInsets.symmetric(
-                                        vertical: !hasAdress
-                                            ? (MediaQuery.of(context)
-                                                    .size
-                                                    .height *
-                                                0.05)
-                                            : (MediaQuery.of(context)
-                                                    .size
-                                                    .height *
-                                                0.01),
-                                        horizontal: !hasAdress
-                                            ? 25
-                                            : (MediaQuery.of(context)
-                                                    .size
-                                                    .width *
+                                        vertical: (MediaQuery.of(context)
+                                                .size
+                                                .height *
+                                            0.01),
+                                        horizontal:
+                                            (MediaQuery.of(context).size.width *
                                                 0.3),
                                       ),
-                                      height: !hasAdress
-                                          ? (MediaQuery.of(context)
-                                                  .size
-                                                  .height *
-                                              0.10)
-                                          : (MediaQuery.of(context)
-                                                  .size
-                                                  .height *
+                                      height:
+                                          (MediaQuery.of(context).size.height *
                                               0.17),
                                       child: DashedRect(
                                         color: primaryColor,
-                                        gap: !hasAdress ? 10 : 25,
-                                        strokeWidth: !hasAdress ? 2 : 5,
+                                        gap: 25,
+                                        strokeWidth: 5,
                                         child: Padding(
                                           padding: const EdgeInsets.symmetric(
                                             vertical: 10,
                                           ),
                                           child: Center(
                                             child: Text(
-                                              hasAdress
-                                                  ? "Leia o QRCode \n do produto"
-                                                  : "Realize a leitura do \n Endereço",
+                                              "Leia o QRCode \n do produto",
                                               textAlign: TextAlign.center,
                                               style: TextStyle(
                                                   fontSize: 25,
@@ -547,7 +550,12 @@ class _InventarioState extends State<Inventario> {
                   await syncOp(context, false);
                   Navigator.pop(context);
                 },
-                child: Text('Finalizar'),
+                child: Text(
+                  'Finalizar',
+                  style: TextStyle(
+                    color: Colors.white,
+                  ),
+                ),
               ),
               if (hasAdress)
                 ElevatedButton(
@@ -561,7 +569,12 @@ class _InventarioState extends State<Inventario> {
                       hasAdress = false;
                     });
                   },
-                  child: Text('Alterar endereço'),
+                  child: Text(
+                    'Alterar endereço',
+                    style: TextStyle(
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
             ],
           ),
@@ -571,7 +584,7 @@ class _InventarioState extends State<Inventario> {
 
   Widget _buildQrView(BuildContext context) {
     return QRView(
-      key: qrAKey,
+      key: qrIKey,
       onQRViewCreated: _onQRViewCreated,
     );
   }
@@ -581,14 +594,16 @@ class _InventarioState extends State<Inventario> {
       listProd = [];
     }
 
-    ProdutoModel produto = listProd.firstWhere(
-      (element) =>
-          element.idproduto == prod.idproduto &&
-          element.barcode == prod.barcode &&
-          element.idloteunico == prod.idloteunico &&
-          element.lote == prod.lote,
-      orElse: () => new ProdutoModel(),
-    );
+    ProdutoModel? produto = listProd
+        .where(
+          (element) =>
+              element.idproduto == prod.idproduto &&
+              element.barcode == prod.barcode &&
+              element.coddum == prod.coddum &&
+              element.idloteunico == prod.idloteunico &&
+              element.lote == prod.lote,
+        )
+        .firstOrNull;
 
     // if (prod.infq == "s") {
     qtdeProdDialog.text = "";
@@ -614,8 +629,9 @@ class _InventarioState extends State<Inventario> {
         actions: [
           TextButton(
             onPressed: () async {
-              geraMoviProd(produto, prod, qtdeProdDialog.text);
+              await geraMoviProd(produto, prod, qtdeProdDialog.text);
               Navigator.pop(context);
+              
             },
             child: Text("Salvar"),
           ),
@@ -629,7 +645,7 @@ class _InventarioState extends State<Inventario> {
   }
 
   Future<void> geraMoviProd(
-      ProdutoModel produto, ProdutoModel prod, String qtd) async {
+      ProdutoModel? produto, ProdutoModel prod, String qtd) async {
     if (produto == null) {
       MovimentacaoModel movi = new MovimentacaoModel();
       movi.id = new Uuid().v4().toUpperCase();
@@ -656,26 +672,29 @@ class _InventarioState extends State<Inventario> {
       op!.prods!.add(prod);
       await prod.insert();
     } else {
-      ProdutoModel prodsop = new ProdutoModel();
+      ProdutoModel? prodsop = new ProdutoModel();
       List<MovimentacaoModel> listmovi = [];
       listmovi = await new MovimentacaoModel().getAllByoperacao(op!.id!);
-      MovimentacaoModel movi = new MovimentacaoModel();
+      MovimentacaoModel? movi = new MovimentacaoModel();
 
-      movi = listmovi.firstWhere((element) => element.idOperacao == op!.id,
-          orElse: () => null as MovimentacaoModel);
+      movi =
+          listmovi.where((element) => element.idOperacao == op!.id).firstOrNull;
       if (movi != null) {
         movi.qtd = (int.parse(movi.qtd!) + int.parse(qtd)).toString();
-        await movi.updatebyIdOP();
+        await movi.updatebyId();
 
         prodsop = op!.prods!
-            .firstWhere((element) => element.idproduto == produto.idproduto);
+            .where((element) => element.idproduto == produto.idproduto)
+            .firstOrNull;
 
-        setState(() {
-          prod.qtd = prod.qtd == null ? "1" : prod.qtd;
-          produto.qtd = movi.qtd;
-          prodsop.qtd = movi.qtd;
-          produto.edit(produto);
-        });
+        if (prodsop != null) {
+          setState(() {
+            prod.qtd = prod.qtd == null ? "1" : prod.qtd;
+            produto.qtd = movi!.qtd;
+            prodsop!.qtd = movi!.qtd;
+            produto.edit(produto);
+          });
+        }
       } else {
         return;
       }
@@ -717,7 +736,17 @@ class _InventarioState extends State<Inventario> {
     }
   }
 
-  Future<void> _readCodes(code) async {
+  Future<void> _readCodesinv(code) async {
+    if (code == null || code == "") {
+      FlutterBeep.beep(false);
+      Timer(Duration(seconds: 1), () {
+        reading = false;
+      });
+      Dialogs.showToast(context, "Nenhum código scaneado.",
+          duration: Duration(seconds: 5), bgColor: Colors.red.shade200);
+      return;
+    }
+
     textExterno = "";
     if (temp != null) {
       temp!.cancel();
@@ -753,7 +782,7 @@ class _InventarioState extends State<Inventario> {
           reading = true;
           if (code.isEmpty || code.length > 20) {
             FlutterBeep.beep(false);
-            Dialogs.showToast(context, "Código de barras inválido",
+            Dialogs.showToast(context, "Endereço não existente.",
                 duration: Duration(seconds: 5), bgColor: Colors.red.shade200);
           } else {
             code = code.trim();
@@ -777,7 +806,7 @@ class _InventarioState extends State<Inventario> {
         }
 
         FlutterBeep.beep();
-        Timer(Duration(seconds: 2), () {
+        Timer(Duration(seconds: 1), () {
           reading = false;
         });
       }
@@ -794,7 +823,7 @@ class _InventarioState extends State<Inventario> {
       this.controller = controller;
     });
     controller.scannedDataStream.listen((scanData) async {
-      _readCodes(scanData.code);
+      _readCodesinv(scanData.code);
     });
   }
 }

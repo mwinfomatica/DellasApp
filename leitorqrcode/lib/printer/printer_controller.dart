@@ -9,11 +9,15 @@ import 'package:leitorqrcode/printer/printer_helper.dart';
 class PrinterController {
   int nLinhaAtual = 0;
   int nMaxLinhas = 28;
-  Future<void> printQrCodeEmbalagem(
+  Future<bool> printQrCodeEmbalagem(
       {required List<EmbalagemPrinter> listemb,
       required BlueThermalPrinter bluetooth,
       required BuildContext context}) async {
     bool isConnected = await bluetooth.isConnected ?? false;
+
+    bool retorno = false;
+
+    int countPrint = 0;
 
     if (isConnected) {
       for (var i = 0; i < listemb.length; i++) {
@@ -46,7 +50,7 @@ class PrinterController {
         //     bluetooth: bluetooth, ListitemPedido: emb.listItens ?? []);
 
         int restante = nMaxLinhas - nLinhaAtual;
-      
+
         if (i > 0) {
           if (i % 2 > 0) {
             nMaxLinhas--;
@@ -56,6 +60,12 @@ class PrinterController {
         }
 
         _saltaEtiqueta(bluetooth, restante);
+
+        countPrint++;
+
+        if (countPrint == listemb.length) {
+          retorno = true;
+        }
       }
     } else {
       Dialogs.showToast(
@@ -65,6 +75,8 @@ class PrinterController {
         duration: const Duration(seconds: 5),
       );
     }
+
+    return retorno;
   }
 
   _printLine(BlueThermalPrinter bluetooth) {

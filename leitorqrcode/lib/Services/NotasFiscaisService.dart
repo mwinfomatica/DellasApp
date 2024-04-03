@@ -130,6 +130,35 @@ class NotasFiscaisService {
     }
   }
 
+  Future<RetornoBaseModel?> atualizaStatusEmbalagem(String idEmbalagem, int status) async {
+    try {
+      final Response response = await getClient(context: context).post(
+        Uri.parse(baseUrl + "/ApiCliente/AtualizaStatusEmbalagem"),
+        headers: {
+          'Content-type': 'application/json',
+        },
+        body: jsonEncode(
+          {
+            "idEmbalagem": idEmbalagem,
+            "status": status,
+          },
+        ),
+      );
+
+      RetornoBaseModel? rtn =
+          RetornoBaseModel.fromJson(jsonDecode(response.body));
+
+      if (rtn != null) {
+        return rtn;
+      } else
+        return Future.value(null);
+    } catch (ex) {
+      return RetornoBaseModel(
+          error: true,
+          message: "Um erro inesperado ocorreu ao Finalizar a embalagem.");
+    }
+  }
+
   Future<RetornoGetEditEmbalagemModel?> getItensEmbalagem(
       String idEmbalagem) async {
     try {

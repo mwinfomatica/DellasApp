@@ -74,13 +74,15 @@ class MovimentacaoModel {
   }
 
   updatebyId() async {
-    Database db = await DatabaseHelper.instance.database;
-    await db.update(
-      "movimentacao",
-      toJson(),
-      where: 'idOperacao = ?',
-      whereArgs: [this.idOperacao],
-    );
+    try {
+      Database db = await DatabaseHelper.instance.database;
+      await db.update(
+        "movimentacao",
+        toJson(),
+        where: 'idOperacao = ? AND idProduto = ?',
+        whereArgs: [this.idOperacao, this.idProduto],
+      );
+    } catch (e) {}
   }
 
   updatebyIdOpProdEnd() async {
@@ -105,7 +107,8 @@ class MovimentacaoModel {
       "idProduto",
       "dataMovimentacao",
       "codMovi",
-      "nroContagem"
+      "nroContagem",
+      "qtd"
     ];
 
     Database db = await DatabaseHelper.instance.database;
@@ -211,6 +214,16 @@ class MovimentacaoModel {
   deleteById(String id) async {
     Database db = await DatabaseHelper.instance.database;
     await db.delete("movimentacao", where: "id = ? ", whereArgs: [id]);
+  }
+
+  deleteByIdOpIdProd(String idOp, String idProd) async {
+    try {
+      Database db = await DatabaseHelper.instance.database;
+      await db.delete("movimentacao",
+          where: "idOperacao = ? AND idProduto = ?", whereArgs: [idOp, idProd]);
+    } catch (e) {
+      print(e);
+    }
   }
 
   deleteInventario(String idProduto, String idOperacao) async {

@@ -1,15 +1,17 @@
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:flutter/material.dart';
+import 'package:leitorqrcode/Apuracao/Apuracao.dart';
 import 'package:leitorqrcode/Conferencia/selecionarCargas.dart';
+import 'package:leitorqrcode/Home/Home.dart';
 import 'package:leitorqrcode/Home/components/Button.dart';
 import 'package:leitorqrcode/Infrastructure/AtualizarDados/atualizaOp.dart';
 import 'package:leitorqrcode/Inventario/Inventario.dart';
-import 'package:leitorqrcode/Models/APIModels/RetornoGetEmbalagemListModel.dart';
+import 'package:leitorqrcode/Models/APIModels/OperacaoModel.dart';
+import 'package:leitorqrcode/Models/APIModels/ProdutoModel.dart';
 import 'package:leitorqrcode/QrCoderFirst.dart';
-import 'package:leitorqrcode/Services/NotasFiscaisService.dart';
+import 'package:leitorqrcode/Services/ProdutoService.dart';
+import 'package:leitorqrcode/Shared/Dialog.dart';
 import 'package:leitorqrcode/Transferencia/Transferencias.dart';
-import 'package:leitorqrcode/printer/plugin_printer.dart';
-import 'package:leitorqrcode/printer/printer_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MenuHome extends StatelessWidget {
@@ -89,15 +91,57 @@ class MenuHome extends StatelessWidget {
                 titulo: "Carga",
                 descricao: "Informe aqui as cargas \n a serem retiradas",
                 icone: Icons.outbox_outlined,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (BuildContext context) => QrCoderFirst(
-                        tipo: 1,
+                onTap: () async {
+                  OperacaoModel? opRead =
+                      await new OperacaoModel().getOpCarga();
+
+                  if (opRead != null) {
+                    opRead.prods =
+                        await ProdutoModel().getByIdOperacao(opRead.id!);
+                    if (opRead.prods == null || opRead.prods!.length == 0) {
+                      opRead.prods = await _getProdutosInServer(opRead.id!);
+                      for (int i = 0; i < opRead.prods!.length; i++) {
+                        ProdutoModel? prodDB = await new ProdutoModel()
+                            .getById(opRead.prods![i].id!);
+                        if (prodDB == null || prodDB.id == null) {
+                          opRead.prods![i].idOperacao = opRead.id;
+                          await opRead.prods![i].insert();
+                        } else {
+                          opRead.prods![i] = prodDB;
+                        }
+                      }
+                    }
+
+                    Navigator.pop(context);
+                    if (opRead.prods == null || opRead.prods!.length == 0) {
+                      Dialogs.showToast(
+                          context, "Nenhum produto encontrado para o pedido.",
+                          duration: Duration(seconds: 5),
+                          bgColor: Colors.red.shade200);
+                    } else {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (BuildContext context) => Apuracao(
+                            titulo: "Retirada de Carga" +
+                                (opRead.nrdoc != null
+                                    ? "\n" + opRead.nrdoc!
+                                    : ""),
+                            operacaoModel: opRead,
+                          ),
+                        ),
+                      );
+                    }
+                  } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (BuildContext context) => QrCoderFirst(
+                          tipo: 1,
+                        ),
                       ),
-                    ),
-                  );
+                    );
+                  }
                 },
               ),
             ],
@@ -181,9 +225,17 @@ class MenuHome extends StatelessWidget {
           //     ),
           //   ],
           // ),
-    
         ],
       ),
     );
+  }
+
+  Future<List<ProdutoModel>> _getProdutosInServer(String idOperacao) async {
+    ProdutoService produtoService = new ProdutoService();
+
+    if (idOperacao.isNotEmpty)
+      return await produtoService.getProdutos(idOperacao);
+    else
+      return Future.value(<ProdutoModel>[]);
   }
 }

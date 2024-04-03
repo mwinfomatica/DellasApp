@@ -4,6 +4,7 @@ import 'package:leitorqrcode/Components/Bottom.dart';
 import 'package:leitorqrcode/Components/Constants.dart';
 import 'package:leitorqrcode/Models/APIModels/EmbalagemListResponse.dart';
 import 'package:leitorqrcode/Models/APIModels/EmbalagemModel.dart';
+import 'package:leitorqrcode/Models/APIModels/RetornoBase.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoGetCreateEmbalagemModel.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoGetEmbalagemListModel.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoNotasFiscaisModel.dart';
@@ -93,9 +94,7 @@ class _SelecionarEmbalagemState extends State<SelecionarEmbalagem> {
       RetornoGetEmbalagemListModel? dadosNotaFiscal =
           await notasFiscaisService.getEmbalagemList(idPedido);
       if (dadosNotaFiscal != null) {
-        setState(() {
-          dadosNotaFiscal = dadosNotaFiscal;
-        });
+        setState(() {});
       }
     } catch (e) {
       print('Erro ao processar carga: $e');
@@ -267,8 +266,7 @@ class _SelecionarEmbalagemState extends State<SelecionarEmbalagem> {
         if (!rtndadosEmbalagem.error) {
           listembprint = rtndadosEmbalagem.data;
         }
-      }
-      else {
+      } else {
         return;
       }
     } catch (e) {
@@ -277,11 +275,23 @@ class _SelecionarEmbalagemState extends State<SelecionarEmbalagem> {
 
     await _initValidationPrinter();
 
-    await PrinterController().printQrCodeEmbalagem(
+    bool isOk = await PrinterController().printQrCodeEmbalagem(
       listemb: listembprint ?? [],
       bluetooth: bluetooth,
       context: context,
     );
+
+    if (isOk) {
+      if (listembprint != null) {
+        for (var i = 0; i < listembprint.length; i++) {
+          RetornoBaseModel? retorno = await notasFiscaisService
+              .atualizaStatusEmbalagem(listembprint[i].id, 5);
+          if (retorno != null) {
+            if (!retorno.error!) {}
+          }
+        }
+      }
+    }
 
     await _getEmbalagemList(widget.IdPedidoRetiradaCarga);
   }

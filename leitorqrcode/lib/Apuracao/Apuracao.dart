@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'package:collection/collection.dart';
 import 'package:flutter_barcode_listener/flutter_barcode_listener.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 
@@ -12,6 +13,7 @@ import 'package:leitorqrcode/Apuracao/components/ModalForcaFinalizacao.dart';
 import 'package:leitorqrcode/Components/Bottom.dart';
 import 'package:leitorqrcode/Components/Constants.dart';
 import 'package:leitorqrcode/Components/DashedRect.dart';
+import 'package:leitorqrcode/Home/Home.dart';
 import 'package:leitorqrcode/Infrastructure/AtualizarDados/atualizaOp.dart';
 import 'package:leitorqrcode/Models/APIModels/Endereco.dart';
 import 'package:leitorqrcode/Models/APIModels/EnderecoGrupo.dart';
@@ -567,24 +569,26 @@ class _ApuracaoState extends State<Apuracao> {
         moviDB.qtd = (int.parse(moviDB.qtd!) - 1).toString();
 
         if (int.parse(moviDB.qtd!) <= 0)
-          await moviDB.deleteById(moviDB.id!);
+          await moviDB.deleteByIdOpIdProd(
+              moviDB.idOperacao!, moviDB.idProduto!);
         else {
           await moviDB.updatebyId();
         }
       } else {
-        await moviDB.deleteById(moviDB.id!);
+        await moviDB.deleteByIdOpIdProd(moviDB.idOperacao!, moviDB.idProduto!);
       }
     }
 
-    ProdutoModel itemList = listProd.firstWhere(
-        (e) =>
+    ProdutoModel? itemList = listProd
+        .where((e) =>
             e.idproduto == prod.idproduto &&
             e.idOperacao == prod.idOperacao &&
-            (e.isVirtual == "0" || e.isVirtual == null),
-        orElse: () => null as ProdutoModel);
+            (e.isVirtual == "0" || e.isVirtual == null))
+        .firstOrNull;
 
     if (itemList != null) {
       itemList.qtd = (int.parse(itemList.qtd!) + 1).toString();
+      itemList.end = prod.end ?? '';
       await itemList.update();
     } else {
       ProdutoModel newprod = ProdutoModel(
@@ -597,7 +601,7 @@ class _ApuracaoState extends State<Apuracao> {
           desc: prod.desc,
           idOperacao: prod.idOperacao,
           idloteunico: prod.idloteunico,
-          end: '',
+          end: prod.end ?? '',
           qtd: "1",
           idprodutoPedido: prod.idprodutoPedido,
           isVirtual: '0',
@@ -710,6 +714,9 @@ class _ApuracaoState extends State<Apuracao> {
   @override
   void initState() {
     listProd = widget.operacaoModel.prods!;
+
+    listProd.sortBy((prod) => prod.end ?? "-");
+
     var count = listProd.where((element) => element.situacao == "3").length;
     getIdUser();
     getContexto();
@@ -1241,7 +1248,13 @@ class _ApuracaoState extends State<Apuracao> {
                                 child: const Text('Não'),
                                 onPressed: () async {
                                   Navigator.pop(context);
-                                  Navigator.pop(context);
+                                  Navigator.pushAndRemoveUntil(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (BuildContext context) =>
+                                            HomeScreen(),
+                                      ),
+                                      ModalRoute.withName('/HomeScreen'));
                                 },
                               ),
                               TextButton(
