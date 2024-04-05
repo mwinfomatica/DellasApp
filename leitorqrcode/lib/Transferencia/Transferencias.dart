@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:leitorqrcode/Components/Bottom.dart';
 import 'package:leitorqrcode/Components/Constants.dart';
+import 'package:leitorqrcode/Home/Home.dart';
 import 'package:leitorqrcode/Models/APIModels/OperacaoModel.dart';
 import 'package:leitorqrcode/Models/APIModels/ProdutoModel.dart';
 import 'package:leitorqrcode/Models/retiradaprodModel.dart';
@@ -36,51 +37,66 @@ class _TransferenciasScreenState extends State<TransferenciasScreen> {
     );
 
     return SafeArea(
-      child: Scaffold(
-          body: Stack(
-            children: [
-              Column(
-                mainAxisSize: MainAxisSize.max,
-                children: [
-                  Container(
-                    height: MediaQuery.of(context).size.height * 0.2,
-                    color: primaryColor,
-                  ),
-                ],
-              ),
-              Padding(
-                padding: const EdgeInsets.all(30),
-                child: Row(
+      child: PopScope(
+        canPop: false,
+        onPopInvoked: (isPop) => {
+          if (!isPop)
+            {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(
+                  builder: (BuildContext context) => HomeScreen(),
+                ),
+                (route) => false,
+              )
+            }
+        },
+        child: Scaffold(
+            body: Stack(
+              children: [
+                Column(
+                  mainAxisSize: MainAxisSize.max,
                   children: [
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.pop(context);
-                      },
-                      child: Icon(
-                        Icons.arrow_back,
-                        color: Colors.white,
-                      ),
-                    ),
-                    SizedBox(
-                      width: 25,
-                    ),
-                    Text(
-                      "Transferências",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    Container(
+                      height: MediaQuery.of(context).size.height * 0.2,
+                      color: primaryColor,
                     ),
                   ],
                 ),
-              ),
-              MenuTransferencia(
-                op: op,
-              ),
-            ],
-          ),
-          bottomNavigationBar: BottomBar()),
+                Padding(
+                  padding: const EdgeInsets.all(30),
+                  child: Row(
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.pop(context);
+                        },
+                        child: Icon(
+                          Icons.arrow_back,
+                          color: Colors.white,
+                        ),
+                      ),
+                      SizedBox(
+                        width: 25,
+                      ),
+                      Text(
+                        "Transferências",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                MenuTransferencia(
+                  op: op,
+                ),
+              ],
+            ),
+            bottomNavigationBar: BottomBar()),
+      ),
     );
   }
 

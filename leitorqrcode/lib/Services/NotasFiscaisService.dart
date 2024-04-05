@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
@@ -130,7 +131,8 @@ class NotasFiscaisService {
     }
   }
 
-  Future<RetornoBaseModel?> atualizaStatusEmbalagem(String idEmbalagem, int status) async {
+  Future<RetornoBaseModel?> atualizaStatusEmbalagem(
+      String idEmbalagem, int status) async {
     try {
       final Response response = await getClient(context: context).post(
         Uri.parse(baseUrl + "/ApiCliente/AtualizaStatusEmbalagem"),
@@ -245,12 +247,38 @@ class NotasFiscaisService {
     }
   }
 
+  Future<Uint8List?> getEtiquetaPrinterEmbalagem() async {
+    try {
+      Uri uri = Uri(
+        scheme: 'http',
+        host: '192.168.1.16',
+        path: '/Dellas/ApiCliente/GetEtiquetaEmbalagem/',
+      );
+
+      final Response response = await getClient(context: context).get(
+        uri,
+        headers: {
+          'Content-type': 'application/json',
+        },
+      );
+      List<int> listIntRetorno = response.body.codeUnits;
+      Uint8List bytes = Uint8List.fromList(listIntRetorno);
+
+      return bytes;
+    } catch (ex) {
+      Dialogs.showToast(context,
+          "Ocorreu um erro em nossos servidores, tente novamente mais tarde.");
+      print(ex);
+      return null;
+    }
+  }
+
   Future<RetornoGetDadosEmbalagemListModel?> getDadosPrinterEmbalagem(
       List<String> idEmbalagem) async {
     try {
       Uri uri = Uri(
         scheme: 'http',
-        host: '3.224.148.218',
+        host: '192.168.1.16',
         path: '/Dellas/ApiCliente/GetDadosPrinterEmbalagem/',
         queryParameters: {
           'model': idEmbalagem.join(","),

@@ -40,15 +40,6 @@ class PrinterController {
         //Informações da Nota
         _printHeaderInfo(bluetooth: bluetooth, embalagem: emb);
 
-        // if (emb.listItens == null) {
-        //   emb.listItens = [];
-        // }
-        // _printHeaderItens(bluetooth);
-
-        // //Itens da Embalagem
-        // _printItemProd(
-        //     bluetooth: bluetooth, ListitemPedido: emb.listItens ?? []);
-
         int restante = nMaxLinhas - nLinhaAtual;
 
         if (i > 0) {
@@ -61,6 +52,17 @@ class PrinterController {
 
         _saltaEtiqueta(bluetooth, restante);
 
+        nLinhaAtual = 0;
+        nMaxLinhas -= 3;
+        if (emb.listItens == null) {
+          emb.listItens = [];
+        }
+        _printHeaderItens(bluetooth);
+        //Itens da Embalagem
+        _printItemProd(
+            bluetooth: bluetooth, ListitemPedido: emb.listItens ?? []);
+
+        nMaxLinhas += 3;
         countPrint++;
 
         if (countPrint == listemb.length) {
@@ -81,7 +83,7 @@ class PrinterController {
 
   _printLine(BlueThermalPrinter bluetooth) {
     bluetooth.printCustom("--------------------------------------------------",
-        3, PrinterHelper.escAlignCenter);
+        1, PrinterHelper.escAlignCenter);
     nLinhaAtual++;
   }
 
@@ -156,8 +158,9 @@ class PrinterController {
   }
 
   void _printHeaderItens(BlueThermalPrinter bluetooth) {
+    bluetooth.printCustom(
+        "ITENS DA EMBALAGEM", 1, PrinterHelper.escAlignCenter);
     _printLine(bluetooth);
-    bluetooth.printCustom("ITENS DA EMBALAGEM", 1, PrinterHelper.escAlignLeft);
     nLinhaAtual++;
   }
 
@@ -192,33 +195,34 @@ class PrinterController {
       name = cod + " - " + name;
 
       int len = name.length;
-      listDesc.add("--------------------------------------------------");
+      // listDesc.add("--------------------------------------------------");
       for (var e = 0; e < len; e += 50) {
         listDesc.add(
             name.substring(e, e + 50 < name.length ? e + 50 : name.length));
       }
-      listDesc.add("Qtd: " + ListitemPedido[i].qtd!.toString());
+      listDesc.add("Quantidade: " + ListitemPedido[i].qtd!.toString());
       listDesc.add("--------------------------------------------------");
     }
 
     //Imprime os Itens da Embalagem
     for (var a = 0; a < listDesc.length; a++) {
       if (nMaxLinhas < nLinhaAtual) {
-        _saltaEtiqueta(bluetooth, 3);
-        _printHeaderItens(bluetooth);
+        _saltaEtiqueta(bluetooth, 2);
         nLinhaAtual = 1;
-      } else {
-        nLinhaAtual++;
+        _printHeaderItens(bluetooth);
       }
+      nLinhaAtual++;
+
       bluetooth.printCustom(listDesc[a], 1, PrinterHelper.escAlignLeft);
     }
     _saltaEtiqueta(bluetooth,
         (nMaxLinhas - nLinhaAtual).isNegative ? 0 : (nMaxLinhas - nLinhaAtual));
   }
-}
 
-_saltaEtiqueta(BlueThermalPrinter bluetooth, int Restante) {
-  for (var i = 0; i <= Restante; i++) {
-    bluetooth.printNewLine();
+  _saltaEtiqueta(BlueThermalPrinter bluetooth, int Restante) {
+    for (var i = 0; i <= Restante; i++) {
+      bluetooth.printNewLine();
+    }
+    nLinhaAtual = 0;
   }
 }

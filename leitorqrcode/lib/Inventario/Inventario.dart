@@ -224,10 +224,6 @@ class _InventarioState extends State<Inventario> {
       await op!.update();
       op!.prods = await ProdutoModel().getByIdOperacao(op!.id!);
       listProd = op!.prods!;
-
-      // for (int i = 0; i < listProd.length; i++) {
-      //   animateListKey.currentState!.insertItem(i);
-      // }
     }
   }
 
