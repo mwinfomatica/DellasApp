@@ -201,6 +201,9 @@ class _LoginDemoState extends State<LoginDemo> {
     model.senha = controllerInputPass.text;
 
     if (model.login!.isNotEmpty && model.senha!.isNotEmpty) {
+
+      model.login = model.login!.trim();
+      model.senha = model.senha!.trim();
       RetornoLoginModel rtn = new RetornoLoginModel();
       await accountService.login(model).then((value) => {
             rtn = value,

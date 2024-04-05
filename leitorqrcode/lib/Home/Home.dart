@@ -143,7 +143,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
                 Padding(
-                  padding: const EdgeInsets.all(30),
+                  padding: const EdgeInsets.all(20),
                   child: ListTile(
                     title: Text.rich(
                       TextSpan(
@@ -167,12 +167,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Icon(
                         Icons.settings,
                         color: Colors.white,
+                        size: 40,
                       ),
                     ),
                   ),
                 ),
                 MenuHome(
-                  topPadding: (MediaQuery.of(context).size.height * 0.2) - 50,
+                  topPadding: (MediaQuery.of(context).size.height * 0.2) - 30,
                   bluetooth: bluetooth,
                 ),
                 // DraggableScrollableSheet(

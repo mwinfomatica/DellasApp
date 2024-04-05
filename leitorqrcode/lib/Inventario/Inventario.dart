@@ -112,7 +112,8 @@ class _InventarioState extends State<Inventario> {
       });
       flutterBlue.scanResults.listen((List<ScanResult> results) {
         for (ScanResult result in results) {
-          if (contextoModel.uuidDevice != null && contextoModel.uuidDevice!.isNotEmpty &&
+          if (contextoModel.uuidDevice != null &&
+              contextoModel.uuidDevice!.isNotEmpty &&
               result.device.id.id == contextoModel.uuidDevice) {
             device = result.device;
             scanner();
@@ -224,9 +225,9 @@ class _InventarioState extends State<Inventario> {
       op!.prods = await ProdutoModel().getByIdOperacao(op!.id!);
       listProd = op!.prods!;
 
-      for (int i = 0; i < listProd.length; i++) {
-        animateListKey.currentState!.insertItem(i);
-      }
+      // for (int i = 0; i < listProd.length; i++) {
+      //   animateListKey.currentState!.insertItem(i);
+      // }
     }
   }
 
@@ -305,7 +306,6 @@ class _InventarioState extends State<Inventario> {
           body: Column(
             mainAxisSize: MainAxisSize.max,
             crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
                 height: (MediaQuery.of(context).size.height * 0.05),
@@ -365,6 +365,7 @@ class _InventarioState extends State<Inventario> {
                     },
                     key: Key('visible-detector-key-inv'),
                     child: BarcodeKeyboardListener(
+                      useKeyDownEvent: false,
                       bufferDuration: Duration(milliseconds: 200),
                       onBarcodeScanned: (barcode) async {
                         print(barcode);
@@ -521,20 +522,199 @@ class _InventarioState extends State<Inventario> {
                             fontSize: 20, fontWeight: FontWeight.bold),
                       ),
               ),
-              Expanded(
-                child: AnimatedList(
-                  key: animateListKey,
-                  itemBuilder: (context, index, animation) {
-                    return ListItem(
-                      produto: listProd[index],
-                      ontap: () {
-                        _removeItem(listProd[index], index);
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.vertical,
+                  child: DataTable(
+                    headingRowColor: MaterialStateColor.resolveWith(
+                      (states) => Colors.grey,
+                    ),
+                    border: TableBorder.all(
+                      color: Colors.black,
+                    ),
+                    headingRowHeight: 40,
+                    dataRowHeight: 25,
+                    columnSpacing: 5,
+                    horizontalMargin: 10,
+                    columns: [
+                      DataColumn(
+                        label: Text(""),
+                      ),
+                      DataColumn(
+                        numeric: true,
+                        label: Text(
+                          "Qtd",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      DataColumn(
+                        label: Text(
+                          "Produto",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      DataColumn(
+                        label: Text(
+                          "Endereço",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      DataColumn(
+                        label: Text(
+                          "Sub Lote",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      DataColumn(
+                        numeric: true,
+                        label: Text(
+                          "Qtd",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      DataColumn(
+                        label: Text(
+                          "",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                    rows: List.generate(
+                      listProd.length,
+                      (index) {
+                        return DataRow(
+                          color: MaterialStateColor.resolveWith(
+                            (states) => index % 2 == 0
+                                ? Colors.white
+                                : Colors.grey[200]!,
+                          ),
+                          cells: [
+                            DataCell(
+                              Icon(
+                                Icons.check_box,
+                                color: Colors.green,
+                                size: 20,
+                              ),
+                            ),
+                            DataCell(
+                              Text(
+                                listProd[index].qtd == null
+                                    ? ""
+                                    : listProd[index].qtd!,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Text(
+                                listProd[index].nome == null &&
+                                        listProd[index].cod == null
+                                    ? ""
+                                    : listProd[index].cod == null &&
+                                            listProd[index].nome != null
+                                        ? listProd[index].nome!
+                                        : listProd[index].cod != null &&
+                                                listProd[index].nome == null
+                                            ? listProd[index].cod!
+                                            : listProd[index].cod!.trim() +
+                                                " - " +
+                                                listProd[index].nome!,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Text(
+                                listProd[index].end != null
+                                    ? listProd[index].end!
+                                    : "",
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Text(
+                                listProd[index].sl == null
+                                    ? ""
+                                    : listProd[index].sl!,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Text(
+                                listProd[index].qtd == null
+                                    ? ""
+                                    : listProd[index].qtd!,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Ink(
+                                child: InkWell(
+                                  child: Icon(
+                                    Icons.delete,
+                                    size: 20,
+                                    color: Colors.red,
+                                  ),
+                                  onTap: () async {
+                                    _removeItem(listProd[index], index);
+                                  },
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
                       },
-                      animation: animation,
-                    );
-                  },
+                    ),
+                  ),
                 ),
               ),
+
+              // Expanded(
+              //   child: AnimatedList(
+              //     key: animateListKey,
+              //     itemBuilder: (context, index, animation) {
+              //       return ListItem(
+              //         produto: listProd[index],
+              //         ontap: () {
+              //           _removeItem(listProd[index], index);
+              //         },
+              //         animation: animation,
+              //       );
+              //     },
+              //   ),
+              // ),
             ],
           ),
           bottomSheet: Row(
@@ -631,7 +811,6 @@ class _InventarioState extends State<Inventario> {
             onPressed: () async {
               await geraMoviProd(produto, prod, qtdeProdDialog.text);
               Navigator.pop(context);
-              
             },
             child: Text("Salvar"),
           ),
@@ -663,7 +842,7 @@ class _InventarioState extends State<Inventario> {
       movi.dataMovimentacao = dateSlug;
       await movi.insert();
 
-      animateListKey.currentState!.insertItem(0);
+      // animateListKey.currentState!.insertItem(0);
       prod.idproduto = prod.idproduto;
       prod.id = new Uuid().v4().toUpperCase();
       prod.idOperacao = op!.id;
@@ -709,13 +888,13 @@ class _InventarioState extends State<Inventario> {
     if (int.parse(produtoModel.qtd!) == 1) {
       produtoModel.delete(produtoModel.id!);
       op!.prods!.removeWhere((element) => element.id == produto.id);
-      animateListKey.currentState!.removeItem(
-        index,
-        (context, animation) => ListItem(
-          produto: produto,
-          animation: animation,
-        ),
-      );
+      // animateListKey.currentState!.removeItem(
+      //   index,
+      //   (context, animation) => ListItem(
+      //     produto: produto,
+      //     animation: animation,
+      //   ),
+      // );
     } else {
       ProdutoModel prodsop = new ProdutoModel();
       MovimentacaoModel movi = new MovimentacaoModel();
@@ -739,9 +918,10 @@ class _InventarioState extends State<Inventario> {
   Future<void> _readCodesinv(code) async {
     if (code == null || code == "") {
       FlutterBeep.beep(false);
-      Timer(Duration(seconds: 1), () {
+      setState(() {
         reading = false;
       });
+      
       Dialogs.showToast(context, "Nenhum código scaneado.",
           duration: Duration(seconds: 5), bgColor: Colors.red.shade200);
       return;

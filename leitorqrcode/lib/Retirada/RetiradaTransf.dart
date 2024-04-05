@@ -6,12 +6,10 @@ import 'package:flutter_blue/flutter_blue.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_beep/flutter_beep.dart';
-import 'package:http/http.dart';
 import 'package:leitorqrcode/ArmazenamentoTransferencia/armazenamentoTransf.dart';
 import 'package:leitorqrcode/Components/Bottom.dart';
 import 'package:leitorqrcode/Components/Constants.dart';
 import 'package:leitorqrcode/Components/DashedRect.dart';
-import 'package:leitorqrcode/Infrastructure/AtualizarDados/atualizaOp.dart';
 import 'package:leitorqrcode/Models/APIModels/Endereco.dart';
 import 'package:leitorqrcode/Models/ContextoModel.dart';
 import 'package:leitorqrcode/Models/armprodModel.dart';
@@ -875,7 +873,7 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     Container(
-                      width: 190,
+                      width: MediaQuery.of(context).size.width * 0.5,
                       // padding: EdgeInsets.fromLTRB(10, 0, 10, ),
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
@@ -909,14 +907,17 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
                         child: Center(
                           child: Text(
                             'Iniciar Armazenamento',
-                            style: TextStyle(color: Colors.white),
+                            style: TextStyle(
+                              color: Colors.white,
+                            ),
+                            textAlign: TextAlign.center,
                           ),
                         ),
                       ),
                     ),
                     if (hasAdress)
                       Container(
-                        width: 150,
+                        width: MediaQuery.of(context).size.width * 0.5,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
                               primary: primaryColor,

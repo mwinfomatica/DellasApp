@@ -20,6 +20,7 @@ import 'package:leitorqrcode/Models/pendenteArmazModel.dart';
 import 'package:leitorqrcode/Services/ContextoServices.dart';
 import 'package:leitorqrcode/Services/ProdutosDBService.dart';
 import 'package:leitorqrcode/Shared/Dialog.dart';
+import 'package:leitorqrcode/Transferencia/Transferencias.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
@@ -401,7 +402,7 @@ class _ArmazenamentoTransfState extends State<ArmazenamentoTransf> {
       widget.listPendente!.removeWhere((e) => e.id == item.id);
       await item.delete(item.id!);
     }
-    
+
     setState(() {});
 
     var Gitem = widget.listPendente!.where((element) =>
@@ -1050,16 +1051,26 @@ class _ArmazenamentoTransfState extends State<ArmazenamentoTransf> {
             children: [
               if (prodReadSuccessArm)
                 Container(
-                  width: 100,
+                  width: MediaQuery.of(context).size.width * 0.3,
                   child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                          primary: primaryColor,
-                          textStyle: const TextStyle(fontSize: 15)),
-                      onPressed: () async {
-                        await syncOp(context, true);
-                        Navigator.pop(context);
-                      },
-                      child: Text('Finalizar')),
+                    style: ElevatedButton.styleFrom(
+                        primary: primaryColor,
+                        textStyle: const TextStyle(fontSize: 15)),
+                    onPressed: () async {
+                      await syncOp(context, true);
+                      Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                            builder: (BuildContext context) =>
+                                TransferenciasScreen(),
+                          ),
+                          (route) => false);
+                    },
+                    child: Text(
+                      'Finalizar',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
                 ),
               if (hasAdressArm)
                 Container(
