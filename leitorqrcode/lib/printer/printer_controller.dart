@@ -3,6 +3,7 @@ import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoGetEmbalagemListModel.dart';
+import 'package:leitorqrcode/Services/NotasFiscaisService.dart';
 import 'package:leitorqrcode/Shared/Dialog.dart';
 import 'package:leitorqrcode/printer/printer_helper.dart';
 
@@ -62,7 +63,6 @@ class PrinterController {
         _printItemProd(
             bluetooth: bluetooth, ListitemPedido: emb.listItens ?? []);
 
-        nMaxLinhas += 3;
         countPrint++;
 
         if (countPrint == listemb.length) {
@@ -88,25 +88,22 @@ class PrinterController {
   }
 
   Future<void> PrintHeaderItensTeste(
-      {required BlueThermalPrinter bluetooth}) async {
+      {required BlueThermalPrinter bluetooth, BuildContext? context}) async {
     bool isConnected = await bluetooth.isConnected ?? false;
 
     if (isConnected) {
-      EmbalagemPrinter emb = EmbalagemPrinter(
-          id: 'DF785F1A-B2C8-439B-96E4-236ACEB16624', Embalagem: 'S');
-      String qrdata = json.encode(emb);
-      //NÃO USAR WIDTH E HEIGTH ACIMA DE 250
-      // for (var i = 235; i < 250; i++) {
-      // _printLine(bluetooth);
-      bluetooth.printCustom("249", 1, PrinterHelper.escAlignLeft);
-      bluetooth.printQRcode(qrdata, 249, 249, PrinterHelper.escAlignCenter);
-      _printLine(bluetooth);
-      _printLine(bluetooth);
-      bluetooth.printCustom("248", 1, PrinterHelper.escAlignLeft);
-      bluetooth.printQRcode(qrdata, 248, 248, PrinterHelper.escAlignCenter);
-      _printLine(bluetooth);
-      _printLine(bluetooth);
-      // }
+      Uint8List? bytes =
+          await new NotasFiscaisService(context!).getEtiquetaPrinterEmbalagem();
+
+      if (bytes != null) {
+        // salvarImagemFile(bytes);
+        // List<int> image = await getimage();
+
+        // Directory temp = await getApplicationDocumentsDirectory();
+
+        // Directory DicImg = Directory(temp.path + "/Etiqueta/");
+        await bluetooth.printImageBytes(bytes);
+      }
     }
   }
 
@@ -215,6 +212,8 @@ class PrinterController {
 
       bluetooth.printCustom(listDesc[a], 1, PrinterHelper.escAlignLeft);
     }
+
+    nMaxLinhas += 3;
     _saltaEtiqueta(bluetooth,
         (nMaxLinhas - nLinhaAtual).isNegative ? 0 : (nMaxLinhas - nLinhaAtual));
   }
