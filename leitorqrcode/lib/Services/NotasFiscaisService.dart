@@ -251,7 +251,7 @@ class NotasFiscaisService {
     try {
       Uri uri = Uri(
         scheme: 'http',
-        host: '192.168.1.16',
+        host: '3.224.148.218',
         path: '/Dellas/ApiCliente/GetEtiquetaEmbalagem/',
       );
 
@@ -261,8 +261,8 @@ class NotasFiscaisService {
           'Content-type': 'application/json',
         },
       );
-      List<int> listIntRetorno = response.body.codeUnits;
-      Uint8List bytes = Uint8List.fromList(listIntRetorno);
+      Uint8List bytes = response.bodyBytes;
+      //  Uint8List.fromList(listIntRetorno);
 
       return bytes;
     } catch (ex) {
@@ -278,7 +278,7 @@ class NotasFiscaisService {
     try {
       Uri uri = Uri(
         scheme: 'http',
-        host: '192.168.1.16',
+        host: '3.224.148.218',
         path: '/Dellas/ApiCliente/GetDadosPrinterEmbalagem/',
         queryParameters: {
           'model': idEmbalagem.join(","),
