@@ -6,6 +6,7 @@ import 'package:leitorqrcode/Home/Home.dart';
 import 'package:leitorqrcode/Home/components/Button.dart';
 import 'package:leitorqrcode/Infrastructure/AtualizarDados/atualizaOp.dart';
 import 'package:leitorqrcode/Inventario/Inventario.dart';
+import 'package:leitorqrcode/Inventario/Inventario_2.dart';
 import 'package:leitorqrcode/Models/APIModels/OperacaoModel.dart';
 import 'package:leitorqrcode/Models/APIModels/ProdutoModel.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoGetEmbalagemListModel.dart';
@@ -82,11 +83,12 @@ class MenuHome extends StatelessWidget {
                 descricao: "Contagem de produtos \n no inventário",
                 icone: Icons.inventory_outlined,
                 onTap: () {
-                  Navigator.push(
+                  Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(
-                      builder: (BuildContext context) => Inventario(),
+                      builder: (BuildContext context) => Inventario2(),
                     ),
+                    (route) => true,
                   );
                 },
               ),
@@ -230,7 +232,6 @@ class MenuHome extends StatelessWidget {
           //     ),
           //   ],
           // ),
-        
         ],
       ),
     );

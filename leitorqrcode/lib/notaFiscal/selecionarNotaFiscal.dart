@@ -43,18 +43,18 @@ class _SelecionarNotaFiscalState extends State<SelecionarNotaFiscal> {
     return SafeArea(
       child: PopScope(
         canPop: false,
-        onPopInvoked: (isPop) => {
-          if (!isPop)
-            {
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(
-                  builder: (BuildContext context) => HomeScreen(),
-                ),
-                (route) => false,
-              )
-            }
-        },
+        // onPopInvoked: (isPop) => {
+        //   if (!isPop)
+        //     {
+        //       Navigator.pushAndRemoveUntil(
+        //         context,
+        //         MaterialPageRoute(
+        //           builder: (BuildContext context) => HomeScreen(),
+        //         ),
+        //         (route) => false,
+        //       )
+        //     }
+        // },
         child: Scaffold(
           appBar: AppBar(
             centerTitle: true,

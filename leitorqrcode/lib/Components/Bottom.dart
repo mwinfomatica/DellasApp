@@ -4,9 +4,7 @@ class BottomBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-      
-      ),
+      decoration: BoxDecoration(),
       width: double.infinity,
       height: 50,
       child: Padding(
@@ -17,6 +15,13 @@ class BottomBar extends StatelessWidget {
             Image.asset(
               "assets/img/logo-p2p.png",
               height: 25,
+            ),
+            Padding(
+              padding: const EdgeInsets.all(1.0),
+              child: Text(
+                "Version 1.0.0",
+                style: TextStyle(color: Colors.black, fontSize: 10),
+              ),
             ),
             Image.asset(
               "assets/img/logo-mw.png",

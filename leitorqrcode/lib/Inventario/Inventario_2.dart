@@ -53,7 +53,7 @@ class _Inventario2State extends State<Inventario2> {
   final animateListKey = GlobalKey<AnimatedListState>();
   final qtdeProdDialog = TextEditingController();
   final GlobalKey qrAKey = GlobalKey(debugLabel: 'QR');
-  late QRViewController controller;
+  QRViewController? controller;
   Timer? temp;
   bool bluetoothDisconect = true;
 
@@ -108,10 +108,12 @@ class _Inventario2State extends State<Inventario2> {
   final FlutterBlue flutterBlue = FlutterBlue.instance;
   late BluetoothDevice device;
   late BluetoothCharacteristic cNotify4;
-  late StreamSubscription<List<int>> sub4;
+  StreamSubscription<List<int>>? sub4;
   bool isExternalDeviceEnabled = false;
   bool isCollectModeEnabled = false;
   bool isCameraEnabled = false;
+
+  FocusNode focusDropDown = FocusNode();
 
   Future<void> getContexto() async {
     contextoModel = await contextoServices.getContexto();
@@ -182,7 +184,7 @@ class _Inventario2State extends State<Inventario2> {
       List<BluetoothService> _services = await device.discoverServices();
 
       if (cNotify4 != null) {
-        await sub4.cancel();
+        await sub4!.cancel();
       }
       for (BluetoothService service in _services) {
         for (BluetoothCharacteristic characteristic
@@ -217,7 +219,7 @@ class _Inventario2State extends State<Inventario2> {
     }
 
     temp = Timer.periodic(Duration(milliseconds: 500), (timer) {
-     _readCodes(texto);
+      _readCodesInv(texto);
       timer.cancel();
     });
   }
@@ -227,7 +229,7 @@ class _Inventario2State extends State<Inventario2> {
       this.controller = controller;
     });
     controller.scannedDataStream.listen((scanData) async {
-     _readCodes(scanData.code!);
+      _readCodesInv(scanData.code!);
     });
   }
 
@@ -261,10 +263,10 @@ class _Inventario2State extends State<Inventario2> {
   @override
   void dispose() {
     if (sub4 != null) {
-      sub4.cancel();
+      sub4!.cancel();
       // device.disconnect();
     }
-    controller.dispose();
+    if (controller != null) controller!.dispose();
     super.dispose();
   }
 
@@ -284,17 +286,27 @@ class _Inventario2State extends State<Inventario2> {
     super.reassemble();
     if (controller != null) {
       if (Platform.isAndroid) {
-        controller.pauseCamera();
+        if (controller != null) controller!.pauseCamera();
       }
-      controller.resumeCamera();
+      if (controller != null) controller!.resumeCamera();
     }
   }
 
-  void _readCodes(String code) async {
+  void _readCodesInv(String code) async {
     textExterno = "";
     if (temp != null) {
       temp!.cancel();
       temp = null;
+    }
+    if (code == null || code == "") {
+      FlutterBeep.beep(false);
+      setState(() {
+        reading = false;
+      });
+
+      Dialogs.showToast(context, "Nenhum código scaneado.",
+          duration: Duration(seconds: 5), bgColor: Colors.red.shade200);
+      return;
     }
 
     try {
@@ -337,9 +349,9 @@ class _Inventario2State extends State<Inventario2> {
 
             if (isOK) {
               qtdeProdDialog.text = "";
-              showDialogQtd = true;
               showDialog(
                 context: context,
+                useSafeArea: true,
                 barrierDismissible: false,
                 builder: (_) => AlertDialog(
                   title: Text(
@@ -367,7 +379,8 @@ class _Inventario2State extends State<Inventario2> {
                     TextButton(
                       child: Text("Salvar"),
                       onPressed: () async {
-                         await geraMoviProd(produto, prodRead, qtdeProdDialog.text);
+                        await geraMoviProd(
+                            produto, prodRead, qtdeProdDialog.text);
                         Navigator.pop(context);
                       },
                     ),
@@ -407,12 +420,12 @@ class _Inventario2State extends State<Inventario2> {
             }
           }
         }
-        Timer(Duration(seconds: 2), () {
+        Timer(Duration(milliseconds: 200), () {
           reading = false;
         });
       }
     } catch (ex) {
-      Timer(Duration(milliseconds: 500), () {
+      Timer(Duration(milliseconds: 200), () {
         reading = false;
       });
       FlutterBeep.beep(false);
@@ -493,12 +506,23 @@ class _Inventario2State extends State<Inventario2> {
                 children: [
                   DropdownButton<String>(
                     iconSize: 40,
+                    onTap: () {
+                      if (op!.prods != null && op!.prods!.length > 0) {
+                        Navigator.pop(context);
+                        return;
+                      }
+                    },
                     alignment: Alignment.center,
+                    focusNode: focusDropDown,
+                    enableFeedback: op!.prods != null && op!.prods!.length > 0
+                        ? false
+                        : true,
                     isExpanded:
                         true, // Adicione esta linha para garantir que o DropdownButton se expanda para preencher o Container.
                     value: nroContagem,
                     onChanged: (String? Value) {
                       setState(() {
+                        focusDropDown.canRequestFocus = false;
                         nroContagem = Value ?? "01";
                       });
                     },
@@ -507,6 +531,9 @@ class _Inventario2State extends State<Inventario2> {
                       return DropdownMenuItem<String>(
                         alignment: Alignment.center,
                         value: value,
+                        enabled: op!.prods != null && op!.prods!.length > 0
+                            ? false
+                            : true,
                         child: Text(
                           value!,
                           style: TextStyle(fontSize: 35),
@@ -523,10 +550,10 @@ class _Inventario2State extends State<Inventario2> {
                         },
                         key: Key('visible-detector-key-inv'),
                         child: BarcodeKeyboardListener(
-                          bufferDuration: Duration(milliseconds: 50),
+                          bufferDuration: Duration(milliseconds: 200),
                           onBarcodeScanned: (barcode) async {
                             print(barcode);
-                            _readCodes(barcode);
+                            _readCodesInv(barcode);
                           },
                           child: Text(""),
                         ),
@@ -539,7 +566,7 @@ class _Inventario2State extends State<Inventario2> {
                             child: TextField(
                               autofocus: true,
                               onSubmitted: (value) async {
-                               _readCodes(value);
+                                _readCodesInv(value);
                                 setState(() {
                                   isManual = false;
                                 });
@@ -867,23 +894,18 @@ class _Inventario2State extends State<Inventario2> {
                                     ),
                                   ),
                                 ),
-                                DataCell(
-                                  listProd[index].situacao == "3" &&
-                                          !prodReadSuccess
-                                      ? Ink(
-                                          child: InkWell(
-                                            child: Icon(
-                                              Icons.delete,
-                                              size: 30,
-                                              color: Colors.red,
-                                            ),
-                                            onTap: () async => {
-                                              // await removeItem(listProd[index])
-                                            },
-                                          ),
-                                        )
-                                      : Text(""),
-                                ),
+                                DataCell(Ink(
+                                  child: InkWell(
+                                    child: Icon(
+                                      Icons.delete,
+                                      size: 30,
+                                      color: Colors.red,
+                                    ),
+                                    onTap: () async => {
+                                      _removeItem(listProd[index], index),
+                                    },
+                                  ),
+                                )),
                               ],
                             );
                           },
@@ -897,70 +919,26 @@ class _Inventario2State extends State<Inventario2> {
             bottomSheet: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                if (prodReadSuccess)
-                  Container(
-                    width: MediaQuery.of(context).size.width * 0.5,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                          primary: primaryColor,
-                          textStyle: const TextStyle(fontSize: 15)),
-                      onPressed: () async {
-                        await syncOp(context, false);
-
-                        // if (widget.operacaoModel.tipo == "72") {
-                        //   showDialog(
-                        //     context: context,
-                        //     barrierDismissible: false,
-                        //     builder: (_) => AlertDialog(
-                        //       title: Text(
-                        //         "Atenção",
-                        //         style: TextStyle(fontWeight: FontWeight.w500),
-                        //       ),
-                        //       content: Text("Deseja criar embalagem?"),
-                        //       actions: [
-                        //         TextButton(
-                        //           child: const Text('Não'),
-                        //           onPressed: () async {
-                        //             Navigator.pop(context);
-                        //             Navigator.pushAndRemoveUntil(
-                        //                 context,
-                        //                 MaterialPageRoute(
-                        //                   builder: (BuildContext context) =>
-                        //                       HomeScreen(),
-                        //                 ),
-                        //                 ModalRoute.withName('/HomeScreen'));
-                        //           },
-                        //         ),
-                        //         TextButton(
-                        //           child: Text("Sim"),
-                        //           onPressed: () async {
-                        //             Navigator.pop(context);
-                        //             Navigator.pushAndRemoveUntil(
-                        //                 context,
-                        //                 MaterialPageRoute(
-                        //                   builder: (BuildContext context) =>
-                        //                       SelecionarNotaFiscal(
-                        //                           idPedido:
-                        //                               widget.operacaoModel.id!),
-                        //                 ),
-                        //                 ModalRoute.withName('/HomeScreen'));
-                        //           },
-                        //         ),
-                        //       ],
-                        //       elevation: 24.0,
-                        //     ),
-                        //   );
-                        // } else
-                        Navigator.pop(context);
-                      },
-                      child: Text(
-                        'Finalizar',
-                        style: TextStyle(
-                          color: Colors.white,
-                        ),
+                Container(
+                  width: MediaQuery.of(context).size.width * 0.5,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                        primary: primaryColor,
+                        textStyle: const TextStyle(fontSize: 20)),
+                    onPressed: () async {
+                      op!.situacao = "3";
+                      await op!.update();
+                      await syncOp(context, false);
+                      Navigator.pop(context);
+                    },
+                    child: Text(
+                      'Finalizar',
+                      style: TextStyle(
+                        color: Colors.white,
                       ),
                     ),
                   ),
+                ),
                 if (hasAdress)
                   Container(
                     width: MediaQuery.of(context).size.width * 0.5,
@@ -1007,15 +985,15 @@ class _Inventario2State extends State<Inventario2> {
           "${today.day.toString().padLeft(2, '0')}/${today.month.toString().padLeft(2, '0')}/${today.year.toString()} ${today.hour}:${today.minute}:${today.second}";
       movi.dataMovimentacao = dateSlug;
       await movi.insert();
-
       // animateListKey.currentState!.insertItem(0);
       prod.idproduto = prod.idproduto;
       prod.id = new Uuid().v4().toUpperCase();
       prod.idOperacao = op!.id;
       prod.qtd = qtd;
-      listProd.add(prod);
+      // listProd.add(prod);
       op!.prods!.add(prod);
       await prod.insert();
+      setState(() {});
     } else {
       ProdutoModel? prodsop = new ProdutoModel();
       List<MovimentacaoModel> listmovi = [];
@@ -1054,6 +1032,7 @@ class _Inventario2State extends State<Inventario2> {
     if (int.parse(produtoModel.qtd!) == 1) {
       produtoModel.delete(produtoModel.id!);
       op!.prods!.removeWhere((element) => element.id == produto.id);
+      setState(() {});
     } else {
       ProdutoModel prodsop = new ProdutoModel();
       MovimentacaoModel movi = new MovimentacaoModel();

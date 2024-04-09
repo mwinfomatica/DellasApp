@@ -126,7 +126,7 @@ class _SelecionarEmbalagemState extends State<SelecionarEmbalagem> {
                     idPedido: widget.IdPedidoRetiradaCarga,
                   ),
                 ),
-                (route) => false,
+                (route) => true,
               )
             }
         },
@@ -320,7 +320,7 @@ class _SelecionarEmbalagemState extends State<SelecionarEmbalagem> {
                   pedido: widget.nfeDados,
                   IdPedidoRetiradaCarga: widget.IdPedidoRetiradaCarga),
             ),
-            (route) => false,
+            (route) => true,
           );
         } else {
           Dialogs.showToast(context,
@@ -535,7 +535,7 @@ class _SelecionarEmbalagemState extends State<SelecionarEmbalagem> {
                 pedido: widget.nfeDados,
                 IdPedidoRetiradaCarga: widget.IdPedidoRetiradaCarga),
           ),
-          (route) => false,
+          (route) => true,
         );
       }
     }

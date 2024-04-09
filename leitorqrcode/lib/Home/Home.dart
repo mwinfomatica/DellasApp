@@ -31,7 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-   Future<void> _initValidationPrinter() async {
+  Future<void> _initValidationPrinter() async {
     List<BluetoothDevice> devices = [];
 
     try {
@@ -77,7 +77,6 @@ class _HomeScreenState extends State<HomeScreen> {
       });
     }
   }
-
 
   @override
   void initState() {

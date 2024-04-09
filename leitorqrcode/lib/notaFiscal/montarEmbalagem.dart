@@ -381,18 +381,18 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
       child: PopScope(
         canPop: false,
         onPopInvoked: (ispop) {
-          if (!ispop) {
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(
-                builder: (BuildContext context) => SelecionarEmbalagem(
-                    nfeDados: widget.pedido,
-                    dadosEmbalagem: dadosNotaFiscal!.data,
-                    IdPedidoRetiradaCarga: widget.IdPedidoRetiradaCarga),
-              ),
-              (route) => false,
-            );
-          }
+          // if (!ispop) {
+          //   Navigator.pushAndRemoveUntil(
+          //     context,
+          //     MaterialPageRoute(
+          //       builder: (BuildContext context) => SelecionarEmbalagem(
+          //           nfeDados: widget.pedido,
+          //           dadosEmbalagem: dadosNotaFiscal!.data,
+          //           IdPedidoRetiradaCarga: widget.IdPedidoRetiradaCarga),
+          //     ),
+          //     (route) => false,
+          //   );
+          // }
         },
         child: Scaffold(
             appBar: AppBar(
@@ -879,7 +879,7 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
                                       IdPedidoRetiradaCarga:
                                           widget.IdPedidoRetiradaCarga),
                             ),
-                            (route) => false,
+                            (route) => true,
                           );
                         },
                       ),
@@ -1149,7 +1149,7 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
                   dadosEmbalagem: dadosNotaFiscal!.data,
                   IdPedidoRetiradaCarga: widget.IdPedidoRetiradaCarga),
             ),
-            (route) => false);
+            (route) => true);
       } else {
         Dialogs.showToast(
             context,

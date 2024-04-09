@@ -1064,7 +1064,7 @@ class _ArmazenamentoTransfState extends State<ArmazenamentoTransf> {
                             builder: (BuildContext context) =>
                                 TransferenciasScreen(),
                           ),
-                          (route) => false);
+                          (route) => true);
                     },
                     child: Text(
                       'Finalizar',
