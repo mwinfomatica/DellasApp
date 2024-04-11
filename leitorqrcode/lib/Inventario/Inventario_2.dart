@@ -14,6 +14,7 @@ import 'package:leitorqrcode/Components/Constants.dart';
 import 'package:leitorqrcode/Components/DashedRect.dart';
 import 'package:leitorqrcode/Home/Home.dart';
 import 'package:leitorqrcode/Infrastructure/AtualizarDados/atualizaOp.dart';
+import 'package:leitorqrcode/Inventario/components/info_qtde.dart';
 import 'package:leitorqrcode/Models/APIModels/Endereco.dart';
 import 'package:leitorqrcode/Models/APIModels/MovimentacaoMOdel.dart';
 import 'package:leitorqrcode/Models/APIModels/OperacaoModel.dart';
@@ -25,13 +26,16 @@ import 'package:leitorqrcode/Shared/Dialog.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
-import 'package:visibility_detector/visibility_detector.dart';
 
 class Inventario2 extends StatefulWidget {
   const Inventario2({
     Key? key,
+    this.op,
+    this.end,
   }) : super(key: key);
 
+  final OperacaoModel? op;
+  final String? end;
   @override
   State<Inventario2> createState() => _Inventario2State();
 }
@@ -113,6 +117,7 @@ class _Inventario2State extends State<Inventario2> {
   bool isCollectModeEnabled = false;
   bool isCameraEnabled = false;
 
+  bool focodialog = false;
   FocusNode focusDropDown = FocusNode();
 
   Future<void> getContexto() async {
@@ -258,6 +263,8 @@ class _Inventario2State extends State<Inventario2> {
       op!.prods = await ProdutoModel().getByIdOperacao(op!.id!);
       listProd = op!.prods!;
     }
+
+    setState(() {});
   }
 
   @override
@@ -275,8 +282,17 @@ class _Inventario2State extends State<Inventario2> {
     getIdUser();
     getContexto();
     _loadPreferences();
-    createEditOP();
 
+    if (widget.op != null) {
+      op = widget.op;
+      listProd = op!.prods ?? [];
+
+      endRead = widget.end ?? "";
+      hasAdress = true;
+      setState(() {});
+    } else {
+      createEditOP();
+    }
     titleBtn = "Iniciar Inventário";
     super.initState();
   }
@@ -349,45 +365,26 @@ class _Inventario2State extends State<Inventario2> {
 
             if (isOK) {
               qtdeProdDialog.text = "";
-              showDialog(
-                context: context,
-                useSafeArea: true,
-                barrierDismissible: false,
-                builder: (_) => AlertDialog(
-                  title: Text(
-                    "Informe a quantidade do produto scaneado",
-                    style: TextStyle(fontWeight: FontWeight.w500),
-                  ),
-                  content: TextField(
-                    controller: qtdeProdDialog,
-                    keyboardType: TextInputType.number,
-                    autofocus: true,
-                    decoration: InputDecoration(
-                        border: OutlineInputBorder(),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: primaryColor),
-                        ),
-                        labelText: 'Qtde'),
-                  ),
-                  actions: [
-                    TextButton(
-                      child: const Text('Cancelar'),
-                      onPressed: () async {
-                        Navigator.pop(context);
-                      },
+
+              Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                    builder: (BuildContext context) => infoQtd(
+                      qtdeProdDialog: qtdeProdDialog,
+                      endRead: endRead,
+                      idOperador: idOperador,
+                      listProd: listProd,
+                      nroContagem: nroContagem,
+                      op: op!,
+                      prodRead: prodRead,
+                      produto: produto,
                     ),
-                    TextButton(
-                      child: Text("Salvar"),
-                      onPressed: () async {
-                        await geraMoviProd(
-                            produto, prodRead, qtdeProdDialog.text);
-                        Navigator.pop(context);
-                      },
-                    ),
-                  ],
-                  elevation: 24.0,
-                ),
-              );
+                  ),
+                  (route) => false);
+              // await geraMoviProd(produto, prodRead, qtdeProdDialog.text);
+              // setState(() {
+              //   focodialog = false;
+              // });
             }
           } else {
             FlutterBeep.beep(false);
@@ -433,6 +430,50 @@ class _Inventario2State extends State<Inventario2> {
           "Código não reconhecido \n favor realizar a leitura novamente",
           duration: Duration(seconds: 5), bgColor: Colors.red.shade200);
     }
+  }
+
+  modalQtde(ProdutoModel? produto, ProdutoModel prod, String qtd) async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            "Informe a quantidade do produto scaneado",
+            style: TextStyle(fontWeight: FontWeight.w500),
+          ),
+          content: TextField(
+            controller: qtdeProdDialog,
+            keyboardType: TextInputType.number,
+            autofocus: focodialog,
+            decoration: InputDecoration(
+                border: OutlineInputBorder(),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: primaryColor),
+                ),
+                labelText: 'Qtde'),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancelar'),
+              onPressed: () async {
+                Navigator.pop(context);
+              },
+            ),
+            TextButton(
+              child: Text("Salvar"),
+              onPressed: () async {
+                await geraMoviProd(produto, prod, qtdeProdDialog.text);
+                setState(() {
+                  focodialog = false;
+                });
+                Navigator.pop(context);
+              },
+            ),
+          ],
+          elevation: 24.0,
+        );
+      },
+    );
   }
 
   @override
@@ -544,18 +585,14 @@ class _Inventario2State extends State<Inventario2> {
                   if (isCollectModeEnabled)
                     Offstage(
                       offstage: true,
-                      child: VisibilityDetector(
-                        onVisibilityChanged: (VisibilityInfo info) {
-                          visible = info.visibleFraction > 0;
+                      child: BarcodeKeyboardListener(
+                        onBarcodeScanned: (barcode) async {
+                          print(barcode);
+                          _readCodesInv(barcode);
                         },
-                        key: Key('visible-detector-key-inv'),
-                        child: BarcodeKeyboardListener(
-                          bufferDuration: Duration(milliseconds: 200),
-                          onBarcodeScanned: (barcode) async {
-                            print(barcode);
-                            _readCodesInv(barcode);
-                          },
-                          child: Text(""),
+                        child: TextField(
+                          autofocus: true,
+                          keyboardType: TextInputType.none,
                         ),
                       ),
                     ),
@@ -929,7 +966,13 @@ class _Inventario2State extends State<Inventario2> {
                       op!.situacao = "3";
                       await op!.update();
                       await syncOp(context, false);
-                      Navigator.pop(context);
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                          builder: (BuildContext context) => HomeScreen(),
+                        ),
+                        (route) => false,
+                      );
                     },
                     child: Text(
                       'Finalizar',
@@ -990,8 +1033,8 @@ class _Inventario2State extends State<Inventario2> {
       prod.id = new Uuid().v4().toUpperCase();
       prod.idOperacao = op!.id;
       prod.qtd = qtd;
-      // listProd.add(prod);
-      op!.prods!.add(prod);
+      listProd.add(prod);
+      op!.prods = listProd;
       await prod.insert();
       setState(() {});
     } else {

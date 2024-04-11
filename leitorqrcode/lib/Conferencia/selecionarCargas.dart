@@ -4,6 +4,7 @@ import 'package:leitorqrcode/Components/Constants.dart';
 import 'package:leitorqrcode/Conferencia/components/button_conferencia.dart';
 import 'package:leitorqrcode/Conferencia/selecionarNF.dart';
 import 'package:leitorqrcode/Conferencia/components/select_card_carga.dart';
+import 'package:leitorqrcode/Home/Home.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoCargaModel.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoPedidoCargaModel.dart';
 import 'package:leitorqrcode/Services/CargasService.dart';
@@ -29,28 +30,6 @@ class _SelecionarCargasState extends State<SelecionarCargas> {
 
   int? selectedCardIndex;
 
-  // Método para simular os dados retornados pelo endpoint
-  // RetornoCargaModel getSimulatedData() {
-  //   return RetornoCargaModel(
-  //     error: false,
-  //     message: "sucesso",
-  //     data: [
-  //       Pedido(
-  //         idPedido: "7c3abf25-0984-4c3a-a2d8-b63c7aa9b397-1",
-  //         carga: "091074",
-  //       ),
-  //       Pedido(
-  //         idPedido: "7c3abf25-0984-4c3a-a2d8-b63c7aa9b397-2",
-  //         carga: "091075",
-  //       ),
-  //       Pedido(
-  //         idPedido: "7c3abf25-0984-4c3a-a2d8-b63c7aa9b397-3",
-  //         carga: "091076",
-  //       ),
-  //     ],
-  //   );
-  // }
-
   @override
   void initState() {
     super.initState();
@@ -69,92 +48,108 @@ class _SelecionarCargasState extends State<SelecionarCargas> {
     // Obtém os dados simulados
     // RetornoCargaModel dadosSimulados = getSimulatedData();
 
-    return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        automaticallyImplyLeading: false,
-        backgroundColor: primaryColor,
-        title: Text(
-          'Selecione as Cargas',
-          style: TextStyle(color: Colors.white),
-        ),
-      ),
-      body: SizedBox(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: SizedBox(
-                width: MediaQuery.of(context).size.width,
-                height: 80,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    GestureDetector(
-                      onTap: () async => await showDialogConfir(context),
-                      child: Icon(
-                        Icons.refresh,
-                        size: 55,
-                      ),
+    return SafeArea(
+      child: PopScope(
+        canPop: false,
+        onPopInvoked: (isPop) {
+          if (!isPop) {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                builder: (BuildContext context) => HomeScreen(),
+              ),
+              (route) => false,
+            );
+          }
+        },
+        child: Scaffold(
+          appBar: AppBar(
+            centerTitle: true,
+            automaticallyImplyLeading: false,
+            backgroundColor: primaryColor,
+            title: Text(
+              'Selecione as Cargas',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+          body: SizedBox(
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: SizedBox(
+                    width: MediaQuery.of(context).size.width,
+                    height: 80,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        GestureDetector(
+                          onTap: () async => await showDialogConfir(context),
+                          child: Icon(
+                            Icons.refresh,
+                            size: 55,
+                          ),
+                        ),
+                        SizedBox(
+                          width: MediaQuery.of(context).size.width * 0.7,
+                          child: TextField(
+                            controller: nroCargaController,
+                            keyboardType: TextInputType.number,
+                            decoration: InputDecoration(
+                                border: OutlineInputBorder(),
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(color: primaryColor),
+                                ),
+                                suffixIcon: Icon(Icons.search),
+                                labelText: 'Nro Carga'),
+                          ),
+                        ),
+                      ],
                     ),
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width * 0.7,
-                      child: TextField(
-                        controller: nroCargaController,
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                            border: OutlineInputBorder(),
-                            focusedBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: primaryColor),
-                            ),
-                            suffixIcon: Icon(Icons.search),
-                            labelText: 'Nro Carga'),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: retornoCargaModel?.data?.length ?? 0,
-                itemBuilder: (context, index) {
-                  var carga = retornoCargaModel!.data![index];
-                  return SelectCardCarga(
-                    carga: carga,
-                    isSelected: selecionados
-                        .any((selected) => selected.carga == carga.carga),
-                    onCheckboxChanged: (bool? value) {
-                      setState(() {
-                        if (value == true) {
-                          selecionados.add(retornoCargaModel!.data![index]);
-                        } else {
-                          selecionados.removeWhere((item) =>
-                              item.carga ==
-                              retornoCargaModel!.data![index].carga);
-                        }
-                      });
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: retornoCargaModel?.data?.length ?? 0,
+                    itemBuilder: (context, index) {
+                      var carga = retornoCargaModel!.data![index];
+                      return SelectCardCarga(
+                        carga: carga,
+                        isSelected: selecionados
+                            .any((selected) => selected.carga == carga.carga),
+                        onCheckboxChanged: (bool? value) {
+                          setState(() {
+                            if (value == true) {
+                              selecionados.add(retornoCargaModel!.data![index]);
+                            } else {
+                              selecionados.removeWhere((item) =>
+                                  item.carga ==
+                                  retornoCargaModel!.data![index].carga);
+                            }
+                          });
+                        },
+                      );
                     },
-                  );
-                },
-              ),
+                  ),
+                ),
+                ButtonConference(
+                  titulo: 'Listar NFs da Carga',
+                  onPressed: () async => {
+                    if (selecionados.length > 0)
+                      {
+                        await enviarCargasSelecionadas(),
+                      }
+                  },
+                  backcolors: selecionados.length == 0
+                      ? [Colors.grey, const Color.fromARGB(255, 66, 66, 66)]
+                      : null,
+                ),
+              ],
             ),
-            ButtonConference(
-              titulo: 'Listar NFs da Carga',
-              onPressed: () async => {
-                if (selecionados.length > 0)
-                  {
-                    await enviarCargasSelecionadas(),
-                  }
-              },
-              backcolors: selecionados.length == 0
-                  ? [Colors.grey, const Color.fromARGB(255, 66, 66, 66)]
-                  : null,
-            ),
-          ],
+          ),
+          bottomNavigationBar: BottomBar(),
         ),
       ),
-      bottomNavigationBar: BottomBar(),
     );
   }
 

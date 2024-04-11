@@ -21,6 +21,7 @@ import 'package:leitorqrcode/Services/NotasFiscaisService.dart';
 import 'package:leitorqrcode/Services/ProdutosDBService.dart';
 import 'package:leitorqrcode/Shared/Dialog.dart';
 import 'package:leitorqrcode/notaFiscal/components/IniciarMontagem.dart';
+import 'package:leitorqrcode/notaFiscal/components/info_qtde_emb.dart';
 import 'package:leitorqrcode/notaFiscal/selecionarEmbalagem.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -32,6 +33,7 @@ class MontarEmbalagem extends StatefulWidget {
   final String? idEmbalagem;
   final Pedido pedido;
   final String IdPedidoRetiradaCarga;
+  final List<ItensEmbalagem>? listrtn;
   const MontarEmbalagem({
     Key? key,
     required this.dadosCreateEmbalagem,
@@ -39,6 +41,7 @@ class MontarEmbalagem extends StatefulWidget {
     this.idEmbalagem,
     required this.pedido,
     required this.IdPedidoRetiradaCarga,
+    this.listrtn,
   }) : super(key: key);
 
   @override
@@ -265,43 +268,59 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
 
           if (prodRead.infq == "s") {
             qtdeProdDialog.text = "";
-            showDialogQtd = true;
-            showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (_) => AlertDialog(
-                title: Text(
-                  "Informe a quantidade do produto scaneado",
-                  style: TextStyle(fontWeight: FontWeight.w500),
+            // showDialogQtd = true;
+            // showDialog(
+            //   context: context,
+            //   barrierDismissible: false,
+            //   builder: (_) => AlertDialog(
+            //     title: Text(
+            //       "Informe a quantidade do produto scaneado",
+            //       style: TextStyle(fontWeight: FontWeight.w500),
+            //     ),
+            //     content: TextField(
+            //       controller: qtdeProdDialog,
+            //       keyboardType: TextInputType.number,
+            //       autofocus: true,
+            //       decoration: InputDecoration(
+            //           border: OutlineInputBorder(),
+            //           focusedBorder: OutlineInputBorder(
+            //             borderSide: BorderSide(color: primaryColor),
+            //           ),
+            //           labelText: 'Qtde'),
+            //     ),
+            //     actions: [
+            //       TextButton(
+            //         child: const Text('Cancelar'),
+            //         onPressed: () async {
+            //           Navigator.pop(context);
+            //         },
+            //       ),
+            //       TextButton(
+            //         child: Text("Salvar"),
+            //         onPressed: () async {
+            //           qtdOk = validaQtd(prodRead, qtdeProdDialog.text);
+            //           Navigator.pop(context);
+            //         },
+            //       ),
+            //     ],
+            //     elevation: 24.0,
+            //   ),
+            // );
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                builder: (BuildContext context) => infoQtdEmb(
+                  dadosCreateEmbalagem: widget.dadosCreateEmbalagem,
+                  IdPedidoRetiradaCarga: widget.IdPedidoRetiradaCarga,
+                  idPedido: widget.idPedido,
+                  pedido: widget.pedido,
+                  idEmbalagem: widget.idEmbalagem,
+                  list: list,
+                  prodRead: prodRead,
+                  qtdeProdDialog: qtdeProdDialog,
                 ),
-                content: TextField(
-                  controller: qtdeProdDialog,
-                  keyboardType: TextInputType.number,
-                  autofocus: true,
-                  decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: primaryColor),
-                      ),
-                      labelText: 'Qtde'),
-                ),
-                actions: [
-                  TextButton(
-                    child: const Text('Cancelar'),
-                    onPressed: () async {
-                      Navigator.pop(context);
-                    },
-                  ),
-                  TextButton(
-                    child: Text("Salvar"),
-                    onPressed: () async {
-                      qtdOk = validaQtd(prodRead, qtdeProdDialog.text);
-                      Navigator.pop(context);
-                    },
-                  ),
-                ],
-                elevation: 24.0,
               ),
+              (route) => false,
             );
           } else {
             qtdOk = validaQtd(
@@ -314,7 +333,7 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
           }
 
           if (qtdOk) {
-            addEmbalagem(
+            await addEmbalagem(
                 prodRead,
                 int.parse(prodRead.qtd != null &&
                         prodRead.qtd != "" &&
@@ -354,7 +373,12 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
     getIdUser();
     getContexto();
     _loadPreferences();
-    _getItens();
+
+    if (widget.listrtn != null && widget.listrtn!.length > 0) {
+      list = widget.listrtn!;
+    } else {
+      _getItens();
+    }
 
     titleBtn = "Iniciar Montagem";
 
@@ -446,20 +470,15 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
                   if (isCollectModeEnabled)
                     Offstage(
                       offstage: true,
-                      child: VisibilityDetector(
-                        onVisibilityChanged: (VisibilityInfo info) {
-                          visible = info.visibleFraction > 0;
+                      child: BarcodeKeyboardListener(
+                        bufferDuration: Duration(milliseconds: 50),
+                        onBarcodeScanned: (barcode) async {
+                          print(barcode);
+                          _readCodesM(barcode);
                         },
-                        key: Key(
-                          'visible-detector-key-M',
-                        ),
-                        child: BarcodeKeyboardListener(
-                          bufferDuration: Duration(milliseconds: 50),
-                          onBarcodeScanned: (barcode) async {
-                            print(barcode);
-                            _readCodesM(barcode);
-                          },
-                          child: Text(""),
+                        child: TextField(
+                          autofocus: true,
+                          keyboardType: TextInputType.none,
                         ),
                       ),
                     ),
@@ -1021,7 +1040,7 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
           duration: Duration(seconds: 5), bgColor: Colors.red.shade200);
     }
 
-    List<DadosEmbalagem> listDados = widget.dadosCreateEmbalagem.data;
+    // List<DadosEmbalagem> listDados = widget.dadosCreateEmbalagem.data;
     DadosEmbalagem? dados =
         getProdutoIguais((prod.idproduto != null ? prod.idproduto! : prod.id!));
 
@@ -1085,7 +1104,7 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
     DadosEmbalagem? dados = getProdutoIguais(idProd);
 
     if (dados != null) {
-      dados.quantEmbalado = dados.quantEmbalado + 1;
+      dados.quantEmbalado = dados.quantEmbalado + qtd;
     } else {
       Dialogs.showToast(
           context, "Não foi encontrado este produto para esta Nota fiscal",

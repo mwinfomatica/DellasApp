@@ -10,12 +10,15 @@ import 'package:leitorqrcode/Components/Constants.dart';
 import 'package:leitorqrcode/Components/DashedRect.dart';
 import 'package:leitorqrcode/Conferencia/components/ModalForcaFinalizacaoConferencia.dart';
 import 'package:leitorqrcode/Conferencia/components/button_conferencia.dart';
+import 'package:leitorqrcode/Conferencia/components/info_qtde_conf.dart';
+import 'package:leitorqrcode/Conferencia/selecionarNF.dart';
 import 'package:leitorqrcode/Models/APIModels/BaixaConfModel.dart';
 import 'package:leitorqrcode/Models/APIModels/ConfItensEmbalagem.dart';
 import 'package:leitorqrcode/Models/APIModels/ProdutoModel.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoConfBaixaModel.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoConfItensPedidoModel.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoGetEmbalagemListModel.dart';
+import 'package:leitorqrcode/Models/APIModels/RetornoPedidoCargaModel.dart';
 import 'package:leitorqrcode/Models/ContextoModel.dart';
 import 'package:leitorqrcode/Services/CargasService.dart';
 import 'package:leitorqrcode/Services/ContextoServices.dart';
@@ -24,16 +27,19 @@ import 'package:leitorqrcode/Services/ProdutosDBService.dart';
 import 'package:leitorqrcode/Shared/Dialog.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:visibility_detector/visibility_detector.dart';
 
 class ConferenciaExpedicaoScreen extends StatefulWidget {
-  final RetornoConfItensPedidoModel retorno;
-  final String idPeiddo;
   const ConferenciaExpedicaoScreen({
     Key? key,
     required this.retorno,
     required this.idPeiddo,
+    this.listItens,
+    required this.rtnNF,
   }) : super(key: key);
+  final RetornoPedidoCargaModel rtnNF;
+  final RetornoConfItensPedidoModel retorno;
+  final String idPeiddo;
+  final List<ItemConferenciaNfs>? listItens;
 
   @override
   State<ConferenciaExpedicaoScreen> createState() =>
@@ -290,11 +296,12 @@ class _ConferenciaExpedicaoScreenState
                   );
 
                   qtdOk = validaQtd(prod, prod.qtd != null ? prod.qtd! : "0");
-                  addConferencia(
+                  await addConferencia(
                       prod,
                       int.parse(prod.qtd != null ? prod.qtd! : "0"),
                       true,
                       emb.id);
+                  await validaConferencia();
                 }
               }
               Dialogs.showToast(context, "Leitura da Embalegm concluida.",
@@ -323,44 +330,60 @@ class _ConferenciaExpedicaoScreenState
 
           if (prodRead.infq == "s") {
             qtdeProdDialog.text = "";
-            showDialogQtd = true;
-            showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (_) => AlertDialog(
-                title: Text(
-                  "Informe a quantidade do produto scaneado",
-                  style: TextStyle(fontWeight: FontWeight.w500),
+            // showDialog(
+            //   context: context,
+            //   builder: (context) => AlertDialog(
+            //     title: Text(
+            //       "Informe a quantidade do produto scaneado",
+            //       style: TextStyle(fontWeight: FontWeight.w500),
+            //     ),
+            //     content: TextField(
+            //       controller: qtdeProdDialog,
+            //       keyboardType: TextInputType.number,
+            //       autofocus: true,
+            //       decoration: InputDecoration(
+            //           border: OutlineInputBorder(),
+            //           focusedBorder: OutlineInputBorder(
+            //             borderSide: BorderSide(color: primaryColor),
+            //           ),
+            //           labelText: 'Qtde'),
+            //     ),
+            //     actions: [
+            //       TextButton(
+            //         child: const Text('Cancelar'),
+            //         onPressed: () async {
+            //           Navigator.pop(context);
+            //         },
+            //       ),
+            //       TextButton(
+            //         child: Text("Salvar"),
+            //         onPressed: () async {
+            //           qtdOk = validaQtd(prodRead, qtdeProdDialog.text);
+            //           await addConferencia(prodRead,
+            //               int.parse(qtdeProdDialog.text), false, null);
+            //           await validaConferencia();
+            //           Navigator.pop(context);
+            //         },
+            //       ),
+            //     ],
+            //     elevation: 24.0,
+            //   ),
+            // );
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                builder: (BuildContext context) => infoQtdConf(
+                  rtnNF: widget.rtnNF,
+                  idPeiddo: widget.idPeiddo,
+                  listItens: listItens,
+                  prodRead: prodRead,
+                  qtdeProdDialog: qtdeProdDialog,
+                  retorno: widget.retorno,
                 ),
-                content: TextField(
-                  controller: qtdeProdDialog,
-                  keyboardType: TextInputType.number,
-                  autofocus: true,
-                  decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: primaryColor),
-                      ),
-                      labelText: 'Qtde'),
-                ),
-                actions: [
-                  TextButton(
-                    child: const Text('Cancelar'),
-                    onPressed: () async {
-                      Navigator.pop(context);
-                    },
-                  ),
-                  TextButton(
-                    child: Text("Salvar"),
-                    onPressed: () async {
-                      qtdOk = validaQtd(prodRead, qtdeProdDialog.text);
-                      Navigator.pop(context);
-                    },
-                  ),
-                ],
-                elevation: 24.0,
               ),
+              (route) => true,
             );
+            return;
           } else {
             qtdOk = validaQtd(
               prodRead,
@@ -371,7 +394,7 @@ class _ConferenciaExpedicaoScreenState
           }
 
           if (qtdOk) {
-            addConferencia(
+            await addConferencia(
                 prodRead,
                 int.parse(prodRead.qtd != null &&
                         prodRead.qtd != "" &&
@@ -380,6 +403,7 @@ class _ConferenciaExpedicaoScreenState
                     : "1"),
                 false,
                 null);
+            await validaConferencia();
           }
         }
         reading = false;
@@ -412,8 +436,17 @@ class _ConferenciaExpedicaoScreenState
     getContexto();
     _loadPreferences();
 
+    if (widget.listItens != null && widget.listItens!.length > 0) {
+      listItens = widget.listItens!;
+
+      validaConferencia();
+    } else {
+      listItens = widget.retorno.data.itensConferenciaNfs;
+    }
+
+    setState(() {});
+
     titleBtn = "Iniciar Conferência";
-    listItens = widget.retorno.data.itensConferenciaNfs;
     super.initState();
   }
 
@@ -423,250 +456,273 @@ class _ConferenciaExpedicaoScreenState
     double height = MediaQuery.of(context).size.height;
     late bool visible;
     return SafeArea(
-      child: Scaffold(
-          appBar: AppBar(
-            centerTitle: true,
-            automaticallyImplyLeading: false,
-            backgroundColor: primaryColor,
-            title: ListTile(
-              title: RichText(
-                maxLines: 2,
-                text: TextSpan(
-                  text: "Conferência",
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold),
+      child: PopScope(
+        canPop: false,
+        onPopInvoked: (isPop) {
+          if (!isPop) {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                builder: (BuildContext context) =>
+                    SelecionarNotaFiscalExpedicao(
+                  retorno: widget.rtnNF,
                 ),
               ),
-              trailing: !leituraExterna
-                  ? Container(
-                      height: 1,
-                      width: 1,
-                    )
-                  : Container(
-                      height: 35,
-                      width: 35,
-                      child: bluetoothDisconect
-                          ? isCollectModeEnabled
-                              ? Icon(
-                                  Icons.qr_code_scanner,
-                                  color: Colors.blue,
-                                )
-                              : Icon(
-                                  Icons.bluetooth_disabled,
-                                  color: Colors.red,
-                                )
-                          : Icon(
-                              Icons.bluetooth_connected,
-                              color: Colors.blue,
-                            ),
-                      decoration: BoxDecoration(
+              (route) => false,
+            );
+          }
+        },
+        child: Scaffold(
+            appBar: AppBar(
+              centerTitle: true,
+              automaticallyImplyLeading: false,
+              backgroundColor: primaryColor,
+              title: ListTile(
+                title: RichText(
+                  maxLines: 2,
+                  text: TextSpan(
+                    text: "Conferência",
+                    style: TextStyle(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(5),
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold),
+                  ),
+                ),
+                trailing: !leituraExterna
+                    ? Container(
+                        height: 1,
+                        width: 1,
+                      )
+                    : Container(
+                        height: 35,
+                        width: 35,
+                        child: bluetoothDisconect
+                            ? isCollectModeEnabled
+                                ? Icon(
+                                    Icons.qr_code_scanner,
+                                    color: Colors.blue,
+                                  )
+                                : Icon(
+                                    Icons.bluetooth_disabled,
+                                    color: Colors.red,
+                                  )
+                            : Icon(
+                                Icons.bluetooth_connected,
+                                color: Colors.blue,
+                              ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(5),
+                        ),
                       ),
-                    ),
+              ),
             ),
-          ),
-          body: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                if (isCollectModeEnabled)
-                  Offstage(
-                    offstage: true,
-                    child: VisibilityDetector(
-                      onVisibilityChanged: (VisibilityInfo info) {
-                        visible = info.visibleFraction > 0;
-                      },
-                      key: Key(
-                        'visible-detector-key-Conf',
-                      ),
+            body: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  if (isCollectModeEnabled)
+                    Offstage(
+                      offstage: true,
                       child: BarcodeKeyboardListener(
                         bufferDuration: Duration(milliseconds: 50),
                         onBarcodeScanned: (barcode) async {
                           print(barcode);
                           _readCodesConf(barcode);
                         },
-                        child: Text(""),
+                        child: TextField(
+                          autofocus: true,
+                          keyboardType: TextInputType.none,
+                        ),
                       ),
                     ),
-                  ),
-                if (!conferenciaOk)
-                  isManual
-                      ? Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: TextField(
-                            autofocus: true,
-                            onSubmitted: (value) async {
-                              _readCodesConf(value);
-                              setState(() {
-                                isManual = false;
-                              });
-                            },
-                            decoration: InputDecoration(
-                              border: OutlineInputBorder(),
-                              labelText: 'Digite o código',
+                  if (!conferenciaOk)
+                    isManual
+                        ? Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: TextField(
+                              autofocus: true,
+                              onSubmitted: (value) async {
+                                _readCodesConf(value);
+                                setState(() {
+                                  isManual = false;
+                                });
+                              },
+                              decoration: InputDecoration(
+                                border: OutlineInputBorder(),
+                                labelText: 'Digite o código',
+                              ),
                             ),
-                          ),
-                        )
-                      : isCollectModeEnabled
-                          ? showLeituraExterna == false
-                              ? Stack(
-                                  children: [
-                                    Container(
-                                      padding: EdgeInsets.all(10),
-                                      color: Colors.yellow[400],
-                                      child: Center(
-                                        child: Text(
-                                          "Aguardando leitura",
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(fontSize: 18),
+                          )
+                        : isCollectModeEnabled
+                            ? showLeituraExterna == false
+                                ? Stack(
+                                    children: [
+                                      Container(
+                                        padding: EdgeInsets.all(10),
+                                        color: Colors.yellow[400],
+                                        child: Center(
+                                          child: Text(
+                                            "Aguardando leitura",
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(fontSize: 18),
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                  ],
-                                )
-                              : Stack(
-                                  children: [
-                                    Container(
-                                      padding: EdgeInsets.all(10),
-                                      color: Colors.yellow[400],
-                                      child: Center(
-                                        child: Text(
-                                          "Aguardando leitura",
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(fontSize: 18),
+                                    ],
+                                  )
+                                : Stack(
+                                    children: [
+                                      Container(
+                                        padding: EdgeInsets.all(10),
+                                        color: Colors.yellow[400],
+                                        child: Center(
+                                          child: Text(
+                                            "Aguardando leitura",
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(fontSize: 18),
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                  ],
-                                )
-                          : showCamera == false
-                              ? ButtonConference(
-                                  titulo: titleBtn,
-                                  onPressed: () {
-                                    setState(() {
-                                      showCamera = true;
-                                    });
-                                  },
-                                )
-                              : Stack(
-                                  children: [
-                                    Container(
-                                      height:
-                                          (MediaQuery.of(context).size.height *
-                                              0.20),
-                                      child: _buildQrView(context),
-                                      // child: Container(),
-                                    ),
-                                    Center(
-                                      child: Container(
-                                        margin: EdgeInsets.symmetric(
-                                          vertical: (MediaQuery.of(context)
-                                                  .size
-                                                  .height *
-                                              0.01),
-                                          horizontal: (MediaQuery.of(context)
-                                                  .size
-                                                  .width *
-                                              0.3),
-                                        ),
+                                    ],
+                                  )
+                            : showCamera == false
+                                ? ButtonConference(
+                                    titulo: titleBtn,
+                                    onPressed: () {
+                                      setState(() {
+                                        showCamera = true;
+                                      });
+                                    },
+                                  )
+                                : Stack(
+                                    children: [
+                                      Container(
                                         height: (MediaQuery.of(context)
                                                 .size
                                                 .height *
-                                            0.17),
-                                        child: DashedRect(
-                                          color: primaryColor,
-                                          gap: 25,
-                                          strokeWidth: 5,
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                              vertical: 10,
-                                            ),
-                                            child: Center(
-                                              child: Text(
-                                                "Leia o QRCode \n do produto",
-                                                textAlign: TextAlign.center,
-                                                style: TextStyle(
-                                                    fontSize: 25,
-                                                    color: Colors.white),
+                                            0.20),
+                                        child: _buildQrView(context),
+                                        // child: Container(),
+                                      ),
+                                      Center(
+                                        child: Container(
+                                          margin: EdgeInsets.symmetric(
+                                            vertical: (MediaQuery.of(context)
+                                                    .size
+                                                    .height *
+                                                0.01),
+                                            horizontal: (MediaQuery.of(context)
+                                                    .size
+                                                    .width *
+                                                0.3),
+                                          ),
+                                          height: (MediaQuery.of(context)
+                                                  .size
+                                                  .height *
+                                              0.17),
+                                          child: DashedRect(
+                                            color: primaryColor,
+                                            gap: 25,
+                                            strokeWidth: 5,
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                vertical: 10,
+                                              ),
+                                              child: Center(
+                                                child: Text(
+                                                  "Leia o QRCode \n do produto",
+                                                  textAlign: TextAlign.center,
+                                                  style: TextStyle(
+                                                      fontSize: 25,
+                                                      color: Colors.white),
+                                                ),
                                               ),
                                             ),
                                           ),
                                         ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                SizedBox(
-                  height: 1,
-                ),
-                conferenciaOk
-                    ? Container(
-                        width: MediaQuery.of(context).size.width,
-                        color: Colors.yellow[300],
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text(
-                            "Leitura concluída",
-                            style: TextStyle(
-                                fontSize: 25, fontWeight: FontWeight.bold),
-                            textAlign: TextAlign.center,
+                                    ],
+                                  ),
+                  SizedBox(
+                    height: 1,
+                  ),
+                  conferenciaOk
+                      ? Container(
+                          width: MediaQuery.of(context).size.width,
+                          color: Colors.yellow[300],
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(
+                              "Leitura concluída",
+                              style: TextStyle(
+                                  fontSize: 25, fontWeight: FontWeight.bold),
+                              textAlign: TextAlign.center,
+                            ),
                           ),
-                        ),
-                      )
-                    : Container(),
-                SizedBox(
-                  height: 3,
-                ),
-                _buildHeaderNF(height),
-                SizedBox(
-                  height: 10,
-                ),
-                tableNotafiscal(),
-                SizedBox(
-                  height: 40,
-                ),
-              ],
+                        )
+                      : Container(),
+                  SizedBox(
+                    height: 3,
+                  ),
+                  _buildHeaderNF(height),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  tableNotafiscal(),
+                  SizedBox(
+                    height: 40,
+                  ),
+                ],
+              ),
             ),
-          ),
-          bottomSheet: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              if (conferenciaOk)
-                Container(
-                  width: MediaQuery.of(context).size.width * 0.5,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                        primary: primaryColor,
-                        textStyle: const TextStyle(fontSize: 15)),
-                    onPressed: () async {
-                      RetornoConfBaixaModel? retorno =
-                          await finalizaConferencia('N');
-                      if (retorno != null && !retorno.error) {
-                        Dialogs.showToast(context, retorno.message,
-                            duration: Duration(seconds: 5),
-                            bgColor: Colors.green.shade200);
-                        Navigator.pop(context);
-                      } else {
-                        Dialogs.showToast(context, retorno!.message,
-                            duration: Duration(seconds: 5),
-                            bgColor: Colors.red.shade200);
-                        return;
-                      }
-                    },
-                    child: Text(
-                      'Finalizar',
-                      style: TextStyle(
-                        color: Colors.white,
+            bottomSheet: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                if (conferenciaOk)
+                  Container(
+                    width: MediaQuery.of(context).size.width * 0.5,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                          primary: primaryColor,
+                          textStyle: const TextStyle(fontSize: 15)),
+                      onPressed: () async {
+                        RetornoConfBaixaModel? retorno =
+                            await finalizaConferencia('N');
+                        if (retorno != null && !retorno.error) {
+                          Dialogs.showToast(context, retorno.message,
+                              duration: Duration(seconds: 5),
+                              bgColor: Colors.green.shade200);
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(
+                              builder: (BuildContext context) =>
+                                  SelecionarNotaFiscalExpedicao(
+                                retorno: widget.rtnNF,
+                              ),
+                            ),
+                            (route) => false,
+                          );
+                        } else {
+                          Dialogs.showToast(context, retorno!.message,
+                              duration: Duration(seconds: 5),
+                              bgColor: Colors.red.shade200);
+                          return;
+                        }
+                      },
+                      child: Text(
+                        'Finalizar',
+                        style: TextStyle(
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),
-                ),
-            ],
-          ),
-          bottomNavigationBar: BottomBar()),
+              ],
+            ),
+            bottomNavigationBar: BottomBar()),
+      ),
     );
   }
 
@@ -1038,8 +1094,6 @@ class _ConferenciaExpedicaoScreenState
     }
 
     setState(() {});
-
-    validaConferencia();
   }
 
   validaConferencia() {

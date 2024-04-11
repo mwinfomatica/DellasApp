@@ -10,6 +10,7 @@ import 'package:leitorqrcode/ArmazenamentoTransferencia/armazenamentoTransf.dart
 import 'package:leitorqrcode/Components/Bottom.dart';
 import 'package:leitorqrcode/Components/Constants.dart';
 import 'package:leitorqrcode/Components/DashedRect.dart';
+import 'package:leitorqrcode/Home/Home.dart';
 import 'package:leitorqrcode/Models/APIModels/Endereco.dart';
 import 'package:leitorqrcode/Models/ContextoModel.dart';
 import 'package:leitorqrcode/Models/armprodModel.dart';
@@ -17,24 +18,27 @@ import 'package:leitorqrcode/Models/pendenteArmazModel.dart';
 import 'package:leitorqrcode/Models/retiradaprodModel.dart';
 import 'package:leitorqrcode/Retirada/components/IniciarApuracao.dart';
 import 'package:leitorqrcode/Models/APIModels/ProdutoModel.dart';
+import 'package:leitorqrcode/Retirada/components/info_qtde_retirada.dart';
 import 'package:leitorqrcode/Services/ContextoServices.dart';
 import 'package:leitorqrcode/Services/ProdutosDBService.dart';
 import 'package:leitorqrcode/Shared/Dialog.dart';
+import 'package:leitorqrcode/Transferencia/components/TransferenciaMenu.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
-import 'package:visibility_detector/visibility_detector.dart';
 
 class RetiradaTransf extends StatefulWidget {
   final String? titulo;
   final String? idtransf;
   final List<retiradaprodModel>? listRetirada;
+  final String? end;
 
   const RetiradaTransf({
     Key? key,
     @required this.titulo,
     @required this.listRetirada,
     @required this.idtransf,
+    this.end,
   }) : super(key: key);
 
   @override
@@ -197,7 +201,6 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
     try {
       if (!reading) {
         reading = true;
-        bool showDialogQtd = false;
         print('tem endereço? $hasAdress');
 
         //Atualizar produto & Criar movimentação
@@ -226,44 +229,62 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
             if (isOK) {
               if (prodRead.infq == "s") {
                 qtdeProdDialog.text = "";
-                showDialogQtd = true;
-                showDialog(
-                  context: context,
-                  barrierDismissible: false,
-                  builder: (_) => AlertDialog(
-                    title: Text(
-                      "Informe a quantidade do produto scaneado",
-                      style: TextStyle(fontWeight: FontWeight.w500),
+                // showDialogQtd = true;
+                // showDialog(
+                //   context: context,
+                //   barrierDismissible: false,
+                //   builder: (_) => AlertDialog(
+                //     title: Text(
+                //       "Informe a quantidade do produto scaneado",
+                //       style: TextStyle(fontWeight: FontWeight.w500),
+                //     ),
+                //     content: TextField(
+                //       controller: qtdeProdDialog,
+                //       keyboardType: TextInputType.number,
+                //       autofocus: true,
+                //       decoration: InputDecoration(
+                //           border: OutlineInputBorder(),
+                //           focusedBorder: OutlineInputBorder(
+                //             borderSide: BorderSide(color: primaryColor),
+                //           ),
+                //           labelText: 'Qtde'),
+                //     ),
+                //     actions: [
+                //       TextButton(
+                //         child: const Text('Cancelar'),
+                //         onPressed: () async {
+                //           Navigator.pop(context);
+                //         },
+                //       ),
+                //       TextButton(
+                //         child: Text("Salvar"),
+                //         onPressed: () async {
+                //           await saveRetirada(prodRead, qtdeProdDialog.text);
+                //           Navigator.pop(context);
+                //         },
+                //       ),
+                //     ],
+                //     elevation: 24.0,
+                //   ),
+                // );
+
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                    builder: (BuildContext context) => infoQtdReti(
+                      idtransf: widget.idtransf,
+                      listRetirada: list,
+                      titulo: widget.titulo,
+                      endRead: endRead ?? "",
+                      idOperador: idOperador,
+                      prodRead: prodRead,
+                      qtdeProdDialog: qtdeProdDialog,
                     ),
-                    content: TextField(
-                      controller: qtdeProdDialog,
-                      keyboardType: TextInputType.number,
-                      autofocus: true,
-                      decoration: InputDecoration(
-                          border: OutlineInputBorder(),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: primaryColor),
-                          ),
-                          labelText: 'Qtde'),
-                    ),
-                    actions: [
-                      TextButton(
-                        child: const Text('Cancelar'),
-                        onPressed: () async {
-                          Navigator.pop(context);
-                        },
-                      ),
-                      TextButton(
-                        child: Text("Salvar"),
-                        onPressed: () async {
-                          await saveRetirada(prodRead, qtdeProdDialog.text);
-                          Navigator.pop(context);
-                        },
-                      ),
-                    ],
-                    elevation: 24.0,
                   ),
+                  (route) => false,
                 );
+
+                return;
               } else {
                 await saveRetirada(
                     prodRead,
@@ -330,15 +351,19 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
   Future<void> saveRetirada(ProdutoModel prod, String qtde) async {
     retiradaprodModel? retirada = await retiradaprodModel()
         .getByIdProdIdTransfEnd(
-            (prod.idproduto == null ? prod.id! : prod.idproduto!),
-            widget.idtransf!,
+            (prod.idproduto == null
+                ? prod.id!.toUpperCase()
+                : prod.idproduto!.toUpperCase()),
+            widget.idtransf!.toUpperCase(),
             endRead!);
     if (retirada == null) {
       retirada = new retiradaprodModel(
           idRetirado: new Uuid().v4().toUpperCase(),
           endRetirado: endRead!,
-          idtransfRetirado: widget.idtransf!,
-          idProdRetirado: (prod.idproduto == null ? prod.id! : prod.idproduto!),
+          idtransfRetirado: widget.idtransf!.toUpperCase(),
+          idProdRetirado: (prod.idproduto == null
+              ? prod.id!.toUpperCase()
+              : prod.idproduto!.toUpperCase()),
           nomeProdRetirado: prod.nome!,
           barcodeRetirado: prod.barcode!,
           qtdRetirado: qtde,
@@ -355,16 +380,20 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
 
     pendenteArmazModel? pendente = await pendenteArmazModel()
         .getByIdProdIdTransf(
-            (prod.idproduto == null ? prod.id! : prod.idproduto!),
-            widget.idtransf!);
+            (prod.idproduto == null
+                ? prod.id!.toUpperCase()
+                : prod.idproduto!.toUpperCase()),
+            widget.idtransf!.toUpperCase());
 
     if (pendente == null) {
       pendente = new pendenteArmazModel(
           id: new Uuid().v4().toUpperCase(),
           end: "",
-          idProd: (prod.idproduto == null ? prod.id! : prod.idproduto!),
+          idProd: (prod.idproduto == null
+              ? prod.id!.toUpperCase()
+              : prod.idproduto!.toUpperCase()),
           idoperador: idOperador,
-          idtransf: widget.idtransf!,
+          idtransf: widget.idtransf!.toUpperCase(),
           lote: prod.lote!,
           qtd: qtde,
           valid: prod.vali ?? "",
@@ -382,11 +411,15 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
       list = [];
       list.add(retirada);
     } else {
-      var item = list.firstWhere(
-          (element) =>
-              element.idProdRetirado == prod.idproduto &&
-              element.endRetirado == endRead,
-          orElse: () => null as retiradaprodModel);
+      retiradaprodModel? item = list
+          .where(
+            (element) =>
+                element.idProdRetirado!.toLowerCase() ==
+                    prod.idproduto!.toLowerCase() &&
+                element.endRetirado == endRead,
+          )
+          .firstOrNull;
+
       if (item != null) {
         item.qtdRetirado = retirada.qtdRetirado;
       } else {
@@ -428,14 +461,19 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
 
   @override
   void initState() {
-    if (widget.listRetirada!.isNotEmpty) {
+    if (widget.listRetirada != null) {
       list = widget.listRetirada!;
+      if (widget.end != null && widget.end != "") {
+        endRead = widget.end ?? "";
+        hasAdress = true;
+      }
     }
 
     getIdUser();
     getContexto();
     _loadPreferences(); // Carrega as preferências para o estado do widget
 
+    setState(() {});
     super.initState();
   }
 
@@ -455,502 +493,506 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
     late bool visible;
 
     return SafeArea(
-      child: Scaffold(
-          appBar: AppBar(
-              backgroundColor: primaryColor,
-              title: Text(
-                widget.titulo!,
-                style: TextStyle(color: Colors.white),
+      child: PopScope(
+        canPop: false,
+        onPopInvoked: (isPop) {
+          if (!isPop) {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                builder: (BuildContext context) => MenuTransferencia(),
               ),
-              automaticallyImplyLeading: countleituraProd == 0),
-          body: Column(
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              if (isCollectModeEnabled)
-                Offstage(
-                  offstage: true,
-                  child: VisibilityDetector(
-                    onVisibilityChanged: (VisibilityInfo info) {
-                      visible = info.visibleFraction > 0;
-                    },
-                    key: Key('visible-detector-key-1'),
+              (route) => true,
+            );
+          }
+        },
+        child: Scaffold(
+            appBar: AppBar(
+                backgroundColor: primaryColor,
+                title: Text(
+                  widget.titulo!,
+                  style: TextStyle(color: Colors.white),
+                ),
+                automaticallyImplyLeading: countleituraProd == 0),
+            body: Column(
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                if (isCollectModeEnabled)
+                  Offstage(
+                    offstage: true,
                     child: BarcodeKeyboardListener(
                       bufferDuration: Duration(milliseconds: 50),
                       onBarcodeScanned: (barcode) async {
                         print(barcode);
                         await _readCodes(barcode);
                       },
-                      child: Text(""),
+                      child: TextField(
+                        autofocus: true,
+                        keyboardType: TextInputType.none,
+                      ),
                     ),
                   ),
-                ),
-              if (!prodReadSuccess)
-                isManual
-                    ? Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: TextField(
-                          autofocus: true,
-                          onSubmitted: (value) async {
-                            await _readCodes(value);
-                            setState(() {
-                              isManual = false;
-                            });
-                          },
-                          decoration: InputDecoration(
-                            border: OutlineInputBorder(),
-                            labelText: 'Digite o código',
+                if (!prodReadSuccess)
+                  isManual
+                      ? Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: TextField(
+                            autofocus: true,
+                            onSubmitted: (value) async {
+                              await _readCodes(value);
+                              setState(() {
+                                isManual = false;
+                              });
+                            },
+                            decoration: InputDecoration(
+                              border: OutlineInputBorder(),
+                              labelText: 'Digite o código',
+                            ),
                           ),
-                        ),
-                      )
-                    : isCollectModeEnabled
-                        ? showLeituraExterna == false
-                            ? Stack(
-                                children: [
-                                  Container(
-                                    padding: EdgeInsets.all(10),
-                                    color: !hasAdress
-                                        ? Colors.grey[400]
-                                        : Colors.yellow[400],
-                                    child: Center(
-                                      child: Text(
-                                        !hasAdress
-                                            ? "Aguardando leitura do Endereço"
-                                            : "Aguardando leitura dos Produtos",
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(fontSize: 18),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              )
-                            : Stack(
-                                children: [
-                                  Container(
-                                    padding: EdgeInsets.all(10),
-                                    color: !hasAdress
-                                        ? Colors.grey[400]
-                                        : Colors.yellow[400],
-                                    child: Center(
-                                      child: Text(
-                                        !hasAdress
-                                            ? "Aguardando leitura do Endereço"
-                                            : "Aguardando leitura dos Produtos",
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(fontSize: 18),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              )
-                        : leituraExterna
-                            ? showLeituraExterna == false
-                                ? BotaoIniciarApuracao(
-                                    titulo: titleBtn == null ? "" : titleBtn!,
-                                    onPressed: () {
-                                      if (isCollectModeEnabled) {
-                                        null;
-                                      } else {
-                                        setState(() {
-                                          showLeituraExterna = true;
-                                        });
-                                      }
-                                    },
-                                  )
-                                : Stack(
-                                    children: [
-                                      Container(
-                                        padding: EdgeInsets.all(10),
-                                        color: !hasAdress
-                                            ? Colors.grey[400]
-                                            : Colors.yellow[400],
-                                        child: Center(
-                                          child: Text(
-                                            !hasAdress
-                                                ? "Aguardando leitura do Endereço"
-                                                : "Aguardando leitura dos Produtos",
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(fontSize: 18),
-                                          ),
+                        )
+                      : isCollectModeEnabled
+                          ? showLeituraExterna == false
+                              ? Stack(
+                                  children: [
+                                    Container(
+                                      padding: EdgeInsets.all(10),
+                                      color: !hasAdress
+                                          ? Colors.grey[400]
+                                          : Colors.yellow[400],
+                                      child: Center(
+                                        child: Text(
+                                          !hasAdress
+                                              ? "Aguardando leitura do Endereço"
+                                              : "Aguardando leitura dos Produtos",
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(fontSize: 18),
                                         ),
                                       ),
-                                    ],
-                                  )
-                            : showCamera == false
-                                ? BotaoIniciarApuracao(
-                                    titulo: titleBtn == null ? "" : titleBtn!,
-                                    onPressed: () {
-                                      setState(() {
-                                        showCamera = true;
-                                      });
-                                    },
-                                  )
-                                : Stack(
-                                    children: [
-                                      Container(
-                                        height: (MediaQuery.of(context)
-                                                .size
-                                                .height *
-                                            0.20),
-                                        child: _buildQrView(context),
-                                        // child: Container(),
+                                    ),
+                                  ],
+                                )
+                              : Stack(
+                                  children: [
+                                    Container(
+                                      padding: EdgeInsets.all(10),
+                                      color: !hasAdress
+                                          ? Colors.grey[400]
+                                          : Colors.yellow[400],
+                                      child: Center(
+                                        child: Text(
+                                          !hasAdress
+                                              ? "Aguardando leitura do Endereço"
+                                              : "Aguardando leitura dos Produtos",
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(fontSize: 18),
+                                        ),
                                       ),
-                                      Center(
-                                        child: Container(
-                                          margin: EdgeInsets.symmetric(
-                                            vertical: !hasAdress
+                                    ),
+                                  ],
+                                )
+                          : leituraExterna
+                              ? showLeituraExterna == false
+                                  ? BotaoIniciarApuracao(
+                                      titulo: titleBtn == null ? "" : titleBtn!,
+                                      onPressed: () {
+                                        if (isCollectModeEnabled) {
+                                          null;
+                                        } else {
+                                          setState(() {
+                                            showLeituraExterna = true;
+                                          });
+                                        }
+                                      },
+                                    )
+                                  : Stack(
+                                      children: [
+                                        Container(
+                                          padding: EdgeInsets.all(10),
+                                          color: !hasAdress
+                                              ? Colors.grey[400]
+                                              : Colors.yellow[400],
+                                          child: Center(
+                                            child: Text(
+                                              !hasAdress
+                                                  ? "Aguardando leitura do Endereço"
+                                                  : "Aguardando leitura dos Produtos",
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(fontSize: 18),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    )
+                              : showCamera == false
+                                  ? BotaoIniciarApuracao(
+                                      titulo: titleBtn == null ? "" : titleBtn!,
+                                      onPressed: () {
+                                        setState(() {
+                                          showCamera = true;
+                                        });
+                                      },
+                                    )
+                                  : Stack(
+                                      children: [
+                                        Container(
+                                          height: (MediaQuery.of(context)
+                                                  .size
+                                                  .height *
+                                              0.20),
+                                          child: _buildQrView(context),
+                                          // child: Container(),
+                                        ),
+                                        Center(
+                                          child: Container(
+                                            margin: EdgeInsets.symmetric(
+                                              vertical: !hasAdress
+                                                  ? (MediaQuery.of(context)
+                                                          .size
+                                                          .height *
+                                                      0.05)
+                                                  : (MediaQuery.of(context)
+                                                          .size
+                                                          .height *
+                                                      0.01),
+                                              horizontal: !hasAdress
+                                                  ? 25
+                                                  : (MediaQuery.of(context)
+                                                          .size
+                                                          .width *
+                                                      0.3),
+                                            ),
+                                            height: !hasAdress
                                                 ? (MediaQuery.of(context)
                                                         .size
                                                         .height *
-                                                    0.05)
+                                                    0.10)
                                                 : (MediaQuery.of(context)
                                                         .size
                                                         .height *
-                                                    0.01),
-                                            horizontal: !hasAdress
-                                                ? 25
-                                                : (MediaQuery.of(context)
-                                                        .size
-                                                        .width *
-                                                    0.3),
-                                          ),
-                                          height: !hasAdress
-                                              ? (MediaQuery.of(context)
-                                                      .size
-                                                      .height *
-                                                  0.10)
-                                              : (MediaQuery.of(context)
-                                                      .size
-                                                      .height *
-                                                  0.17),
-                                          child: DashedRect(
-                                            color: primaryColor,
-                                            gap: !hasAdress ? 10 : 25,
-                                            strokeWidth: !hasAdress ? 2 : 5,
-                                            child: Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                vertical: 10,
-                                              ),
-                                              child: Center(
-                                                child: Text(
-                                                  hasAdress
-                                                      ? "Leia o QRCode \n do produto"
-                                                      : "Realize a leitura do \n Endereço",
-                                                  textAlign: TextAlign.center,
-                                                  style: TextStyle(
-                                                      fontSize: 25,
-                                                      color: Colors.white),
+                                                    0.17),
+                                            child: DashedRect(
+                                              color: primaryColor,
+                                              gap: !hasAdress ? 10 : 25,
+                                              strokeWidth: !hasAdress ? 2 : 5,
+                                              child: Padding(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                  vertical: 10,
+                                                ),
+                                                child: Center(
+                                                  child: Text(
+                                                    hasAdress
+                                                        ? "Leia o QRCode \n do produto"
+                                                        : "Realize a leitura do \n Endereço",
+                                                    textAlign: TextAlign.center,
+                                                    style: TextStyle(
+                                                        fontSize: 25,
+                                                        color: Colors.white),
+                                                  ),
                                                 ),
                                               ),
                                             ),
                                           ),
                                         ),
-                                      ),
-                                    ],
-                                  ),
-              SizedBox(
-                height: 1,
-              ),
-              Container(
-                padding: EdgeInsets.all(10),
-                color: !hasAdress ? Colors.grey[300] : Colors.yellow[300],
-                child: Container(
-                  width: MediaQuery.of(context).size.width - 10,
-                  child: endRead == null
-                      ? Text(
-                          "Nenhum endereço lido",
-                          style: TextStyle(
-                            fontSize: 25,
-                          ),
-                          textAlign: TextAlign.center,
-                        )
-                      : Text(
-                          endRead!,
-                          style: TextStyle(
-                            fontSize: 25,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                ),
-              ),
-              SizedBox(
-                height: 5,
-              ),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: DataTable(
-                  headingRowColor: MaterialStateColor.resolveWith(
-                    (states) => Colors.grey,
-                  ),
-                  border: TableBorder.all(
-                    color: Colors.black,
-                  ),
-                  headingRowHeight: 40,
-                  dataRowHeight: 25,
-                  columnSpacing: 5,
-                  horizontalMargin: 10,
-                  columns: [
-                    DataColumn(
-                      label: Text(""),
-                    ),
-                    DataColumn(
-                      numeric: true,
-                      label: Text(
-                        "Qtd",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    DataColumn(
-                      label: Text(
-                        "Produto",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    DataColumn(
-                      label: Text(
-                        "Endereço",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    DataColumn(
-                      label: Text(
-                        "Sub Lote",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    DataColumn(
-                      label: Text(
-                        "",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                  rows: List.generate(
-                    list.length,
-                    (index) {
-                      return DataRow(
-                        color: MaterialStateColor.resolveWith(
-                          (states) =>
-                              index % 2 == 0 ? Colors.white : Colors.grey[200]!,
-                        ),
-                        cells: [
-                          DataCell(
-                            Icon(
-                              Icons.check_box,
-                              color: Colors.green,
-                              size: 20,
-                            ),
-                          ),
-                          DataCell(
-                            Text(
-                              list[index].qtdRetirado == null
-                                  ? ""
-                                  : list[index].qtdRetirado!,
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          DataCell(
-                            Text(
-                              list[index].nomeProdRetirado!,
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          DataCell(
-                            Text(
-                              list[index].endRetirado != null
-                                  ? list[index].endRetirado!
-                                  : "-",
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          DataCell(
-                            Text(
-                              list[index].loteRetirado == null
-                                  ? ""
-                                  : list[index].loteRetirado!,
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          DataCell(
-                            Ink(
-                              child: InkWell(
-                                child: Icon(
-                                  Icons.delete,
-                                  size: 20,
-                                  color: Colors.red,
-                                ),
-                                onTap: () => {
-                                  showDialog(
-                                    context: context,
-                                    builder: (_) => AlertDialog(
-                                      title: Text("Atenção"),
-                                      content: Text(
-                                          "Deseja confimar a remoção do item?"),
-                                      actions: [
-                                        TextButton(
-                                          child: Text("Não"),
-                                          onPressed: () {
-                                            Navigator.pop(context);
-                                          },
-                                        ),
-                                        TextButton(
-                                          child: Text("Sim"),
-                                          onPressed: () async {
-                                            await removeItem(list[index]);
-                                            Navigator.pop(context);
-                                          },
-                                        ),
                                       ],
                                     ),
-                                  ),
-                                },
-                              ),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
+                SizedBox(
+                  height: 1,
                 ),
-              ),
-            ],
-          ),
-          bottomSheet: SizedBox(
-            height: MediaQuery.of(context).size.height * .2,
-            width: double.infinity,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
                 Container(
-                  width: 190,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                        primary: primaryColor,
-                        textStyle: const TextStyle(fontSize: 15)),
-                    onPressed: () async {
-                      setState(() {
-                        isManual = !isManual;
-                        showCamera = false;
-                        showLeituraExterna = false;
-                      });
-                    },
-                    child: Text(
-                      isManual ? 'Cancelar digitação' : 'Digitar código',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Container(
-                      width: MediaQuery.of(context).size.width * 0.5,
-                      // padding: EdgeInsets.fromLTRB(10, 0, 10, ),
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                            primary: primaryColor,
-                            textStyle: const TextStyle(fontSize: 15)),
-                        onPressed: () async {
-                          Navigator.pop(context);
-                          List<pendenteArmazModel> list =
-                              await pendenteArmazModel().getAllpendente();
-                          List<armprodModel> armlist =
-                              await armprodModel().getAll();
-                          if ((list != null && list.length > 0) ||
-                              (armlist != null && armlist.length > 0)) {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (BuildContext context) =>
-                                    ArmazenamentoTransf(
-                                  listPendente: list,
-                                  listarm: armlist,
-                                ),
-                              ),
-                            );
-                          } else {
-                            Dialogs.showToast(
-                                context, "Não há itens a serem armazenados.",
-                                duration: Duration(seconds: 5),
-                                bgColor: Colors.red.shade200);
-                          }
-                        },
-                        child: Center(
-                          child: Text(
-                            'Iniciar Armazenamento',
+                  padding: EdgeInsets.all(10),
+                  color: !hasAdress ? Colors.grey[300] : Colors.yellow[300],
+                  child: Container(
+                    width: MediaQuery.of(context).size.width - 10,
+                    child: endRead == null
+                        ? Text(
+                            "Nenhum endereço lido",
                             style: TextStyle(
-                              color: Colors.white,
+                              fontSize: 25,
+                            ),
+                            textAlign: TextAlign.center,
+                          )
+                        : Text(
+                            endRead!,
+                            style: TextStyle(
+                              fontSize: 25,
+                              fontWeight: FontWeight.bold,
                             ),
                             textAlign: TextAlign.center,
                           ),
+                  ),
+                ),
+                SizedBox(
+                  height: 5,
+                ),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: DataTable(
+                    headingRowColor: MaterialStateColor.resolveWith(
+                      (states) => Colors.grey,
+                    ),
+                    border: TableBorder.all(
+                      color: Colors.black,
+                    ),
+                    headingRowHeight: 40,
+                    dataRowHeight: 25,
+                    columnSpacing: 5,
+                    horizontalMargin: 10,
+                    columns: [
+                      DataColumn(
+                        label: Text(""),
+                      ),
+                      DataColumn(
+                        numeric: true,
+                        label: Text(
+                          "Qtd",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
+                      DataColumn(
+                        label: Text(
+                          "Produto",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      DataColumn(
+                        label: Text(
+                          "Endereço",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      DataColumn(
+                        label: Text(
+                          "Sub Lote",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      DataColumn(
+                        label: Text(
+                          "",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                    rows: List.generate(
+                      list.length,
+                      (index) {
+                        return DataRow(
+                          color: MaterialStateColor.resolveWith(
+                            (states) => index % 2 == 0
+                                ? Colors.white
+                                : Colors.grey[200]!,
+                          ),
+                          cells: [
+                            DataCell(
+                              Icon(
+                                Icons.check_box,
+                                color: Colors.green,
+                                size: 20,
+                              ),
+                            ),
+                            DataCell(
+                              Text(
+                                list[index].qtdRetirado == null
+                                    ? ""
+                                    : list[index].qtdRetirado!,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Text(
+                                list[index].nomeProdRetirado!,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Text(
+                                list[index].endRetirado != null
+                                    ? list[index].endRetirado!
+                                    : "-",
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Text(
+                                list[index].loteRetirado == null
+                                    ? ""
+                                    : list[index].loteRetirado!,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Ink(
+                                child: InkWell(
+                                  child: Icon(
+                                    Icons.delete,
+                                    size: 20,
+                                    color: Colors.red,
+                                  ),
+                                  onTap: () => {
+                                    showDialog(
+                                      context: context,
+                                      builder: (_) => AlertDialog(
+                                        title: Text("Atenção"),
+                                        content: Text(
+                                            "Deseja confimar a remoção do item?"),
+                                        actions: [
+                                          TextButton(
+                                            child: Text("Não"),
+                                            onPressed: () {
+                                              Navigator.pop(context);
+                                            },
+                                          ),
+                                          TextButton(
+                                            child: Text("Sim"),
+                                            onPressed: () async {
+                                              await removeItem(list[index]);
+                                              Navigator.pop(context);
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  },
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
                     ),
-                    if (hasAdress)
+                  ),
+                ),
+              ],
+            ),
+            bottomSheet: SizedBox(
+              height: MediaQuery.of(context).size.height * .2,
+              width: double.infinity,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 190,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                          primary: primaryColor,
+                          textStyle: const TextStyle(fontSize: 15)),
+                      onPressed: () async {
+                        setState(() {
+                          isManual = !isManual;
+                          showCamera = false;
+                          showLeituraExterna = false;
+                        });
+                      },
+                      child: Text(
+                        isManual ? 'Cancelar digitação' : 'Digitar código',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
                       Container(
                         width: MediaQuery.of(context).size.width * 0.5,
+                        // padding: EdgeInsets.fromLTRB(10, 0, 10, ),
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
                               primary: primaryColor,
                               textStyle: const TextStyle(fontSize: 15)),
-                          onPressed: () {
-                            setState(() {
-                              endRead = null;
-                              hasAdress = false;
-                            });
+                          onPressed: () async {
+                            Navigator.pop(context);
+                            List<pendenteArmazModel> list =
+                                await pendenteArmazModel().getAllpendente();
+                            List<armprodModel> armlist =
+                                await armprodModel().getAll();
+                            if ((list != null && list.length > 0) ||
+                                (armlist != null && armlist.length > 0)) {
+                              Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (BuildContext context) =>
+                                      ArmazenamentoTransf(
+                                    listPendente: list,
+                                    listarm: armlist,
+                                  ),
+                                ),
+                                (route) => false,
+                              );
+                            } else {
+                              Dialogs.showToast(
+                                  context, "Não há itens a serem armazenados.",
+                                  duration: Duration(seconds: 5),
+                                  bgColor: Colors.red.shade200);
+                            }
                           },
-                          child: Text('Alterar endereço'),
+                          child: Center(
+                            child: Text(
+                              'Iniciar Armazenamento',
+                              style: TextStyle(
+                                color: Colors.white,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
                         ),
                       ),
-                  ],
-                ),
-              ],
+                      if (hasAdress)
+                        Container(
+                          width: MediaQuery.of(context).size.width * 0.5,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                                primary: primaryColor,
+                                textStyle: const TextStyle(fontSize: 15)),
+                            onPressed: () {
+                              setState(() {
+                                endRead = null;
+                                hasAdress = false;
+                              });
+                            },
+                            child: Text(
+                              'Alterar endereço',
+                              style: TextStyle(
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-          bottomNavigationBar: BottomBar()),
+            bottomNavigationBar: BottomBar()),
+      ),
     );
   }
-
-  // focusColetorMode() {
-  //   _invisibleTextController
-  //       .clear(); // Limpa o controlador para a próxima leitura
-
-  //   WidgetsBinding.instance.addPostFrameCallback((_) {
-  //     if (isCollectModeEnabled) {
-  //       FocusScope.of(context).requestFocus(_focusNode);
-  //       FocusManager.instance.primaryFocus?.unfocus();
-  //     }
-  //   });
-
-  //   setState(() {});
-  // }
 }

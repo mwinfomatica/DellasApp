@@ -29,7 +29,6 @@ import 'package:leitorqrcode/notaFiscal/selecionarNotaFiscal.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
-import 'package:visibility_detector/visibility_detector.dart';
 
 class Apuracao extends StatefulWidget {
   final String titulo;
@@ -353,6 +352,7 @@ class _ApuracaoState extends State<Apuracao> {
                             await calcQtdProduto(
                                 prodRead, prodDB, qtdeProdDialog.text);
                             Navigator.pop(context);
+                            setState(() {});
                           },
                         ),
                       ],
@@ -831,19 +831,14 @@ class _ApuracaoState extends State<Apuracao> {
                   if (isCollectModeEnabled)
                     Offstage(
                       offstage: true,
-                      child: VisibilityDetector(
-                        onVisibilityChanged: (VisibilityInfo info) {
-                          visible = info.visibleFraction > 0;
+                      child: BarcodeKeyboardListener(
+                        bufferDuration: Duration(milliseconds: 50),
+                        onBarcodeScanned: (barcode) async {
+                          print(barcode);
+                          _readCodes(barcode);
                         },
-                        key: Key('visible-detector-key'),
-                        child: BarcodeKeyboardListener(
-                          bufferDuration: Duration(milliseconds: 50),
-                          onBarcodeScanned: (barcode) async {
-                            print(barcode);
-                            _readCodes(barcode);
-                          },
-                          child: Text(""),
-                        ),
+                        child: TextField(
+                            autofocus: true, keyboardType: TextInputType.none),
                       ),
                     ),
                   if (!prodReadSuccess)
@@ -1242,7 +1237,7 @@ class _ApuracaoState extends State<Apuracao> {
             bottomSheet: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                if (prodReadSuccess)
+                if (!prodReadSuccess)
                   Container(
                     width: MediaQuery.of(context).size.width * 0.5,
                     child: ElevatedButton(

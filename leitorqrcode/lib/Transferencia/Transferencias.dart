@@ -69,7 +69,13 @@ class _TransferenciasScreenState extends State<TransferenciasScreen> {
                     children: [
                       GestureDetector(
                         onTap: () {
-                          Navigator.pop(context);
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(
+                              builder: (BuildContext context) => HomeScreen(),
+                            ),
+                            (route) => false,
+                          );
                         },
                         child: Icon(
                           Icons.arrow_back,

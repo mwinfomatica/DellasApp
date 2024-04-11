@@ -8,6 +8,7 @@ import 'package:flutter_blue/flutter_blue.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_beep/flutter_beep.dart';
 import 'package:leitorqrcode/ArmazenamentoTransferencia/components/IniciarArmazenamentoTransf.dart';
+import 'package:leitorqrcode/ArmazenamentoTransferencia/components/info_qtde_armz.dart';
 import 'package:leitorqrcode/Components/Bottom.dart';
 import 'package:leitorqrcode/Components/Constants.dart';
 import 'package:leitorqrcode/Components/DashedRect.dart';
@@ -21,20 +22,23 @@ import 'package:leitorqrcode/Services/ContextoServices.dart';
 import 'package:leitorqrcode/Services/ProdutosDBService.dart';
 import 'package:leitorqrcode/Shared/Dialog.dart';
 import 'package:leitorqrcode/Transferencia/Transferencias.dart';
+import 'package:leitorqrcode/Transferencia/components/TransferenciaMenu.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
 class ArmazenamentoTransf extends StatefulWidget {
-  final List<pendenteArmazModel>? listPendente;
-  final List<armprodModel>? listarm;
-
   const ArmazenamentoTransf({
     Key? key,
     @required this.listPendente,
     this.listarm,
+    this.end,
   }) : super(key: key);
+
+  final List<pendenteArmazModel>? listPendente;
+  final List<armprodModel>? listarm;
+  final String? end;
 
   @override
   State<ArmazenamentoTransf> createState() => _ArmazenamentoTransfState();
@@ -247,50 +251,67 @@ class _ArmazenamentoTransfState extends State<ArmazenamentoTransf> {
             if (isOK) {
               if (prodRead.infq == "s") {
                 qtdeProdDialog.text = "";
-                showDialogQtd = true;
-                showDialog(
-                  context: context,
-                  barrierDismissible: false,
-                  builder: (_) => AlertDialog(
-                    title: Text(
-                      "Informe a quantidade do produto scaneado",
-                      style: TextStyle(fontWeight: FontWeight.w500),
+                // showDialogQtd = true;
+                // showDialog(
+                //   context: context,
+                //   barrierDismissible: false,
+                //   builder: (_) => AlertDialog(
+                //     title: Text(
+                //       "Informe a quantidade do produto scaneado",
+                //       style: TextStyle(fontWeight: FontWeight.w500),
+                //     ),
+                //     content: TextField(
+                //       controller: qtdeProdDialog,
+                //       keyboardType: TextInputType.number,
+                //       autofocus: true,
+                //       decoration: InputDecoration(
+                //           border: OutlineInputBorder(),
+                //           focusedBorder: OutlineInputBorder(
+                //             borderSide: BorderSide(color: primaryColor),
+                //           ),
+                //           labelText: 'Qtde'),
+                //     ),
+                //     actions: [
+                //       TextButton(
+                //         child: const Text('Cancelar'),
+                //         onPressed: () async {
+                //           Navigator.pop(context);
+                //         },
+                //       ),
+                //       TextButton(
+                //         child: Text("Salvar"),
+                //         onPressed: () async {
+                //           await saveArmz(
+                //               prodRead,
+                //               (prodRead.qtd != null &&
+                //                       prodRead.qtd != "" &&
+                //                       prodRead.qtd != "0"
+                //                   ? prodRead.qtd!
+                //                   : "1"));
+                //           Navigator.pop(context);
+                //         },
+                //       ),
+                //     ],
+                //     elevation: 24.0,
+                //   ),
+                // );
+
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                    builder: (BuildContext context) => infoQtdArmz(
+                      listPendente: widget.listPendente,
+                      listarm: armlist,
+                      endRead: endRead,
+                      idOperador: idOperador,
+                      prodRead: prodRead,
+                      qtdeProdDialog: qtdeProdDialog,
                     ),
-                    content: TextField(
-                      controller: qtdeProdDialog,
-                      keyboardType: TextInputType.number,
-                      autofocus: true,
-                      decoration: InputDecoration(
-                          border: OutlineInputBorder(),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: primaryColor),
-                          ),
-                          labelText: 'Qtde'),
-                    ),
-                    actions: [
-                      TextButton(
-                        child: const Text('Cancelar'),
-                        onPressed: () async {
-                          Navigator.pop(context);
-                        },
-                      ),
-                      TextButton(
-                        child: Text("Salvar"),
-                        onPressed: () async {
-                          await saveArmz(
-                              prodRead,
-                              (prodRead.qtd != null &&
-                                      prodRead.qtd != "" &&
-                                      prodRead.qtd != "0"
-                                  ? prodRead.qtd!
-                                  : "1"));
-                          Navigator.pop(context);
-                        },
-                      ),
-                    ],
-                    elevation: 24.0,
                   ),
+                  (route) => false,
                 );
+
+                return;
               } else {
                 await saveArmz(
                     prodRead,
@@ -465,6 +486,11 @@ class _ArmazenamentoTransfState extends State<ArmazenamentoTransf> {
     getContexto();
     _loadPreferences(); // Carrega as preferências para o estado do widget
 
+    if (widget.end != null && widget.end != "") {
+      endRead = widget.end!;
+      hasAdressArm = true;
+    }
+
     armlist = widget.listarm!;
 
     var count =
@@ -475,6 +501,7 @@ class _ArmazenamentoTransfState extends State<ArmazenamentoTransf> {
       this.hasAdressArm = false;
     }
 
+    setState(() {});
     super.initState();
   }
 
@@ -494,603 +521,622 @@ class _ArmazenamentoTransfState extends State<ArmazenamentoTransf> {
     late bool visible;
 
     return SafeArea(
-      child: Scaffold(
-          appBar: AppBar(
-            backgroundColor: primaryColor,
-            title: ListTile(
-              title: RichText(
-                maxLines: 2,
-                text: TextSpan(
-                  text: "40 - Aramazenamento Transferência",
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold),
-                ),
+      child: PopScope(
+        canPop: false,
+        onPopInvoked: (isPop) {
+          if (!isPop) {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                builder: (BuildContext context) => MenuTransferencia(),
               ),
-              trailing: !leituraExternaArm
-                  ? Container(
-                      height: 1,
-                      width: 1,
-                    )
-                  : Container(
-                      height: 35,
-                      width: 35,
-                      child: bluetoothDisconect
-                          ? Icon(
-                              Icons.bluetooth_disabled,
-                              color: Colors.red,
-                            )
-                          : Icon(
-                              Icons.bluetooth_connected,
-                              color: Colors.blue,
-                            ),
-                      decoration: BoxDecoration(
+              (route) => false,
+            );
+          }
+        },
+        child: Scaffold(
+            appBar: AppBar(
+              backgroundColor: primaryColor,
+              title: ListTile(
+                title: RichText(
+                  maxLines: 2,
+                  text: TextSpan(
+                    text: "40 - Aramazenamento Transferência",
+                    style: TextStyle(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(5),
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold),
+                  ),
+                ),
+                trailing: !leituraExternaArm
+                    ? Container(
+                        height: 1,
+                        width: 1,
+                      )
+                    : Container(
+                        height: 35,
+                        width: 35,
+                        child: bluetoothDisconect
+                            ? Icon(
+                                Icons.bluetooth_disabled,
+                                color: Colors.red,
+                              )
+                            : Icon(
+                                Icons.bluetooth_connected,
+                                color: Colors.blue,
+                              ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(5),
+                        ),
                       ),
-                    ),
+              ),
             ),
-          ),
-          body: SingleChildScrollView(
-            scrollDirection: Axis.vertical,
-            child: Column(
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                if (isCollectModeEnabled)
-                  Offstage(
-                    offstage: true,
-                    child: VisibilityDetector(
-                      onVisibilityChanged: (VisibilityInfo info) {
-                        visible = info.visibleFraction > 0;
-                      },
-                      key: Key('visible-detector-key-1'),
+            body: SingleChildScrollView(
+              scrollDirection: Axis.vertical,
+              child: Column(
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  if (isCollectModeEnabled)
+                    Offstage(
+                      offstage: true,
                       child: BarcodeKeyboardListener(
                         bufferDuration: Duration(milliseconds: 50),
                         onBarcodeScanned: (barcode) async {
                           print(barcode);
                           await _readCodesArm(barcode);
                         },
-                        child: Text(""),
+                        child: TextField(
+                          autofocus: true,
+                          keyboardType: TextInputType.none,
+                        ),
                       ),
                     ),
-                  ),
-                if (!prodReadSuccessArm)
-                  isManual
-                      ? Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: TextField(
-                            autofocus: true,
-                            onSubmitted: (value) async {
-                              await _readCodesArm(value);
-                              setState(() {
-                                isManual = false;
-                              });
-                            },
-                            decoration: InputDecoration(
-                              border: OutlineInputBorder(),
-                              labelText: 'Digite o código',
+                  if (!prodReadSuccessArm)
+                    isManual
+                        ? Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: TextField(
+                              autofocus: true,
+                              onSubmitted: (value) async {
+                                await _readCodesArm(value);
+                                setState(() {
+                                  isManual = false;
+                                });
+                              },
+                              decoration: InputDecoration(
+                                border: OutlineInputBorder(),
+                                labelText: 'Digite o código',
+                              ),
                             ),
-                          ),
-                        )
-                      : isCollectModeEnabled
-                          ? showLeituraExternaArm == false
-                              ? Stack(
-                                  children: [
-                                    Container(
-                                      padding: EdgeInsets.all(10),
-                                      color: !hasAdressArm
-                                          ? Colors.grey[400]
-                                          : Colors.yellow[400],
-                                      child: Center(
-                                        child: Text(
-                                          !hasAdressArm
-                                              ? "Aguardando leitura do Endereço"
-                                              : "Aguardando leitura dos Produtos",
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(fontSize: 18),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                )
-                              : Stack(
-                                  children: [
-                                    Container(
-                                      padding: EdgeInsets.all(10),
-                                      color: !hasAdressArm
-                                          ? Colors.grey[400]
-                                          : Colors.yellow[400],
-                                      child: Center(
-                                        child: Text(
-                                          !hasAdressArm
-                                              ? "Aguardando leitura do Endereço"
-                                              : "Aguardando leitura dos Produtos",
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(fontSize: 18),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                )
-                          : leituraExternaArm
-                              ? showLeituraExternaArm == false
-                                  ? BotaoIniciarArmazenamentoTransf(
-                                      titulo: titleBtn == null ? "" : titleBtn,
-                                      onPressed: () {
-                                        if (bluetoothDisconect) {
-                                          Dialogs.showToast(context,
-                                              "Leitor externo não conectado, favor verificar a conexão bluetooth com o dispositivo.",
-                                              duration: Duration(seconds: 7),
-                                              bgColor: Colors.red.shade200);
-                                        } else {
-                                          setState(() {
-                                            showLeituraExternaArm = true;
-                                          });
-                                        }
-                                      },
-                                    )
-                                  : Stack(
-                                      children: [
-                                        Container(
-                                          padding: EdgeInsets.all(10),
-                                          color: !hasAdressArm
-                                              ? Colors.grey[400]
-                                              : Colors.yellow[400],
-                                          child: Center(
-                                            child: Text(
-                                              !hasAdressArm
-                                                  ? "Aguardando leitura do Endereço"
-                                                  : "Aguardando leitura dos Produtos",
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(fontSize: 18),
-                                            ),
+                          )
+                        : isCollectModeEnabled
+                            ? showLeituraExternaArm == false
+                                ? Stack(
+                                    children: [
+                                      Container(
+                                        padding: EdgeInsets.all(10),
+                                        color: !hasAdressArm
+                                            ? Colors.grey[400]
+                                            : Colors.yellow[400],
+                                        child: Center(
+                                          child: Text(
+                                            !hasAdressArm
+                                                ? "Aguardando leitura do Endereço"
+                                                : "Aguardando leitura dos Produtos",
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(fontSize: 18),
                                           ),
                                         ),
-                                      ],
-                                    )
-                              : showCameraArm == false
-                                  ? BotaoIniciarArmazenamentoTransf(
-                                      titulo: titleBtn == null ? "" : titleBtn,
-                                      onPressed: () {
-                                        setState(() {
-                                          showCameraArm = true;
-                                        });
-                                      },
-                                    )
-                                  : Stack(
-                                      children: [
-                                        Container(
-                                          height: (MediaQuery.of(context)
-                                                  .size
-                                                  .height *
-                                              0.20),
-                                          child: _buildQrView(context),
-                                          // child: Container(),
+                                      ),
+                                    ],
+                                  )
+                                : Stack(
+                                    children: [
+                                      Container(
+                                        padding: EdgeInsets.all(10),
+                                        color: !hasAdressArm
+                                            ? Colors.grey[400]
+                                            : Colors.yellow[400],
+                                        child: Center(
+                                          child: Text(
+                                            !hasAdressArm
+                                                ? "Aguardando leitura do Endereço"
+                                                : "Aguardando leitura dos Produtos",
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(fontSize: 18),
+                                          ),
                                         ),
-                                        Center(
-                                          child: Container(
-                                            margin: EdgeInsets.symmetric(
-                                              vertical: !hasAdressArm
+                                      ),
+                                    ],
+                                  )
+                            : leituraExternaArm
+                                ? showLeituraExternaArm == false
+                                    ? BotaoIniciarArmazenamentoTransf(
+                                        titulo:
+                                            titleBtn == null ? "" : titleBtn,
+                                        onPressed: () {
+                                          if (bluetoothDisconect) {
+                                            Dialogs.showToast(context,
+                                                "Leitor externo não conectado, favor verificar a conexão bluetooth com o dispositivo.",
+                                                duration: Duration(seconds: 7),
+                                                bgColor: Colors.red.shade200);
+                                          } else {
+                                            setState(() {
+                                              showLeituraExternaArm = true;
+                                            });
+                                          }
+                                        },
+                                      )
+                                    : Stack(
+                                        children: [
+                                          Container(
+                                            padding: EdgeInsets.all(10),
+                                            color: !hasAdressArm
+                                                ? Colors.grey[400]
+                                                : Colors.yellow[400],
+                                            child: Center(
+                                              child: Text(
+                                                !hasAdressArm
+                                                    ? "Aguardando leitura do Endereço"
+                                                    : "Aguardando leitura dos Produtos",
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(fontSize: 18),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      )
+                                : showCameraArm == false
+                                    ? BotaoIniciarArmazenamentoTransf(
+                                        titulo:
+                                            titleBtn == null ? "" : titleBtn,
+                                        onPressed: () {
+                                          setState(() {
+                                            showCameraArm = true;
+                                          });
+                                        },
+                                      )
+                                    : Stack(
+                                        children: [
+                                          Container(
+                                            height: (MediaQuery.of(context)
+                                                    .size
+                                                    .height *
+                                                0.20),
+                                            child: _buildQrView(context),
+                                            // child: Container(),
+                                          ),
+                                          Center(
+                                            child: Container(
+                                              margin: EdgeInsets.symmetric(
+                                                vertical: !hasAdressArm
+                                                    ? (MediaQuery.of(context)
+                                                            .size
+                                                            .height *
+                                                        0.05)
+                                                    : (MediaQuery.of(context)
+                                                            .size
+                                                            .height *
+                                                        0.01),
+                                                horizontal: !hasAdressArm
+                                                    ? 25
+                                                    : (MediaQuery.of(context)
+                                                            .size
+                                                            .width *
+                                                        0.3),
+                                              ),
+                                              height: !hasAdressArm
                                                   ? (MediaQuery.of(context)
                                                           .size
                                                           .height *
-                                                      0.05)
+                                                      0.10)
                                                   : (MediaQuery.of(context)
                                                           .size
                                                           .height *
-                                                      0.01),
-                                              horizontal: !hasAdressArm
-                                                  ? 25
-                                                  : (MediaQuery.of(context)
-                                                          .size
-                                                          .width *
-                                                      0.3),
-                                            ),
-                                            height: !hasAdressArm
-                                                ? (MediaQuery.of(context)
-                                                        .size
-                                                        .height *
-                                                    0.10)
-                                                : (MediaQuery.of(context)
-                                                        .size
-                                                        .height *
-                                                    0.17),
-                                            child: DashedRect(
-                                              color: primaryColor,
-                                              gap: !hasAdressArm ? 10 : 25,
-                                              strokeWidth:
-                                                  !hasAdressArm ? 2 : 5,
-                                              child: Padding(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                  vertical: 10,
-                                                ),
-                                                child: Center(
-                                                  child: Text(
-                                                    hasAdressArm
-                                                        ? "Leia o QRCode \n do produto"
-                                                        : "Realize a leitura do \n Endereço",
-                                                    textAlign: TextAlign.center,
-                                                    style: TextStyle(
-                                                        fontSize: 25,
-                                                        color: Colors.white),
+                                                      0.17),
+                                              child: DashedRect(
+                                                color: primaryColor,
+                                                gap: !hasAdressArm ? 10 : 25,
+                                                strokeWidth:
+                                                    !hasAdressArm ? 2 : 5,
+                                                child: Padding(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                    vertical: 10,
+                                                  ),
+                                                  child: Center(
+                                                    child: Text(
+                                                      hasAdressArm
+                                                          ? "Leia o QRCode \n do produto"
+                                                          : "Realize a leitura do \n Endereço",
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                      style: TextStyle(
+                                                          fontSize: 25,
+                                                          color: Colors.white),
+                                                    ),
                                                   ),
                                                 ),
                                               ),
                                             ),
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                SizedBox(
-                  height: 1,
-                ),
-                prodReadSuccessArm
-                    ? Container(
-                        width: MediaQuery.of(context).size.width,
-                        color: Colors.yellow[300],
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text(
-                            "Leitura concluída",
-                            style: TextStyle(
-                                fontSize: 25, fontWeight: FontWeight.bold),
-                            textAlign: TextAlign.center,
+                                        ],
+                                      ),
+                  SizedBox(
+                    height: 1,
+                  ),
+                  prodReadSuccessArm
+                      ? Container(
+                          width: MediaQuery.of(context).size.width,
+                          color: Colors.yellow[300],
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(
+                              "Leitura concluída",
+                              style: TextStyle(
+                                  fontSize: 25, fontWeight: FontWeight.bold),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        )
+                      : Container(
+                          padding: EdgeInsets.all(10),
+                          color: !hasAdressArm
+                              ? Colors.grey[300]
+                              : Colors.yellow[300],
+                          child: Container(
+                            width: MediaQuery.of(context).size.width - 10,
+                            child: endRead == null
+                                ? Text(
+                                    "Nenhum endereço lido",
+                                    style: TextStyle(fontSize: 25),
+                                    textAlign: TextAlign.center,
+                                  )
+                                : Text(
+                                    endRead,
+                                    style: TextStyle(
+                                        fontSize: 25,
+                                        fontWeight: FontWeight.bold),
+                                    textAlign: TextAlign.center,
+                                  ),
                           ),
                         ),
-                      )
-                    : Container(
-                        padding: EdgeInsets.all(10),
-                        color: !hasAdressArm
-                            ? Colors.grey[300]
-                            : Colors.yellow[300],
-                        child: Container(
-                          width: MediaQuery.of(context).size.width - 10,
-                          child: endRead == null
-                              ? Text(
-                                  "Nenhum endereço lido",
-                                  style: TextStyle(fontSize: 25),
-                                  textAlign: TextAlign.center,
-                                )
-                              : Text(
-                                  endRead,
+                  SizedBox(
+                    height: 3,
+                  ),
+                  Column(
+                    children: [
+                      Text(
+                        "Produtos Pendentes Armazenamento",
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.vertical,
+                          child: DataTable(
+                            headingRowColor: MaterialStateColor.resolveWith(
+                              (states) => Colors.grey,
+                            ),
+                            border: TableBorder.all(
+                              color: Colors.black,
+                            ),
+                            headingRowHeight: 40,
+                            dataRowHeight: 25,
+                            columnSpacing: 5,
+                            horizontalMargin: 10,
+                            columns: [
+                              DataColumn(
+                                label: Text(""),
+                              ),
+                              DataColumn(
+                                label: Text(
+                                  "Endereço",
                                   style: TextStyle(
-                                      fontSize: 25,
-                                      fontWeight: FontWeight.bold),
-                                  textAlign: TextAlign.center,
-                                ),
-                        ),
-                      ),
-                SizedBox(
-                  height: 3,
-                ),
-                Column(
-                  children: [
-                    Text(
-                      "Produtos Pendentes Armazenamento",
-                      style:
-                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                    ),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.vertical,
-                        child: DataTable(
-                          headingRowColor: MaterialStateColor.resolveWith(
-                            (states) => Colors.grey,
-                          ),
-                          border: TableBorder.all(
-                            color: Colors.black,
-                          ),
-                          headingRowHeight: 40,
-                          dataRowHeight: 25,
-                          columnSpacing: 5,
-                          horizontalMargin: 10,
-                          columns: [
-                            DataColumn(
-                              label: Text(""),
-                            ),
-                            DataColumn(
-                              label: Text(
-                                "Endereço",
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
-                            ),
-                            DataColumn(
-                              numeric: true,
-                              label: Text(
-                                "Qtd",
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
+                              DataColumn(
+                                numeric: true,
+                                label: Text(
+                                  "Qtd",
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
-                            ),
-                            DataColumn(
-                              label: Text(
-                                "Produto",
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
+                              DataColumn(
+                                label: Text(
+                                  "Produto",
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
-                            ),
-                            DataColumn(
-                              label: Text(
-                                "Sub Lote",
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
+                              DataColumn(
+                                label: Text(
+                                  "Sub Lote",
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
+                            ],
+                            rows: List.generate(
+                              widget.listPendente!
+                                  .where((e) => e.situacao == "0")
+                                  .length,
+                              (index) {
+                                return DataRow(
+                                  color: MaterialStateColor.resolveWith(
+                                    (states) => index % 2 == 0
+                                        ? Colors.white
+                                        : Colors.grey[200]!,
+                                  ),
+                                  cells: [
+                                    DataCell(
+                                      Icon(
+                                        Icons.check_box,
+                                        color: widget.listPendente![index]
+                                                    .situacao ==
+                                                "1"
+                                            ? Colors.green
+                                            : Colors.grey,
+                                        size: 20,
+                                      ),
+                                    ),
+                                    DataCell(
+                                      Text(
+                                        widget.listPendente![index].end != null
+                                            ? widget.listPendente![index].end!
+                                            : "",
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    DataCell(
+                                      Text(
+                                        widget.listPendente![index].qtd == null
+                                            ? ""
+                                            : widget.listPendente![index].qtd!,
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    DataCell(
+                                      Text(
+                                        widget.listPendente![index].nomeProd ==
+                                                null
+                                            ? ""
+                                            : widget
+                                                .listPendente![index].nomeProd!,
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    DataCell(
+                                      Text(
+                                        widget.listPendente![index].lote == null
+                                            ? ""
+                                            : widget.listPendente![index].lote!,
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
                             ),
-                          ],
-                          rows: List.generate(
-                            widget.listPendente!
-                                .where((e) => e.situacao == "0")
-                                .length,
-                            (index) {
-                              return DataRow(
-                                color: MaterialStateColor.resolveWith(
-                                  (states) => index % 2 == 0
-                                      ? Colors.white
-                                      : Colors.grey[200]!,
-                                ),
-                                cells: [
-                                  DataCell(
-                                    Icon(
-                                      Icons.check_box,
-                                      color: widget.listPendente![index]
-                                                  .situacao ==
-                                              "1"
-                                          ? Colors.green
-                                          : Colors.grey,
-                                      size: 20,
-                                    ),
-                                  ),
-                                  DataCell(
-                                    Text(
-                                      widget.listPendente![index].end != null
-                                          ? widget.listPendente![index].end!
-                                          : "",
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                  DataCell(
-                                    Text(
-                                      widget.listPendente![index].qtd == null
-                                          ? ""
-                                          : widget.listPendente![index].qtd!,
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                  DataCell(
-                                    Text(
-                                      widget.listPendente![index].nomeProd ==
-                                              null
-                                          ? ""
-                                          : widget
-                                              .listPendente![index].nomeProd!,
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                  DataCell(
-                                    Text(
-                                      widget.listPendente![index].lote == null
-                                          ? ""
-                                          : widget.listPendente![index].lote!,
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              );
-                            },
                           ),
                         ),
                       ),
-                    ),
-                    SizedBox(
-                      height: 10,
-                    ),
-                    Divider(
-                      color: Colors.black,
-                    ),
-                    Text(
-                      "Produtos Armazenados",
-                      style:
-                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                    ),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.vertical,
-                        child: DataTable(
-                          headingRowColor: MaterialStateColor.resolveWith(
-                            (states) => Colors.grey,
-                          ),
-                          border: TableBorder.all(
-                            color: Colors.black,
-                          ),
-                          headingRowHeight: 40,
-                          dataRowHeight: 25,
-                          columnSpacing: 5,
-                          horizontalMargin: 10,
-                          columns: [
-                            DataColumn(
-                              label: Text(""),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      Divider(
+                        color: Colors.black,
+                      ),
+                      Text(
+                        "Produtos Armazenados",
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.vertical,
+                          child: DataTable(
+                            headingRowColor: MaterialStateColor.resolveWith(
+                              (states) => Colors.grey,
                             ),
-                            DataColumn(
-                              label: Text(
-                                "Endereço",
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
+                            border: TableBorder.all(
+                              color: Colors.black,
+                            ),
+                            headingRowHeight: 40,
+                            dataRowHeight: 25,
+                            columnSpacing: 5,
+                            horizontalMargin: 10,
+                            columns: [
+                              DataColumn(
+                                label: Text(""),
+                              ),
+                              DataColumn(
+                                label: Text(
+                                  "Endereço",
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
-                            ),
-                            DataColumn(
-                              numeric: true,
-                              label: Text(
-                                "Qtd",
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
+                              DataColumn(
+                                numeric: true,
+                                label: Text(
+                                  "Qtd",
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
-                            ),
-                            DataColumn(
-                              label: Text(
-                                "Produto",
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
+                              DataColumn(
+                                label: Text(
+                                  "Produto",
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
-                            ),
-                            DataColumn(
-                              label: Text(
-                                "Sub Lote",
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
+                              DataColumn(
+                                label: Text(
+                                  "Sub Lote",
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
+                            ],
+                            rows: List.generate(
+                              armlist.length,
+                              (index) {
+                                return DataRow(
+                                  color: MaterialStateColor.resolveWith(
+                                    (states) => index % 2 == 0
+                                        ? Colors.white
+                                        : Colors.grey[200]!,
+                                  ),
+                                  cells: [
+                                    DataCell(
+                                      Icon(
+                                        Icons.check_box,
+                                        color: Colors.green,
+                                        size: 20,
+                                      ),
+                                    ),
+                                    DataCell(
+                                      Text(
+                                        armlist[index].endArm != null
+                                            ? armlist[index].endArm!
+                                            : "",
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    DataCell(
+                                      Text(
+                                        armlist[index].qtdArm == null
+                                            ? ""
+                                            : armlist[index].qtdArm!,
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    DataCell(
+                                      Text(
+                                        armlist[index].nomeProdArm == null
+                                            ? ""
+                                            : armlist[index].nomeProdArm!,
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    DataCell(
+                                      Text(
+                                        armlist[index].loteArm == null
+                                            ? ""
+                                            : armlist[index].loteArm!,
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
                             ),
-                          ],
-                          rows: List.generate(
-                            armlist.length,
-                            (index) {
-                              return DataRow(
-                                color: MaterialStateColor.resolveWith(
-                                  (states) => index % 2 == 0
-                                      ? Colors.white
-                                      : Colors.grey[200]!,
-                                ),
-                                cells: [
-                                  DataCell(
-                                    Icon(
-                                      Icons.check_box,
-                                      color: Colors.green,
-                                      size: 20,
-                                    ),
-                                  ),
-                                  DataCell(
-                                    Text(
-                                      armlist[index].endArm != null
-                                          ? armlist[index].endArm!
-                                          : "",
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                  DataCell(
-                                    Text(
-                                      armlist[index].qtdArm == null
-                                          ? ""
-                                          : armlist[index].qtdArm!,
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                  DataCell(
-                                    Text(
-                                      armlist[index].nomeProdArm == null
-                                          ? ""
-                                          : armlist[index].nomeProdArm!,
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                  DataCell(
-                                    Text(
-                                      armlist[index].loteArm == null
-                                          ? ""
-                                          : armlist[index].loteArm!,
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              );
-                            },
                           ),
                         ),
                       ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            bottomSheet: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                if (prodReadSuccessArm)
+                  Container(
+                    width: MediaQuery.of(context).size.width * 0.3,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                          primary: primaryColor,
+                          textStyle: const TextStyle(fontSize: 15)),
+                      onPressed: () async {
+                        await syncOp(context, true);
+                        Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(
+                              builder: (BuildContext context) =>
+                                  TransferenciasScreen(),
+                            ),
+                            (route) => false);
+                      },
+                      child: Text(
+                        'Finalizar',
+                        style: TextStyle(color: Colors.white),
+                      ),
                     ),
-                  ],
-                ),
+                  ),
+                if (hasAdressArm)
+                  Container(
+                    width: 150,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                          primary: primaryColor,
+                          textStyle: const TextStyle(fontSize: 15)),
+                      onPressed: () {
+                        setState(() {
+                          endRead = '';
+                          hasAdressArm = false;
+                        });
+                      },
+                      child: Text(
+                        'Alterar endereço',
+                        style: TextStyle(
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
               ],
             ),
-          ),
-          bottomSheet: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              if (prodReadSuccessArm)
-                Container(
-                  width: MediaQuery.of(context).size.width * 0.3,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                        primary: primaryColor,
-                        textStyle: const TextStyle(fontSize: 15)),
-                    onPressed: () async {
-                      await syncOp(context, true);
-                      Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(
-                            builder: (BuildContext context) =>
-                                TransferenciasScreen(),
-                          ),
-                          (route) => true);
-                    },
-                    child: Text(
-                      'Finalizar',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                ),
-              if (hasAdressArm)
-                Container(
-                  width: 150,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                        primary: primaryColor,
-                        textStyle: const TextStyle(fontSize: 15)),
-                    onPressed: () {
-                      setState(() {
-                        endRead = '';
-                        hasAdressArm = false;
-                      });
-                    },
-                    child: Text('Alterar endereço'),
-                  ),
-                ),
-            ],
-          ),
-          bottomNavigationBar: BottomBar()),
+            bottomNavigationBar: BottomBar()),
+      ),
     );
   }
 }
