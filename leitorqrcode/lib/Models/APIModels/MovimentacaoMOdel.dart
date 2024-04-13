@@ -226,6 +226,17 @@ class MovimentacaoModel {
     }
   }
 
+  deleteByIdOpIdProdEnd(String idOp, String idProd, String end) async {
+    try {
+      Database db = await DatabaseHelper.instance.database;
+      await db.delete("movimentacao",
+          where: "idOperacao = ? AND idProduto = ? AND endereco = ?",
+          whereArgs: [idOp, idProd, end]);
+    } catch (e) {
+      print(e);
+    }
+  }
+
   deleteInventario(String idProduto, String idOperacao) async {
     Database db = await DatabaseHelper.instance.database;
     var result = await db.query("movimentacao",

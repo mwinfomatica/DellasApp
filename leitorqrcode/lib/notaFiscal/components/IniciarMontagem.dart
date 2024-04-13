@@ -26,7 +26,7 @@ class BotaoIniciarMontagem extends StatelessWidget {
           ),
         ),
         style: ElevatedButton.styleFrom(
-          primary: primaryColor,
+          backgroundColor: primaryColor,
         ),
       ),
     );

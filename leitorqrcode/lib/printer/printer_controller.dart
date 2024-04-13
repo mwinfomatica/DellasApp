@@ -3,9 +3,10 @@ import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoGetEmbalagemListModel.dart';
-import 'package:leitorqrcode/Services/NotasFiscaisService.dart';
+// import 'package:leitorqrcode/Services/NotasFiscaisService.dart';
 import 'package:leitorqrcode/Shared/Dialog.dart';
 import 'package:leitorqrcode/printer/printer_helper.dart';
+// import 'package:posprinter_flutter/posprinter_flutter.dart';
 
 class PrinterController {
   int nLinhaAtual = 0;
@@ -87,25 +88,26 @@ class PrinterController {
     nLinhaAtual++;
   }
 
-  Future<void> PrintHeaderItensTeste(
-      {required BlueThermalPrinter bluetooth, BuildContext? context}) async {
-    bool isConnected = await bluetooth.isConnected ?? false;
+  // Future<void> PrintHeaderItensTeste(
+  //     {BuildContext? context, required String adressBT}) async {
+  //   final _posprint = PosprinterFlutter();
 
-    if (isConnected) {
-      Uint8List? bytes =
-          await new NotasFiscaisService(context!).getEtiquetaPrinterEmbalagem();
+  //   String? rtn = await _posprint.getPlatformVersion();
+  //   String? retorno = "";
 
-      if (bytes != null) {
-        // salvarImagemFile(bytes);
-        // List<int> image = await getimage();
+  //   try {
+  //     retorno = await _posprint.connectBluetoothPrinter("DC:0D:30:E0:43:C8");
+  //   } catch (e) {
+  //     print(e);
+  //   }
+  //   try {
+  //     String strPrint = "^XA  ^FO50,60^A0,40^FDTESTE Impressão ^FS  ^FO60,120^BY3^BCN,60,,,,A^FDTESTE^FS  ^FO25,25^GB380,200,2^FS  ^XZ";
 
-        // Directory temp = await getApplicationDocumentsDirectory();
-
-        // Directory DicImg = Directory(temp.path + "/Etiqueta/");
-        await bluetooth.printImageBytes(bytes);
-      }
-    }
-  }
+  //     retorno = await _posprint.printQR(strPrint);
+  //   } catch (e) {
+  //     print(e);
+  //   }
+  // }
 
   void _printHeaderInfo(
       {required BlueThermalPrinter bluetooth,

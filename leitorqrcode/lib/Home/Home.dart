@@ -23,6 +23,8 @@ class _HomeScreenState extends State<HomeScreen> {
   BlueThermalPrinter bluetooth = BlueThermalPrinter.instance;
   bool bluetoothConnected = false;
 
+  String adressBT = "";
+
   void getListOP() async {
     listOperacao = await new OperacaoModel().getListByStituacaoSeparadoC();
 
@@ -56,6 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     for (var i = 0; i < devices.length; i++) {
       if (devices[i].name!.trim().toUpperCase().contains("4B-2044PA")) {
+        adressBT = devices[i].address ?? "";
         _connect(devices[i]);
         break;
       }
@@ -81,7 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     getListOP();
-    _initValidationPrinter();
+    // _initValidationPrinter();
     super.initState();
   }
 
@@ -173,7 +176,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 MenuHome(
                   topPadding: (MediaQuery.of(context).size.height * 0.2) - 30,
-                  bluetooth: bluetooth,
+                  // bluetooth: bluetooth,
+                  adressBT: adressBT
                 ),
                 // DraggableScrollableSheet(
                 //   initialChildSize: 0.1,

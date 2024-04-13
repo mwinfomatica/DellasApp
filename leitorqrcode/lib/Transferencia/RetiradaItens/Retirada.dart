@@ -116,7 +116,7 @@ class _RetiradaState extends State<Retirada> {
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                    primary: primaryColor,
+                    backgroundColor: primaryColor,
                     textStyle: const TextStyle(fontSize: 20)),
                 onPressed: () {
                   op!.situacao = "2";

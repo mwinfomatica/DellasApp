@@ -72,7 +72,7 @@ class _PrepararArmazenamentoState extends State<PrepararArmazenamento> {
                   },
                   child: Text("Iniciar Armazenamento"),
                   style: ElevatedButton.styleFrom(
-                    primary: primaryColor,
+                    backgroundColor: primaryColor,
                   ),
                 ),
               ),

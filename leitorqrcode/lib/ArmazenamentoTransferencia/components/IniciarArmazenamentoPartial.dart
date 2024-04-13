@@ -37,7 +37,7 @@ class _BotaoIniciarArmazenamentoTransfPartialState
           ),
         ),
         style: ElevatedButton.styleFrom(
-          primary: primaryColor,
+          backgroundColor: primaryColor,
         ),
       ),
     );

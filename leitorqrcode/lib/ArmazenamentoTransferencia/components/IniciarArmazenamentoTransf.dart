@@ -26,7 +26,7 @@ class BotaoIniciarArmazenamentoTransf extends StatelessWidget {
           ),
         ),
         style: ElevatedButton.styleFrom(
-          primary: primaryColor,
+          backgroundColor: primaryColor,
         ),
       ),
     );

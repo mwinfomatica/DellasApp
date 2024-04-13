@@ -1004,7 +1004,7 @@ class _ApuracaoState extends State<Apuracao> {
                                   width: 100,
                                   child: ElevatedButton(
                                       style: ElevatedButton.styleFrom(
-                                          primary: secondary,
+                                          backgroundColor: secondary,
                                           textStyle:
                                               const TextStyle(fontSize: 12)),
                                       onPressed: () {
@@ -1237,12 +1237,12 @@ class _ApuracaoState extends State<Apuracao> {
             bottomSheet: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                if (!prodReadSuccess)
+                if (prodReadSuccess)
                   Container(
                     width: MediaQuery.of(context).size.width * 0.5,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                          primary: primaryColor,
+                          backgroundColor: primaryColor,
                           textStyle: const TextStyle(fontSize: 15)),
                       onPressed: () async {
                         await syncOp(context, false);
@@ -1306,7 +1306,7 @@ class _ApuracaoState extends State<Apuracao> {
                     width: MediaQuery.of(context).size.width * 0.5,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                          primary: primaryColor,
+                          backgroundColor: primaryColor,
                           textStyle: const TextStyle(fontSize: 15)),
                       onPressed: () {
                         setState(() {

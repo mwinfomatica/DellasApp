@@ -1094,7 +1094,7 @@ class _ArmazenamentoTransfState extends State<ArmazenamentoTransf> {
                     width: MediaQuery.of(context).size.width * 0.3,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                          primary: primaryColor,
+                          backgroundColor: primaryColor,
                           textStyle: const TextStyle(fontSize: 15)),
                       onPressed: () async {
                         await syncOp(context, true);
@@ -1117,7 +1117,7 @@ class _ArmazenamentoTransfState extends State<ArmazenamentoTransf> {
                     width: 150,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                          primary: primaryColor,
+                          backgroundColor: primaryColor,
                           textStyle: const TextStyle(fontSize: 15)),
                       onPressed: () {
                         setState(() {

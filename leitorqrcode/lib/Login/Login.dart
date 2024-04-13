@@ -147,7 +147,7 @@ class _LoginDemoState extends State<LoginDemo> {
                             borderRadius: BorderRadius.circular(20)),
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                              primary: primaryColor,
+                              backgroundColor: primaryColor,
                               textStyle: const TextStyle(fontSize: 20)),
                           onPressed: () async {
                             setState(() {

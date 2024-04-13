@@ -37,7 +37,7 @@ class _BotaoIniciarApuracaoPartialState
           ),
         ),
         style: ElevatedButton.styleFrom(
-          primary: primaryColor,
+          backgroundColor: primaryColor,
         ),
       ),
     );

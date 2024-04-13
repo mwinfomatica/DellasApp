@@ -25,7 +25,6 @@ import 'package:leitorqrcode/notaFiscal/components/info_qtde_emb.dart';
 import 'package:leitorqrcode/notaFiscal/selecionarEmbalagem.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:visibility_detector/visibility_detector.dart';
 
 class MontarEmbalagem extends StatefulWidget {
   final RetornoGetCreateEmbalagemModel dadosCreateEmbalagem;
@@ -471,7 +470,7 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
                     Offstage(
                       offstage: true,
                       child: BarcodeKeyboardListener(
-                        bufferDuration: Duration(milliseconds: 50),
+                        bufferDuration: Duration(milliseconds: 500),
                         onBarcodeScanned: (barcode) async {
                           print(barcode);
                           _readCodesM(barcode);
@@ -1168,7 +1167,7 @@ class _MontarEmbalagemState extends State<MontarEmbalagem> {
                   dadosEmbalagem: dadosNotaFiscal!.data,
                   IdPedidoRetiradaCarga: widget.IdPedidoRetiradaCarga),
             ),
-            (route) => true);
+            (route) => false);
       } else {
         Dialogs.showToast(
             context,

@@ -509,7 +509,7 @@ class _DevolucaoOPState extends State<DevolucaoOP> {
                     width: 200,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                          primary: primaryColor,
+                          backgroundColor: primaryColor,
                           textStyle: const TextStyle(fontSize: 20)),
                       onPressed: () async {
                         List<ProdutoModel> notvirtual = listProd
@@ -531,7 +531,7 @@ class _DevolucaoOPState extends State<DevolucaoOP> {
                       width: 200,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                            primary: primaryColor,
+                            backgroundColor: primaryColor,
                             textStyle: const TextStyle(fontSize: 20)),
                         onPressed: () {
                           setState(() {

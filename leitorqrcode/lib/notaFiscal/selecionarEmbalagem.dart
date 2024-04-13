@@ -180,9 +180,13 @@ class _SelecionarEmbalagemState extends State<SelecionarEmbalagem> {
                     ? tableItensNotafiscal()
                     : Center(
                         child: Text(
-                        'Sem embalagens',
-                        style: TextStyle(fontSize: 18.0),
-                      ))
+                          'Sem embalagens',
+                          style: TextStyle(fontSize: 18.0),
+                        ),
+                      ),
+                SizedBox(
+                  height: 10,
+                ),
               ],
             ),
             bottomNavigationBar: BottomBar()),

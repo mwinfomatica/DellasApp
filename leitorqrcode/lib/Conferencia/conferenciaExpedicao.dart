@@ -685,7 +685,7 @@ class _ConferenciaExpedicaoScreenState
                     width: MediaQuery.of(context).size.width * 0.5,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                          primary: primaryColor,
+                          backgroundColor: primaryColor,
                           textStyle: const TextStyle(fontSize: 15)),
                       onPressed: () async {
                         RetornoConfBaixaModel? retorno =
@@ -745,7 +745,7 @@ class _ConferenciaExpedicaoScreenState
                             height: height * 0.1,
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                  primary: primaryColor,
+                                  backgroundColor: primaryColor,
                                   textStyle: const TextStyle(fontSize: 12)),
                               onPressed: () {
                                 showDialog(

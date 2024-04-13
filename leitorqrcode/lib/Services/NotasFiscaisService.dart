@@ -165,9 +165,10 @@ class NotasFiscaisService {
       String idEmbalagem) async {
     try {
       String idUser = await _getIdUser();
+      // baseUrl +
       final Response response = await getClient(context: context).get(
-        Uri.parse(baseUrl +
-            "/ApiCliente/GetEditEmbalagem?IdEmbalagem=$idEmbalagem&IdUsuario=$idUser"),
+        Uri.parse(
+          baseUrl + "/ApiCliente/GetEditEmbalagem?IdEmbalagem=$idEmbalagem&IdUsuario=$idUser"),
         headers: {
           'Content-type': 'application/json',
         },

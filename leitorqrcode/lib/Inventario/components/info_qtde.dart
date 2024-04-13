@@ -44,7 +44,6 @@ class _infoQtdState extends State<infoQtd> {
                   maxLines: 2,
                   text: TextSpan(
                     text: "Inventário \n" + (widget.prodRead.nome ?? ""),
-                    
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 18,
@@ -180,6 +179,7 @@ class _infoQtdState extends State<infoQtd> {
       widget.prodRead.id = new Uuid().v4().toUpperCase();
       widget.prodRead.idOperacao = widget.op.id;
       widget.prodRead.qtd = widget.qtdeProdDialog.text;
+      widget.prodRead.end = widget.endRead;
       widget.listProd.add(widget.prodRead);
       widget.op.prods = widget.listProd;
       await widget.prodRead.insert();
@@ -191,16 +191,22 @@ class _infoQtdState extends State<infoQtd> {
       MovimentacaoModel? movi = new MovimentacaoModel();
 
       movi = listmovi
-          .where((element) => element.idOperacao == widget.op.id)
+          .where((element) =>
+              element.idOperacao == widget.op.id &&
+              element.endereco == widget.endRead &&
+              element.idProduto == widget.prodRead.idproduto)
           .firstOrNull;
       if (movi != null) {
         movi.qtd =
             (int.parse(movi.qtd!) + int.parse(widget.qtdeProdDialog.text))
                 .toString();
-        await movi.updatebyId();
+        await movi.updatebyIdOpProdEnd();
 
         prodsop = widget.op.prods!
-            .where((element) => element.idproduto == widget.produto!.idproduto)
+            .where((element) =>
+                element.idproduto == widget.produto!.idproduto &&
+                element.end != null &&
+                element.end!.toUpperCase() == widget.endRead)
             .firstOrNull;
 
         if (prodsop != null) {
@@ -208,8 +214,10 @@ class _infoQtdState extends State<infoQtd> {
             widget.prodRead.qtd =
                 widget.prodRead.qtd == null ? "1" : widget.prodRead.qtd;
             widget.produto!.qtd = movi!.qtd;
-            prodsop!.qtd = movi!.qtd;
-            widget.produto!.edit(widget.produto!);
+            prodsop!.qtd = movi.qtd;
+            prodsop.end = widget.endRead;
+            widget.prodRead.end = widget.endRead;
+            widget.prodRead.edit(widget.produto!);
           });
         }
       } else {

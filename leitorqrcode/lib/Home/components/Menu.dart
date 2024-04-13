@@ -10,18 +10,25 @@ import 'package:leitorqrcode/Inventario/Inventario_2.dart';
 import 'package:leitorqrcode/Models/APIModels/OperacaoModel.dart';
 import 'package:leitorqrcode/Models/APIModels/ProdutoModel.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoGetEmbalagemListModel.dart';
+import 'package:leitorqrcode/Models/APIModels/RetornoNotasFiscaisModel.dart';
 import 'package:leitorqrcode/QrCoderFirst.dart';
 import 'package:leitorqrcode/Services/NotasFiscaisService.dart';
 import 'package:leitorqrcode/Services/ProdutoService.dart';
 import 'package:leitorqrcode/Shared/Dialog.dart';
 import 'package:leitorqrcode/Transferencia/Transferencias.dart';
+import 'package:leitorqrcode/notaFiscal/selecionarEmbalagem.dart';
 import 'package:leitorqrcode/printer/printer_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MenuHome extends StatelessWidget {
   final double? topPadding;
-  final BlueThermalPrinter bluetooth;
-  MenuHome({Key? key, this.topPadding, required this.bluetooth})
+  // final BlueThermalPrinter bluetooth;
+  final String adressBT;
+  MenuHome(
+      {Key? key,
+      this.topPadding,
+      // required this.bluetooth,
+      required this.adressBT})
       : super(key: key);
 
   Future<String> getIdUser() async {
@@ -180,62 +187,92 @@ class MenuHome extends StatelessWidget {
               ),
             ],
           ),
-          // SizedBox(
-          //   height: 25,
-          // ),
-          // Row(
-          //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          //   children: [
-          //     ButtonHome(
-          //       titulo: "Teste Impressão",
-          //       descricao: "teste impressão",
-          //       icone: Icons.sync_sharp,
-          //       onTap: () async {
-          //         List<EmbalagemPrinter>? listembprint = [];
+//           SizedBox(
+//             height: 25,
+//           ),
+//           Row(
+//             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//             children: [
+//               ButtonHome(
+//                 titulo: "Teste Impressão",
+//                 descricao: "teste impressão",
+//                 icone: Icons.sync_sharp,
+//                 onTap: () async {
+//                RetornoGetEmbalagemListModel retoron =  await _getEmbalagemList(context, '');
+// NotasFiscaisService notasFiscaisService = NotasFiscaisService(context);
+//                      RetornoNotasFiscaisModel? dadosCarga =
+//           await notasFiscaisService.getNotasFiscais('');
+//                   Navigator.push(
+//                     context,
+//                     MaterialPageRoute(
+//                       builder: (BuildContext context) => SelecionarEmbalagem(
+//                         nfeDados: dadosCarga,
+//                         dadosEmbalagem: retoron.data
+//                         IdPedidoRetiradaCarga:,
+//                       ),
+//                     ),
+//                   );
 
-          //         NotasFiscaisService notasFiscaisService =
-          //             NotasFiscaisService(context);
+//                   // List<EmbalagemPrinter>? listembprint = [];
 
-          //         try {
-          //           List<String> idEmbalagens = [
-          //             '0F68C3EE-563A-4CF8-90E7-0D42DCBD343D',
-          //             '6F94A58A-712C-4E6C-9A37-182F7289610C',
-          //             '0F68C3EE-563A-4CF8-90E7-0D42DCBD343D',
-          //             '6F94A58A-712C-4E6C-9A37-182F7289610C',
-          //           ];
+//                   // NotasFiscaisService notasFiscaisService =
+//                   //     NotasFiscaisService(context);
 
-          //           // for (var i = 0; i < widget.dadosEmbalagem.length; i++) {
-          //           //   idEmbalagens.add(widget.dadosEmbalagem[i].idEmbalagem);
-          //           // }
+//                   // try {
+//                   //   List<String> idEmbalagens = [
+//                   //     '0F68C3EE-563A-4CF8-90E7-0D42DCBD343D',
+//                   //     '6F94A58A-712C-4E6C-9A37-182F7289610C',
+//                   //     '0F68C3EE-563A-4CF8-90E7-0D42DCBD343D',
+//                   //     '6F94A58A-712C-4E6C-9A37-182F7289610C',
+//                   //   ];
 
-          //           RetornoGetDadosEmbalagemListModel? rtndadosEmbalagem =
-          //               await notasFiscaisService
-          //                   .getDadosPrinterEmbalagem(idEmbalagens);
+//                   //   // for (var i = 0; i < widget.dadosEmbalagem.length; i++) {
+//                   //   //   idEmbalagens.add(widget.dadosEmbalagem[i].idEmbalagem);
+//                   //   // }
 
-          //           if (rtndadosEmbalagem != null) {
-          //             if (!rtndadosEmbalagem.error) {
-          //               listembprint = rtndadosEmbalagem.data;
-          //             }
-          //           } else {
-          //             return;
-          //           }
-          //         } catch (e) {
-          //           print('Erro ao processar carga: $e');
-          //         }
+//                   //   RetornoGetDadosEmbalagemListModel? rtndadosEmbalagem =
+//                   //       await notasFiscaisService
+//                   //           .getDadosPrinterEmbalagem(idEmbalagens);
 
-          //         await PrinterController().printQrCodeEmbalagem(
-          //           listemb: listembprint ?? [],
-          //           bluetooth: bluetooth,
-          //           context: context,
-          //         );
-          //       },
-          //     ),
-          //   ],
-          // ),
+//                   //   if (rtndadosEmbalagem != null) {
+//                   //     if (!rtndadosEmbalagem.error) {
+//                   //       listembprint = rtndadosEmbalagem.data;
+//                   //     }
+//                   //   } else {
+//                   //     return;
+//                   //   }
+//                   // } catch (e) {
+//                   //   print('Erro ao processar carga: $e');
+//                   // }
+
+//                   // await PrinterController().PrintHeaderItensTeste(
+//                   //   // bluetooth: bluetooth,
+//                   //   context: context,
+//                   //   adressBT: adressBT,
+//                   // );
+//                 },
+//               ),
+//             ],
+//           ),
         ],
       ),
     );
   }
+
+  // Future<RetornoGetEmbalagemListModel> _getEmbalagemList(
+  //     BuildContext context, String idPedido) async {
+  //   NotasFiscaisService notasFiscaisService = NotasFiscaisService(context);
+
+  //   try {
+  //     RetornoGetEmbalagemListModel? rtndadosNotaFiscal =
+  //         await notasFiscaisService.getEmbalagemList(idPedido);
+  //     if (rtndadosNotaFiscal != null) {
+  //       return rtndadosNotaFiscal;
+  //     }
+  //   } catch (e) {
+  //     print('Erro ao processar carga: $e');
+  //   }
+  // }
 
   Future<List<ProdutoModel>> _getProdutosInServer(String idOperacao) async {
     ProdutoService produtoService = new ProdutoService();

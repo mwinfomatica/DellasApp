@@ -903,7 +903,7 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
                     width: 190,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                          primary: primaryColor,
+                          backgroundColor: primaryColor,
                           textStyle: const TextStyle(fontSize: 15)),
                       onPressed: () async {
                         setState(() {
@@ -926,7 +926,7 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
                         // padding: EdgeInsets.fromLTRB(10, 0, 10, ),
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                              primary: primaryColor,
+                              backgroundColor: primaryColor,
                               textStyle: const TextStyle(fontSize: 15)),
                           onPressed: () async {
                             Navigator.pop(context);
@@ -970,7 +970,7 @@ class _RetiradaTransfState extends State<RetiradaTransf> {
                           width: MediaQuery.of(context).size.width * 0.5,
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                                primary: primaryColor,
+                                backgroundColor: primaryColor,
                                 textStyle: const TextStyle(fontSize: 15)),
                             onPressed: () {
                               setState(() {

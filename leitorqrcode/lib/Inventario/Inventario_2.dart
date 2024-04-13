@@ -61,6 +61,8 @@ class _Inventario2State extends State<Inventario2> {
   Timer? temp;
   bool bluetoothDisconect = true;
 
+  bool canDelete = true;
+
   OperacaoModel? op = null;
   String nroContagem = "01";
   List<String> Contagens = [
@@ -353,14 +355,13 @@ class _Inventario2State extends State<Inventario2> {
               listProd = [];
             }
             ProdutoModel? produto = listProd
-                .where(
-                  (element) =>
-                      element.idproduto == prodRead.idproduto &&
-                      element.barcode == prodRead.barcode &&
-                      element.coddum == prodRead.coddum &&
-                      element.idloteunico == prodRead.idloteunico &&
-                      element.lote == prodRead.lote,
-                )
+                .where((element) =>
+                    element.idproduto == prodRead.idproduto &&
+                    element.barcode == prodRead.barcode &&
+                    element.coddum == prodRead.coddum &&
+                    element.idloteunico == prodRead.idloteunico &&
+                    element.lote == prodRead.lote &&
+                    element.end == endRead)
                 .firstOrNull;
 
             if (isOK) {
@@ -938,8 +939,15 @@ class _Inventario2State extends State<Inventario2> {
                                       size: 30,
                                       color: Colors.red,
                                     ),
-                                    onTap: () async => {
-                                      _removeItem(listProd[index], index),
+                                    onTap: () async {
+                                      if (canDelete) {
+                                        canDelete = false;
+
+                                        await _removeItem(
+                                            listProd[index], index);
+
+                                        canDelete = true;
+                                      }
                                     },
                                   ),
                                 )),
@@ -960,7 +968,7 @@ class _Inventario2State extends State<Inventario2> {
                   width: MediaQuery.of(context).size.width * 0.5,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                        primary: primaryColor,
+                        backgroundColor: primaryColor,
                         textStyle: const TextStyle(fontSize: 20)),
                     onPressed: () async {
                       op!.situacao = "3";
@@ -987,7 +995,7 @@ class _Inventario2State extends State<Inventario2> {
                     width: MediaQuery.of(context).size.width * 0.5,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                          primary: primaryColor,
+                          backgroundColor: primaryColor,
                           textStyle: const TextStyle(fontSize: 15)),
                       onPressed: () {
                         setState(() {
@@ -1043,21 +1051,30 @@ class _Inventario2State extends State<Inventario2> {
       listmovi = await new MovimentacaoModel().getAllByoperacao(op!.id!);
       MovimentacaoModel? movi = new MovimentacaoModel();
 
-      movi =
-          listmovi.where((element) => element.idOperacao == op!.id).firstOrNull;
+      movi = listmovi
+          .where((element) =>
+              element.idOperacao == op!.id &&
+              element.endereco == endRead &&
+              element.idProduto == produto.idproduto)
+          .firstOrNull;
       if (movi != null) {
         movi.qtd = (int.parse(movi.qtd!) + int.parse(qtd)).toString();
-        await movi.updatebyId();
+        await movi.updatebyIdOpProdEnd();
 
         prodsop = op!.prods!
-            .where((element) => element.idproduto == produto.idproduto)
+            .where((element) =>
+                element.idproduto == produto.idproduto &&
+                element.end != null &&
+                element.end!.toUpperCase() == endRead)
             .firstOrNull;
 
         if (prodsop != null) {
           setState(() {
             prod.qtd = prod.qtd == null ? "1" : prod.qtd;
             produto.qtd = movi!.qtd;
-            prodsop!.qtd = movi!.qtd;
+            prodsop!.qtd = movi.qtd;
+            prodsop.end = endRead;
+            produto.end = endRead;
             produto.edit(produto);
           });
         }
@@ -1067,32 +1084,75 @@ class _Inventario2State extends State<Inventario2> {
     }
   }
 
-  void _removeItem(ProdutoModel produtoModel, index) async {
-    ProdutoModel produto = listProd.firstWhere(
-        (element) => produtoModel.id == element.id,
-        orElse: () => null as ProdutoModel);
+  Future<void> _removeItem(ProdutoModel produtoModel, index) async {
+    try {
+      List<MovimentacaoModel> listmovi = [];
+      // ProdutoModel? prodsop = new ProdutoModel();
+      MovimentacaoModel? movi = new MovimentacaoModel();
 
-    if (int.parse(produtoModel.qtd!) == 1) {
-      produtoModel.delete(produtoModel.id!);
-      op!.prods!.removeWhere((element) => element.id == produto.id);
+      listmovi = await new MovimentacaoModel().getAllByoperacao(op!.id!);
+
+      if (listmovi != null && listmovi.length > 0) {
+        movi = listmovi
+            .where((element) =>
+                element.idOperacao == op!.id &&
+                element.idProduto == produtoModel.idproduto &&
+                element.endereco == produtoModel.end)
+            .firstOrNull;
+        if (movi != null) {
+          movi.qtd = (int.parse(movi.qtd!) - 1).toString();
+
+          if (int.parse(movi.qtd!) > 0) {
+            movi.updatebyIdOpProdEnd();
+          } else {
+            movi.deleteByIdOpIdProdEnd(
+                movi.idOperacao!, movi.idProduto!, movi.endereco!);
+          }
+        }
+      }
+      if (int.parse(produtoModel.qtd!) == 1) {
+        produtoModel.delete(produtoModel.id!);
+        op!.prods!.removeWhere((element) =>
+            element.id == produtoModel.id && element.end == produtoModel.end);
+      } else {
+        listmovi = await new MovimentacaoModel().getAllByoperacao(op!.id!);
+
+        // prodsop = op!.prods!
+        //     .where((element) =>
+        //         element.idproduto == produtoModel.idproduto &&
+        //         element.end != null &&
+        //         element.end!.toUpperCase() == produtoModel.end)
+        //     .firstOrNull;
+
+        bool removeitem = false;
+        for (var element in listProd
+            .where((e) =>
+                e.idproduto == produtoModel.idproduto &&
+                e.id == produtoModel.id &&
+                e.end == produtoModel.end)
+            .toList()) {
+          element.qtd = movi!.qtd;
+          if (int.parse(element.qtd!) == 0) {
+            removeitem = true;
+          }
+        }
+
+        if (removeitem) {
+          listProd.removeWhere((e) =>
+              e.idproduto == produtoModel.idproduto &&
+              e.id == produtoModel.id &&
+              e.end == produtoModel.end);
+        }
+
+        setState(() {
+          // prodsop!.qtd = (int.parse(produto.qtd!) - 1).toString();
+          produtoModel.edit(produtoModel);
+        });
+      }
       setState(() {});
-    } else {
-      ProdutoModel prodsop = new ProdutoModel();
-      MovimentacaoModel movi = new MovimentacaoModel();
-      movi.getAllByoperacao(op!.id!).then((value) => {
-            movi = value[0],
-            movi.qtd = (int.parse(produto.qtd!) - 1).toString(),
-            movi.updatebyIdOP(),
-            setState(() {
-              produto.qtd = (int.parse(produto.qtd!) - 1).toString();
-            }),
-            produto.edit(produto),
-            prodsop =
-                op!.prods!.where((element) => element.id == produto.id).single,
-            setState(() {
-              prodsop.qtd = produto.qtd;
-            })
-          });
+    } catch (e) {
+      print(e);
+      canDelete = true;
     }
   }
 }
