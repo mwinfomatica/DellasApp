@@ -187,73 +187,58 @@ class MenuHome extends StatelessWidget {
               ),
             ],
           ),
-//           SizedBox(
-//             height: 25,
-//           ),
-//           Row(
-//             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//             children: [
-//               ButtonHome(
-//                 titulo: "Teste Impressão",
-//                 descricao: "teste impressão",
-//                 icone: Icons.sync_sharp,
-//                 onTap: () async {
-//                RetornoGetEmbalagemListModel retoron =  await _getEmbalagemList(context, '');
-// NotasFiscaisService notasFiscaisService = NotasFiscaisService(context);
-//                      RetornoNotasFiscaisModel? dadosCarga =
-//           await notasFiscaisService.getNotasFiscais('');
-//                   Navigator.push(
-//                     context,
-//                     MaterialPageRoute(
-//                       builder: (BuildContext context) => SelecionarEmbalagem(
-//                         nfeDados: dadosCarga,
-//                         dadosEmbalagem: retoron.data
-//                         IdPedidoRetiradaCarga:,
-//                       ),
-//                     ),
-//                   );
+          SizedBox(
+            height: 25,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              ButtonHome(
+                titulo: "Teste Impressão",
+                descricao: "teste impressão",
+                icone: Icons.sync_sharp,
+                onTap: () async {
+                  // List<EmbalagemPrinter>? listembprint = [];
 
-//                   // List<EmbalagemPrinter>? listembprint = [];
+                  // NotasFiscaisService notasFiscaisService =
+                  //     NotasFiscaisService(context);
 
-//                   // NotasFiscaisService notasFiscaisService =
-//                   //     NotasFiscaisService(context);
+                  // try {
+                  //   List<String> idEmbalagens = [
+                  //     '0F68C3EE-563A-4CF8-90E7-0D42DCBD343D',
+                  //     '6F94A58A-712C-4E6C-9A37-182F7289610C',
+                  //     '0F68C3EE-563A-4CF8-90E7-0D42DCBD343D',
+                  //     '6F94A58A-712C-4E6C-9A37-182F7289610C',
+                  //   ];
 
-//                   // try {
-//                   //   List<String> idEmbalagens = [
-//                   //     '0F68C3EE-563A-4CF8-90E7-0D42DCBD343D',
-//                   //     '6F94A58A-712C-4E6C-9A37-182F7289610C',
-//                   //     '0F68C3EE-563A-4CF8-90E7-0D42DCBD343D',
-//                   //     '6F94A58A-712C-4E6C-9A37-182F7289610C',
-//                   //   ];
+                  //   // for (var i = 0; i < widget.dadosEmbalagem.length; i++) {
+                  //   //   idEmbalagens.add(widget.dadosEmbalagem[i].idEmbalagem);
+                  //   // }
 
-//                   //   // for (var i = 0; i < widget.dadosEmbalagem.length; i++) {
-//                   //   //   idEmbalagens.add(widget.dadosEmbalagem[i].idEmbalagem);
-//                   //   // }
+                  //   RetornoGetDadosEmbalagemListModel? rtndadosEmbalagem =
+                  //       await notasFiscaisService
+                  //           .getDadosPrinterEmbalagem(idEmbalagens);
 
-//                   //   RetornoGetDadosEmbalagemListModel? rtndadosEmbalagem =
-//                   //       await notasFiscaisService
-//                   //           .getDadosPrinterEmbalagem(idEmbalagens);
+                  //   if (rtndadosEmbalagem != null) {
+                  //     if (!rtndadosEmbalagem.error) {
+                  //       listembprint = rtndadosEmbalagem.data;
+                  //     }
+                  //   } else {
+                  //     return;
+                  //   }
+                  // } catch (e) {
+                  //   print('Erro ao processar carga: $e');
+                  // }
 
-//                   //   if (rtndadosEmbalagem != null) {
-//                   //     if (!rtndadosEmbalagem.error) {
-//                   //       listembprint = rtndadosEmbalagem.data;
-//                   //     }
-//                   //   } else {
-//                   //     return;
-//                   //   }
-//                   // } catch (e) {
-//                   //   print('Erro ao processar carga: $e');
-//                   // }
-
-//                   // await PrinterController().PrintHeaderItensTeste(
-//                   //   // bluetooth: bluetooth,
-//                   //   context: context,
-//                   //   adressBT: adressBT,
-//                   // );
-//                 },
-//               ),
-//             ],
-//           ),
+                  await PrinterController().PrintHeaderItensTeste(
+                    // bluetooth: bluetooth,
+                    context: context,
+                    adressBT: adressBT,
+                  );
+                },
+              ),
+            ],
+          ),
         ],
       ),
     );

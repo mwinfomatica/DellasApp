@@ -6,7 +6,7 @@ import 'package:leitorqrcode/Models/APIModels/RetornoGetEmbalagemListModel.dart'
 // import 'package:leitorqrcode/Services/NotasFiscaisService.dart';
 import 'package:leitorqrcode/Shared/Dialog.dart';
 import 'package:leitorqrcode/printer/printer_helper.dart';
-// import 'package:posprinter_flutter/posprinter_flutter.dart';
+import 'package:posprinter_flutter/posprinter_flutter.dart';
 
 class PrinterController {
   int nLinhaAtual = 0;
@@ -88,26 +88,108 @@ class PrinterController {
     nLinhaAtual++;
   }
 
-  // Future<void> PrintHeaderItensTeste(
-  //     {BuildContext? context, required String adressBT}) async {
-  //   final _posprint = PosprinterFlutter();
+  Future<void> PrintHeaderItensTeste(
+      {BuildContext? context, required String adressBT}) async {
+    final _posprint = PosprinterFlutter();
 
-  //   String? rtn = await _posprint.getPlatformVersion();
-  //   String? retorno = "";
+    String? rtn = await _posprint.getPlatformVersion();
+    String? retorno = "Connected";
 
-  //   try {
-  //     retorno = await _posprint.connectBluetoothPrinter("DC:0D:30:E0:43:C8");
-  //   } catch (e) {
-  //     print(e);
-  //   }
-  //   try {
-  //     String strPrint = "^XA  ^FO50,60^A0,40^FDTESTE Impressão ^FS  ^FO60,120^BY3^BCN,60,,,,A^FDTESTE^FS  ^FO25,25^GB380,200,2^FS  ^XZ";
+    int tentativa = 0;
 
-  //     retorno = await _posprint.printQR(strPrint);
-  //   } catch (e) {
-  //     print(e);
-  //   }
-  // }
+    try {
+      while (retorno != "Connected" && tentativa <= 3) {
+        retorno = await _posprint.connectBluetoothPrinter("DC:0D:30:E0:43:C8");
+        tentativa++;
+      }
+
+      if (retorno == "Connected") {
+        try {
+          List<String> ListstrPrint = [];
+
+          // ' \n \n \n  \n  \n  \n  \n ^FO250,140^FD(FUNCIONARIO)^FS \n ^FO250,175^FDEnd: RUA BARAO DA BOA ESPERANCA, 1514^FS \n ^FO250,200^FD- STA TEREZINHA,TRES PONTAS - MG^FS \n ^FO250,235^FD^FS \n ^FO1,250^GB795,3,3^FS \n ^XZ';
+
+          //Comando de INICIO
+          ListstrPrint.add("^XA");
+          ListstrPrint.add("^CF0,30");
+          ListstrPrint.add('^FO175,10^FDDELLAS - COMERCIO E TRANSPORTES^FS');
+
+          ListstrPrint.add(
+              '^FO10,85^BY2,2.0,5^BQN,2,7^FDMA"{{"id":"123124-14214-21412414-14124", "Embalagem":"S"}^FS');
+          ListstrPrint.add("^CF0,20");
+          ListstrPrint.add("^FO250,90^FDCarga: 092203^FS");
+          ListstrPrint.add("^FO250,115^FDNota Fiscal: 073585 / Serie: 010^FS");
+          ListstrPrint.add("^FO250,140^FDEmbalagem: 0001^FS");
+          ListstrPrint.add(
+              "^FO250,165^FDCliente: NICOLAS ALVES RIBEIRO (FUNCIONARIO)^FS");
+          ListstrPrint.add(
+              "^FO250,190^FDEnd: RUA BARAO DA BOA ESPERANCA, 1514 - STA TEREZINHA,^FS");
+          ListstrPrint.add("^FO250,210^FDTRES PONTAS - MG^FS");
+
+          //Linha
+          ListstrPrint.add("^FO1,330^GB795,3,3^FS");
+          ListstrPrint.add("^CF0,25");
+
+          //CABEÇALHO ITENS
+          ListstrPrint.add("^FO300,340^FDITENS DA EMBALAGEM^FS");
+
+          //Linha
+          ListstrPrint.add("^FO1,365^GB795,4,3^FS");
+          ListstrPrint.add("^CF0,20");
+          int posicao = 375;
+          for (var i = 0; i < 26; i++) {
+            ListstrPrint.add("^FO1," +
+                posicao.toString() +
+                "^FDWA9-MULTI 11/16 - PNEU-BRIG 255/40R17 94W  POTENZA RE050A I RFT  RSC^FS^FO695," +
+                posicao.toString() +
+                "^FDQTDE: 9999^FS");
+
+            posicao += 20;
+
+            if (posicao > 775) {
+              ListstrPrint.add("^XZ");
+              ListstrPrint.add("^XA");
+              ListstrPrint.add("^CF0,30");
+
+              ListstrPrint.add(
+                  '^FO175,10^FDDELLAS - COMERCIO E TRANSPORTES^FS');
+              ListstrPrint.add("^CF0,20");
+
+              //Linha
+              ListstrPrint.add("^FO1,85^GB795,4,3^FS");
+              ListstrPrint.add("^CF0,25");
+
+              //CABEÇALHO ITENS
+              ListstrPrint.add("^FO300,100^FDITENS DA EMBALAGEM^FS");
+
+              //Linha
+              ListstrPrint.add("^FO1,125^GB795,4,3^FS");
+              ListstrPrint.add("^CF0,20");
+
+              posicao = 145;
+            }
+          }
+
+          //Comando de FIM
+          ListstrPrint.add("^XZ");
+
+          Map<String, dynamic> opt = {"direction": "I"};
+
+          String printEtq = "";
+
+          for (var i = 0; i < ListstrPrint.length; i++) {
+            printEtq = printEtq + " " + ListstrPrint[i];
+          }
+
+          retorno = await _posprint.printText(printEtq, optionalParams: opt);
+        } catch (e) {
+          print(e);
+        }
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
 
   void _printHeaderInfo(
       {required BlueThermalPrinter bluetooth,

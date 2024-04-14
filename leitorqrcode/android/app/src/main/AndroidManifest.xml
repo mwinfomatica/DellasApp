@@ -17,7 +17,7 @@
         android:usesCleartextTraffic="true" 
         android:icon="@mipmap/ic_launcher">
 
-        <!-- <service android:name="net.posprinter.service.PosprinterService" /> -->
+        <service android:name="net.posprinter.service.PosprinterService" />
 
         <activity
             android:name=".MainActivity"

@@ -36,8 +36,8 @@ dependencies:
   blue_thermal_printer: ^1.2.3
   collection: ^1.18.0
 
-  # posprinter_flutter:
-  #  path: ../../posprinter_flutter-main/posprinter_flutter-main
+  posprinter_flutter:
+   path: ../../posprinter_flutter-main/posprinter_flutter-main
   
 dev_dependencies:
   flutter_test:
