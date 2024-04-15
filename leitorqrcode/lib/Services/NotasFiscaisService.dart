@@ -274,7 +274,7 @@ class NotasFiscaisService {
     }
   }
 
-  Future<RetornoGetDadosEmbalagemListModel?> getDadosPrinterEmbalagem(
+  Future<RetornoBaseModel?> getDadosPrinterEmbalagem(
       List<String> idEmbalagem) async {
     try {
       Uri uri = Uri(
@@ -293,14 +293,14 @@ class NotasFiscaisService {
         },
       );
 
-      RetornoGetDadosEmbalagemListModel respostaCarga =
-          RetornoGetDadosEmbalagemListModel.fromJson(jsonDecode(response.body));
+      RetornoBaseModel respostaCarga =
+          RetornoBaseModel.fromJson(jsonDecode(response.body));
 
-      if (respostaCarga.error) {
-        Dialogs.showToast(context, respostaCarga.message, bgColor: Colors.red);
+      if (respostaCarga.error!) {
+        Dialogs.showToast(context, respostaCarga.message ?? "-", bgColor: Colors.red);
         return null;
       } else {
-        if (respostaCarga.data == null || respostaCarga.data.length == 0) {
+        if (respostaCarga.data == null || respostaCarga.data.toString().length == 0) {
           Dialogs.showToast(context, "Não há Etiquetas para ser impressa.",
               bgColor: Colors.orange[400], duration: Duration(seconds: 2));
 

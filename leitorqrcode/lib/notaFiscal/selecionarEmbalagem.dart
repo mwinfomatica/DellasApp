@@ -16,6 +16,7 @@ import 'package:leitorqrcode/notaFiscal/montarEmbalagem.dart';
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:leitorqrcode/notaFiscal/selecionarNotaFiscal.dart';
 import 'package:leitorqrcode/printer/printer_controller.dart';
+import 'package:posprinter_flutter/posprinter_flutter.dart';
 
 class SelecionarEmbalagem extends StatefulWidget {
   final List<EmbalagemData> dadosEmbalagem;
@@ -39,6 +40,9 @@ class _SelecionarEmbalagemState extends State<SelecionarEmbalagem> {
   BlueThermalPrinter bluetooth = BlueThermalPrinter.instance;
   bool bluetoothConnected = false;
   RetornoGetCreateEmbalagemModel? dadosRetornoCreateEmbalagem;
+  PosprinterFlutter _posprint = PosprinterFlutter();
+
+  String? printAdress = "";
 
   Future<void> _initValidationPrinter() async {
     List<BluetoothDevice> devices = [];
@@ -65,7 +69,27 @@ class _SelecionarEmbalagemState extends State<SelecionarEmbalagem> {
 
     for (var i = 0; i < devices.length; i++) {
       if (devices[i].name!.trim().toUpperCase().contains("4B-2044PA")) {
-        _connect(devices[i]);
+        // _connect(devices[i]);
+
+        try {
+          printAdress = await contextoServices.getPrinter();
+        } catch (e) {}
+
+        if (printAdress == null || printAdress == "") {
+          printAdress = devices[i].address ?? "";
+          String? retorno = "";
+          int tentativa = 0;
+
+          while (retorno != "Connected" && tentativa <= 3) {
+            //"DC:0D:30:E0:43:C8"
+            retorno = await _posprint.connectBluetoothPrinter(printAdress!);
+            tentativa++;
+          }
+          if (retorno == "Connected") {
+            await contextoServices.savePrinter(printAdress!);
+          }
+        }
+
         break;
       }
     }
@@ -255,6 +279,7 @@ class _SelecionarEmbalagemState extends State<SelecionarEmbalagem> {
     List<EmbalagemPrinter>? listembprint = [];
 
     NotasFiscaisService notasFiscaisService = NotasFiscaisService(context);
+    String cmdZPL = "";
 
     try {
       List<String> idEmbalagens = [];
@@ -263,12 +288,12 @@ class _SelecionarEmbalagemState extends State<SelecionarEmbalagem> {
         idEmbalagens.add(widget.dadosEmbalagem[i].idEmbalagem);
       }
 
-      RetornoGetDadosEmbalagemListModel? rtndadosEmbalagem =
+      RetornoBaseModel? rtndadosEmbalagem =
           await notasFiscaisService.getDadosPrinterEmbalagem(idEmbalagens);
 
       if (rtndadosEmbalagem != null) {
-        if (!rtndadosEmbalagem.error) {
-          listembprint = rtndadosEmbalagem.data;
+        if (!rtndadosEmbalagem.error!) {
+          cmdZPL = rtndadosEmbalagem.data.toString();
         }
       } else {
         return;
@@ -276,23 +301,20 @@ class _SelecionarEmbalagemState extends State<SelecionarEmbalagem> {
     } catch (e) {
       print('Erro ao processar carga: $e');
     }
-
     await _initValidationPrinter();
 
-    bool isOk = await PrinterController().printQrCodeEmbalagem(
-      listemb: listembprint ?? [],
-      bluetooth: bluetooth,
+    bool isOk = await PrinterController().PrintZPL(
+      cmdZPL: cmdZPL,
+      posprint: _posprint,
       context: context,
     );
 
     if (isOk) {
-      if (listembprint != null) {
-        for (var i = 0; i < listembprint.length; i++) {
-          RetornoBaseModel? retorno = await notasFiscaisService
-              .atualizaStatusEmbalagem(listembprint[i].id, 5);
-          if (retorno != null) {
-            if (!retorno.error!) {}
-          }
+      for (var i = 0; i < widget.dadosEmbalagem.length; i++) {
+        RetornoBaseModel? retorno = await notasFiscaisService
+            .atualizaStatusEmbalagem(widget.dadosEmbalagem[i].idEmbalagem, 5);
+        if (retorno != null) {
+          if (!retorno.error!) {}
         }
       }
     }

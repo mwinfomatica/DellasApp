@@ -19,7 +19,7 @@ class BottomBar extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(1.0),
               child: Text(
-                "Version 1.0.6",
+                "Version 1.1.0",
                 style: TextStyle(color: Colors.black, fontSize: 10),
               ),
             ),

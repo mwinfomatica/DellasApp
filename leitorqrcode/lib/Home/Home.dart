@@ -59,7 +59,7 @@ class _HomeScreenState extends State<HomeScreen> {
     for (var i = 0; i < devices.length; i++) {
       if (devices[i].name!.trim().toUpperCase().contains("4B-2044PA")) {
         adressBT = devices[i].address ?? "";
-        _connect(devices[i]);
+      
         break;
       }
     }
@@ -84,7 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     getListOP();
-    // _initValidationPrinter();
+     _initValidationPrinter();
     super.initState();
   }
 

@@ -9,6 +9,7 @@ import 'package:leitorqrcode/Inventario/Inventario.dart';
 import 'package:leitorqrcode/Inventario/Inventario_2.dart';
 import 'package:leitorqrcode/Models/APIModels/OperacaoModel.dart';
 import 'package:leitorqrcode/Models/APIModels/ProdutoModel.dart';
+import 'package:leitorqrcode/Models/APIModels/RetornoBase.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoGetEmbalagemListModel.dart';
 import 'package:leitorqrcode/Models/APIModels/RetornoNotasFiscaisModel.dart';
 import 'package:leitorqrcode/QrCoderFirst.dart';
@@ -198,42 +199,42 @@ class MenuHome extends StatelessWidget {
                 descricao: "teste impressão",
                 icone: Icons.sync_sharp,
                 onTap: () async {
-                  // List<EmbalagemPrinter>? listembprint = [];
+                  List<EmbalagemPrinter>? listembprint = [];
+                  String cmdZPL = "";
 
-                  // NotasFiscaisService notasFiscaisService =
-                  //     NotasFiscaisService(context);
+                  NotasFiscaisService notasFiscaisService =
+                      NotasFiscaisService(context);
 
-                  // try {
-                  //   List<String> idEmbalagens = [
-                  //     '0F68C3EE-563A-4CF8-90E7-0D42DCBD343D',
-                  //     '6F94A58A-712C-4E6C-9A37-182F7289610C',
-                  //     '0F68C3EE-563A-4CF8-90E7-0D42DCBD343D',
-                  //     '6F94A58A-712C-4E6C-9A37-182F7289610C',
-                  //   ];
+                  try {
+                    List<String> idEmbalagens = [
+                      '0F68C3EE-563A-4CF8-90E7-0D42DCBD343D',
+                      '6F94A58A-712C-4E6C-9A37-182F7289610C',
+                    ];
 
-                  //   // for (var i = 0; i < widget.dadosEmbalagem.length; i++) {
-                  //   //   idEmbalagens.add(widget.dadosEmbalagem[i].idEmbalagem);
-                  //   // }
+                    // for (var i = 0; i < widget.dadosEmbalagem.length; i++) {
+                    //   idEmbalagens.add(widget.dadosEmbalagem[i].idEmbalagem);
+                    // }
 
-                  //   RetornoGetDadosEmbalagemListModel? rtndadosEmbalagem =
-                  //       await notasFiscaisService
-                  //           .getDadosPrinterEmbalagem(idEmbalagens);
+                    RetornoBaseModel? rtndadosEmbalagem =
+                        await notasFiscaisService
+                            .getDadosPrinterEmbalagem(idEmbalagens);
 
-                  //   if (rtndadosEmbalagem != null) {
-                  //     if (!rtndadosEmbalagem.error) {
-                  //       listembprint = rtndadosEmbalagem.data;
-                  //     }
-                  //   } else {
-                  //     return;
-                  //   }
-                  // } catch (e) {
-                  //   print('Erro ao processar carga: $e');
-                  // }
+                    if (rtndadosEmbalagem != null) {
+                      if (!rtndadosEmbalagem.error!) {
+                        cmdZPL = rtndadosEmbalagem.data.toString();
+                      }
+                    } else {
+                      return;
+                    }
+                  } catch (e) {
+                    print('Erro ao processar carga: $e');
+                  }
 
                   await PrinterController().PrintHeaderItensTeste(
                     // bluetooth: bluetooth,
                     context: context,
                     adressBT: adressBT,
+                    cmdZPL: cmdZPL,
                   );
                 },
               ),

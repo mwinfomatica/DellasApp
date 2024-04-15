@@ -81,6 +81,17 @@ class ContextoServices {
     sharedPreference.setString('IdUser', user.codigo!);
   }
 
+   Future<void> savePrinter(String adress) async {
+    SharedPreferences sharedPreference = await SharedPreferences.getInstance();
+    sharedPreference.setString('printer', adress);
+  }
+
+  Future<String?> getPrinter() async {
+    SharedPreferences sharedPreference = await SharedPreferences.getInstance();
+    String? adress = sharedPreference.getString('printer')!;
+    return adress;
+  }
+
   Future<String> getIdUserLogged() async {
     SharedPreferences sharedPreference = await SharedPreferences.getInstance();
     String id = sharedPreference.getString('IdUser')!;
